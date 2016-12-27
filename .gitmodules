@@ -1,0 +1,3 @@
+[submodule "htsbox"]
+	path = htsbox
+	url = https://github.com/lh3/htsbox.git

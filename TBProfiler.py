@@ -16,6 +16,7 @@ sambamba = scriptDir+"/bin/sambamba"
 dr_bed_file = scriptDir+"/dr.bed"
 ref_dir = scriptDir+"/ref"
 ref_file = ref_dir+"/MTB-h37rv_asm19595v2-eg18.fa"
+ref_annotation = ref_dir+"/MTB-h37rv_asm19595v2-eg18.tab.ann.gz"
 ################### Functions ####################
 
 def index_file(infile):
@@ -30,7 +31,7 @@ def index_file(infile):
 
 def load_ann(bed_name):
 	ann_dict = defaultdict(dict)
-	annCMD = "%s ~/refgenome/MTB-h37rv_asm19595v2-eg18.tab.ann.gz -R %s" % (tabix,bed_name)
+	annCMD = "%s %s -R %s" % (tabix,ref_annotation,bed_name)
 	annPIPE = subprocess.Popen(annCMD,shell=True,stdout=subprocess.PIPE)
 	for l in annPIPE.stdout:
 		arr = l.rstrip().split()
@@ -162,6 +163,7 @@ def main_run_pipeline(args):
 	base_calls = getCalls(pileup_file,args.min_cov,args.read_frac)
 	dr_calls,missing_calls = calls2variants(args.prefix,base_calls)	
 	annotate_calls(args.prefix,dr_calls)
+	print missing_calls
 	if args.clean:
 		cleanup(args.prefix)
 ####################### Argument Parser ###########################
