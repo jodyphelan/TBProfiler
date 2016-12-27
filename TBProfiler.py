@@ -19,6 +19,21 @@ ref_file = ref_dir+"/MTB-h37rv_asm19595v2-eg18.fa"
 ref_annotation = ref_dir+"/MTB-h37rv_asm19595v2-eg18.tab.ann.gz"
 ################### Functions ####################
 
+def check_files(r1,r2):
+	programs = {"tabix":tabix,"bgzip":bgzip,"sambamba":sambamba,"snap":snap,"htsbox":htsbox}
+	for p in programs:
+		if not os.path.isfile(programs[p]):
+			print "Can't find %s" % p
+			quit()
+	if not os.path.isfile(r1):
+		print "Can't find %s" % r1
+		quit()
+	if r2:
+		if not os.path.isfile(r2):
+			print "Can't find %s" % r2
+			quit()
+
+
 def index_file(infile):
 	import os
 	import subprocess
@@ -63,7 +78,8 @@ def doPileup(prefix):
 	cmd_pileup = "%s pileup -f %s %s.bam | %s -c > %s.pileup.gz" % (htsbox,ref_file,prefix,bgzip,prefix)
 	subprocess.call(cmd_pileup,shell=True)
 
-def getCalls(pileup_file,min_cov,read_frac):
+def getCalls(prefix,min_cov,read_frac):
+	pileup_file = prefix+".pileup.gz"
 	base_calls = defaultdict(lambda : defaultdict(dict))
 	index_file(pileup_file)
 	for l in open(dr_bed_file):
@@ -157,10 +173,10 @@ def cleanup(prefix):
 ################ Main functions ##################
 
 def main_run_pipeline(args):
-	pileup_file = args.prefix+".pileup.gz"
+	check_files(args.read1,args.read2)
 	doMapping(args.read1,args.read2,args.threads,args.prefix)		
 	doPileup(args.prefix)
-	base_calls = getCalls(pileup_file,args.min_cov,args.read_frac)
+	base_calls = getCalls(prefix,args.min_cov,args.read_frac)
 	dr_calls,missing_calls = calls2variants(args.prefix,base_calls)	
 	annotate_calls(args.prefix,dr_calls)
 	print missing_calls
