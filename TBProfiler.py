@@ -25,6 +25,10 @@ def check_files(r1,r2):
 		if not os.path.isfile(programs[p]):
 			print "Can't find %s" % p
 			quit()
+	if not r1:
+		print "Please provide at least one read file"
+		quit()
+
 	if not os.path.isfile(r1):
 		print "Can't find %s" % r1
 		quit()
@@ -71,7 +75,7 @@ def doMapping(r1,r2,threads,prefix):
 	if r2:
 		cmd_mapping = "%s paired %s -compressedFastq %s %s -t %s -o -bam - | %s sort /dev/stdin -o %s.bam -t %s" % (snap,ref_dir,r1,r2,threads,sambamba,prefix,threads)
 	else:
-		cmd_mapping = "%s paired %s -compressedFastq %s -t %s -o -bam - | %s sort /dev/stdin -o %s.bam -t %s" % (snap,ref_dir,r1,threads,sambamba,prefix,threads)
+		cmd_mapping = "%s single %s -compressedFastq %s -t %s -o -bam - | %s sort /dev/stdin -o %s.bam -t %s" % (snap,ref_dir,r1,threads,sambamba,prefix,threads)
 	subprocess.call(cmd_mapping,shell=True)
 
 def doPileup(prefix):
@@ -191,7 +195,7 @@ subparsers = parser.add_subparsers(help="Task to perform")
 parser_sub = subparsers.add_parser('sv', help='Generate raw unfiltered matrix', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_sub.add_argument('--read1','-1',help='First read file [required]')
 parser_sub.add_argument('--read2','-2',help='Second read file')
-parser_sub.add_argument('--prefix','-p',help='Sample prefix [required]')
+parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
 parser_sub.add_argument('--min_cov','-c',type=int,default=10,help='Minimum coverage required')
 parser_sub.add_argument('--read_frac','-f',type=float,default=0.7,help='Minimum fraction of total reads to call allele')
 parser_sub.add_argument('--threads','-t',default="1",help='Threads')
