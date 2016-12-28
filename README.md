@@ -16,9 +16,24 @@ echo "export PATH=\$PATH:$PWD" >> ~/.bashrc
 
 #### Usage
 
-The first argument indicates the analysis type to perform. At the moment we currently only support the calling of small variants using ```sv```.
-Quick start to look for small variations (SNPs and small INDELs) potentially causing drug resistance:
+The first argument indicates the analysis type to perform. At the moment we currently only support the calling of small variants using ```sv``` or the detection of large deletions using ```del```.
+###### Quick start 
+Run whole pipeline:
 ```
-tb-profiler sv -1 /path/to/reads_1.fastq.gz -2/path/to/reads_2.fastq.gz -p prefix
+tb-profiler full -1 /path/to/reads_1.fastq.gz -2 /path/to/reads_2.fastq.gz -p prefix
+```
+
+###### Step by Step
+Map reads and perform pileup:
+```
+tb-profiler mapping -1 /path/to/reads_1.fastq.gz -2 /path/to/reads_2.fastq.gz -p prefix
+``` 
+Look for small variations (SNPs and small INDELs) potentially causing drug resistance:
+```
+tb-profiler sv -p prefix
+```
+Look for large deletions 
+```
+tb-profiler del -p prefix
 ```
 

@@ -216,6 +216,10 @@ def cleanup(prefix):
 	subprocess.call(cmd_clean,shell=True)
 
 ################ Main functions ##################
+def main_mapping(args):
+	check_files(args.read1,args.read2)
+	doMapping(args.read1,args.read2,args.threads,args.prefix)
+	doPileup(args.prefix)
 
 def main_run_pipeline(args):
 	check_files(args.read1,args.read2)
@@ -224,8 +228,16 @@ def main_run_pipeline(args):
 	base_calls = getCalls(args.prefix,args.min_cov,args.read_frac)
 	dr_calls,missing_calls = calls2variants(args.prefix,base_calls)	
 	annotate_calls(args.prefix,dr_calls)
+	big_dels = large_dels(args.prefix)
 	if args.clean:
 		cleanup(args.prefix)
+def main_sv(args):
+	if not os.path.isfile(args.prefix+".pileup.gz"):
+		print "Can't find %s" % args.prefix+".pileup.gz"
+		quit()
+	base_calls = getCalls(args.prefix,args.min_cov,args.read_frac)
+	dr_calls,missing_calls = calls2variants(args.prefix,base_calls)	
+	annotate_calls(args.prefix,dr_calls)
 
 def main_dels(args):
 	if not os.path.isfile(args.prefix+".pileup.gz"):
@@ -238,8 +250,21 @@ def main_dels(args):
 parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 subparsers = parser.add_subparsers(help="Task to perform")
 
+parser_sub = subparsers.add_parser('mapping', help='Look for Small Variants causing drug resistance', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub.add_argument('--read1','-1',help='First read file [required]')
+parser_sub.add_argument('--read2','-2',help='Second read file')
+parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
+parser_sub.add_argument('--threads','-t',default="1",help='Threads')
+parser_sub.set_defaults(func=main_mapping)
 
 parser_sub = subparsers.add_parser('sv', help='Look for Small Variants causing drug resistance', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
+parser_sub.add_argument('--min_cov','-c',type=int,default=10,help='Minimum coverage required')
+parser_sub.add_argument('--read_frac','-f',type=float,default=0.7,help='Minimum fraction of total reads to call allele')
+parser_sub.add_argument('--threads','-t',default="1",help='Threads')
+parser_sub.set_defaults(func=main_sv)
+
+parser_sub = subparsers.add_parser('full', help='Look for Small Variants causing drug resistance', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_sub.add_argument('--read1','-1',help='First read file [required]')
 parser_sub.add_argument('--read2','-2',help='Second read file')
 parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
