@@ -5,7 +5,7 @@ The pipeline aligns reads to the H37Rv reference using SNAP and then looks at th
 
 
 
-#### Installation
+### Installation
 
 ```
 git clone --recursive https://github.com/jodyphelan/TBProfiler.git
@@ -14,16 +14,16 @@ bash install_prerequisites.sh
 echo "export PATH=\$PATH:$PWD" >> ~/.bashrc
 ```
 
-#### Usage
+### Usage
 
 The first argument indicates the analysis type to perform. At the moment we currently only support the calling of small variants using ```sv``` or the detection of large deletions using ```del```.
-###### Quick start 
+#### Quick start 
 Run whole pipeline:
 ```
 tb-profiler full -1 /path/to/reads_1.fastq.gz -2 /path/to/reads_2.fastq.gz -p prefix
 ```
 
-###### Step by Step
+#### Step by Step
 Map reads and perform pileup:
 ```
 tb-profiler mapping -1 /path/to/reads_1.fastq.gz -2 /path/to/reads_2.fastq.gz -p prefix
