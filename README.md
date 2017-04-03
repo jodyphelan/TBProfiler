@@ -14,6 +14,10 @@ bash install_prerequisites.sh
 echo "export PATH=\$PATH:$PWD" >> ~/.bashrc
 ```
 
+For OSX use:
+```
+bash osX_install_prerequisites.sh
+```
 ### Usage
 
 The first argument indicates the analysis type to perform. At the moment we currently only support the calling of small variants using ```sv``` or the detection of large deletions using ```del```.
