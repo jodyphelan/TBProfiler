@@ -15,3 +15,5 @@ tar -xvf sambamba_v0.6.6_osx.tar.bz2
 mv sambamba_v0.6.6 bin/sambamba
 wget http://pathogenseq.lshtm.ac.uk/downloads/TBProfilerFiles.tgz
 tar -xvf TBProfilerFiles.tgz
+./bin/snap-aligner index ref/MTB-h37rv_asm19595v2-eg18.fa ref/
+echo "mac">arch.txt

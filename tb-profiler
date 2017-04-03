@@ -15,10 +15,15 @@ snap = scriptDir+"/bin/snap-aligner"
 htsbox = scriptDir+"/bin/htsbox"
 sambamba = scriptDir+"/bin/sambamba"
 dr_bed_file = scriptDir+"/dr.bed"
+genes_bed_file = scriptDir+"/genes.bed"
 ref_dir = scriptDir+"/ref"
 ref_file = ref_dir+"/MTB-h37rv_asm19595v2-eg18.fa"
 ref_annotation = ref_dir+"/MTB-h37rv_asm19595v2-eg18.tab.ann.gz"
+
 ################### Functions ####################
+
+arch = open(scriptDir+"/arch.txt").readline().rstrip()
+FNULL = open("/dev/null","w")
 
 def check_files(r1,r2):
 	programs = {"tabix":tabix,"bgzip":bgzip,"sambamba":sambamba,"snap":snap,"htsbox":htsbox}
@@ -73,11 +78,19 @@ def load_bed(bed_name):
 	return temp_bed
 
 def doMapping(r1,r2,threads,prefix):
-	if r2:
-		cmd_mapping = "%s paired %s -compressedFastq %s %s -t %s -o -bam - | %s sort /dev/stdin -o %s.bam -t %s" % (snap,ref_dir,r1,r2,threads,sambamba,prefix,threads)
-	else:
-		cmd_mapping = "%s single %s -compressedFastq %s -t %s -o -bam - | %s sort /dev/stdin -o %s.bam -t %s" % (snap,ref_dir,r1,threads,sambamba,prefix,threads)
-	subprocess.call(cmd_mapping,shell=True)
+	if arch=="linux":
+		if r2:
+			cmd_mapping = "%s paired %s -compressedFastq %s %s -t %s -o -bam - | %s sort /dev/stdin -o %s.bam -t %s" % (snap,ref_dir,r1,r2,threads,sambamba,prefix,threads)
+		else:
+			cmd_mapping = "%s single %s -compressedFastq %s -t %s -o -bam - | %s sort /dev/stdin -o %s.bam -t %s" % (snap,ref_dir,r1,threads,sambamba,prefix,threads)
+	elif arch=="mac":
+		if threads=="1":
+			threads="2"
+		if r2:
+			cmd_mapping = "%s paired %s %s %s -t %s -o %s.unsort.bam; %s sort %s.unsort.bam -o %s.bam -t %s" % (snap,ref_dir,r1,r2,threads,prefix,sambamba,prefix,prefix,threads)
+		else:
+			cmd_mapping = "%s paired %s %s -t %s -o %s.unsort.bam; %s sort %s.unsort.bam -o %s.bam -t %s" % (snap,ref_dir,r1,threads,prefix,sambamba,prefix,prefix,threads)
+	subprocess.call(cmd_mapping,shell=True,stderr=FNULL,stdout=FNULL)
 
 def doPileup(prefix):
 	cmd_pileup = "%s pileup -f %s %s.bam | %s -c > %s.pileup.gz" % (htsbox,ref_file,prefix,bgzip,prefix)
@@ -129,17 +142,23 @@ def calls2variants(prefix,base_calls):
 	temp_bed = prefix+"_temp.bed"
 	dr_calls = defaultdict(list)
 	missing_calls = []
+	bedlines = 0
 	with open(temp_bed,"w") as o:
 		for chrom in sorted(base_calls):
 			for pos in [str(y) for y in sorted([int(x) for x in base_calls[chrom]])]:
 				if base_calls[chrom][pos]!="ref":
 					obj = {"chr":chrom,"pos":pos,"alt":base_calls[chrom][pos],"drugs":dr_dict[chrom][pos]}
 					if base_calls[chrom][pos]!="NA":
+						bedlines+=1
 						o.write("%s\t%s\t%s\n" % (chrom,int(pos)-1,pos))
 						for d in dr_dict[chrom][pos]:
 							dr_calls[d].append(obj)
 					elif base_calls[chrom][pos]=="NA":
 						missing_calls.append(obj)
+
+		if bedlines==0:
+			o.write("Chromosome\t1\t2\n")
+
 	return dr_calls,missing_calls
 
 
@@ -169,7 +188,9 @@ def annotate_calls(prefix,dr_calls):
 				change=ref_nt+gene_pos+alt_nt
 			temp_res += "SNP\t%s" % change
 			final_results.append(temp_res)
-	print "\n".join(final_results)
+	
+	if len(final_results)>0:
+		print "\n".join(final_results)
 	open(prefix+".results.txt","w").write("\n".join(final_results))
 
 def load_gene_bed(bed_file):
@@ -184,10 +205,10 @@ def load_gene_bed(bed_file):
 	return gene_bed,gene_cov
 
 def large_dels(prefix):
-	gene_bed,gene_cov = load_gene_bed("genes.bed")
+	gene_bed,gene_cov = load_gene_bed(genes_bed_file)
 
 	pileup_file = prefix+".pileup.gz"
-	genes_bed_file = "genes.bed"
+
 	cmd_tabix = "%s %s -R %s" % (tabix,pileup_file,genes_bed_file)
 	tabix_out = subprocess.Popen(cmd_tabix,shell=True,stdout=subprocess.PIPE)
 	for l in tabix_out.stdout:

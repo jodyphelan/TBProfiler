@@ -16,3 +16,4 @@ tar -xvf sambamba_v0.6.5_linux.tar.bz2
 mv sambamba_v0.6.5 bin/sambamba
 wget http://pathogenseq.lshtm.ac.uk/downloads/TBProfilerFiles.tgz
 tar -xvf TBProfilerFiles.tgz
+echo "linux" > arch.txt
