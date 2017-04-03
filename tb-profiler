@@ -234,6 +234,8 @@ def large_dels(prefix):
 
 def cleanup(prefix):
 	cmd_clean = "rm %s.bam* %s.pileup* %s_temp.bed" % (prefix,prefix,prefix)
+	if arch=="mac":
+		cmd_clean = "rm %s.bam* %s.pileup* %s_temp.bed %s.unsort.bam" % (prefix,prefix,prefix,prefix)
 	subprocess.call(cmd_clean,shell=True)
 
 ################ Main functions ##################
