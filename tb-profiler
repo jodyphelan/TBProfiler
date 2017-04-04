@@ -13,6 +13,7 @@ tabix = scriptDir+"/bin/tabix"
 bgzip = scriptDir+"/bin/bgzip"
 snap = scriptDir+"/bin/snap-aligner"
 htsbox = scriptDir+"/bin/htsbox"
+bwa = scriptDir+"/bin/bwa"
 sambamba = scriptDir+"/bin/sambamba"
 dr_bed_file = scriptDir+"/dr.bed"
 genes_bed_file = scriptDir+"/genes.bed"
@@ -26,7 +27,7 @@ arch = open(scriptDir+"/arch.txt").readline().rstrip()
 FNULL = open("/dev/null","w")
 
 def check_files(r1,r2):
-	programs = {"tabix":tabix,"bgzip":bgzip,"sambamba":sambamba,"snap":snap,"htsbox":htsbox}
+	programs = {"bwa":bwa,"tabix":tabix,"bgzip":bgzip,"sambamba":sambamba,"snap":snap,"htsbox":htsbox}
 	for p in programs:
 		if not os.path.isfile(programs[p]):
 			print "Can't find %s" % p
@@ -84,13 +85,12 @@ def doMapping(r1,r2,threads,prefix):
 		else:
 			cmd_mapping = "%s single %s -compressedFastq %s -t %s -o -bam - | %s sort /dev/stdin -o %s.bam -t %s" % (snap,ref_dir,r1,threads,sambamba,prefix,threads)
 	elif arch=="mac":
-		if threads=="1":
-			threads="2"
 		if r2:
-			cmd_mapping = "%s paired %s %s %s -t %s -o %s.unsort.bam; %s sort %s.unsort.bam -o %s.bam -t %s" % (snap,ref_dir,r1,r2,threads,prefix,sambamba,prefix,prefix,threads)
+			cmd_mapping = "%s mem -t %s %s %s %s | %s view -S -f bam -t %s /dev/stdin | %s sort -t %s -o %s.bam /dev/stdin" % (bwa,threads,ref_file,r1,r2,sambamba,threads,sambamba,threads,prefix)
 		else:
-			cmd_mapping = "%s paired %s %s -t %s -o %s.unsort.bam; %s sort %s.unsort.bam -o %s.bam -t %s" % (snap,ref_dir,r1,threads,prefix,sambamba,prefix,prefix,threads)
-	subprocess.call(cmd_mapping,shell=True,stderr=FNULL,stdout=FNULL)
+			cmd_mapping = "%s mem -t %s %s %s | %s view -S -f bam -t %s /dev/stdin | %s sort -t %s -o %s.bam /dev/stdin" % (bwa,threads,ref_file,r1,sambamba,threads,sambamba,threads,prefix)
+#	subprocess.call(cmd_mapping,shell=True,stderr=FNULL,stdout=FNULL)
+	subprocess.call(cmd_mapping,shell=True)
 
 def doPileup(prefix):
 	cmd_pileup = "%s pileup -f %s %s.bam | %s -c > %s.pileup.gz" % (htsbox,ref_file,prefix,bgzip,prefix)

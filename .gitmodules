@@ -7,3 +7,6 @@
 [submodule "snap"]
 	path = snap
 	url = https://github.com/amplab/snap.git
+[submodule "bwa"]
+	path = bwa
+	url = https://github.com/lh3/bwa.git
