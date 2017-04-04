@@ -89,8 +89,8 @@ def doMapping(r1,r2,threads,prefix):
 			cmd_mapping = "%s mem -t %s %s %s %s | %s view -S -f bam -t %s /dev/stdin | %s sort -t %s -o %s.bam /dev/stdin" % (bwa,threads,ref_file,r1,r2,sambamba,threads,sambamba,threads,prefix)
 		else:
 			cmd_mapping = "%s mem -t %s %s %s | %s view -S -f bam -t %s /dev/stdin | %s sort -t %s -o %s.bam /dev/stdin" % (bwa,threads,ref_file,r1,sambamba,threads,sambamba,threads,prefix)
-#	subprocess.call(cmd_mapping,shell=True,stderr=FNULL,stdout=FNULL)
-	subprocess.call(cmd_mapping,shell=True)
+	subprocess.call(cmd_mapping,shell=True,stderr=FNULL,stdout=FNULL)
+#	subprocess.call(cmd_mapping,shell=True)
 
 def doPileup(prefix):
 	cmd_pileup = "%s pileup -f %s %s.bam | %s -c > %s.pileup.gz" % (htsbox,ref_file,prefix,bgzip,prefix)
