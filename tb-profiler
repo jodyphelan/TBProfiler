@@ -16,17 +16,21 @@ htsbox = scriptDir+"/bin/htsbox"
 bwa = scriptDir+"/bin/bwa"
 sambamba = scriptDir+"/bin/sambamba"
 dr_bed_file = scriptDir+"/dr.bed"
+lin_bed_file = scriptDir+"/lineages.bed"
 genes_bed_file = scriptDir+"/genes.bed"
 ref_dir = scriptDir+"/ref"
 ref_file = ref_dir+"/MTB-h37rv_asm19595v2-eg18.fa"
 ref_annotation = ref_dir+"/MTB-h37rv_asm19595v2-eg18.tab.ann.gz"
-
+verbose = False
 ################### Functions ####################
 
 arch = open(scriptDir+"/arch.txt").readline().rstrip()
 FNULL = open("/dev/null","w")
 
 def check_files(r1,r2):
+	if verbose:
+		print "Checking input files"
+
 	programs = {"bwa":bwa,"tabix":tabix,"bgzip":bgzip,"sambamba":sambamba,"snap":snap,"htsbox":htsbox}
 	for p in programs:
 		if not os.path.isfile(programs[p]):
@@ -53,9 +57,39 @@ def index_file(infile):
 		subprocess.call("%s -b 2 -e 2 -s 1 %s" % (tabix,infile),shell=True)
 
 
-
-
+def assign_lin(prefix,min_cov,read_frac):
+	if verbose:
+		print "Checking lineage"
+	calls = getCalls(args.prefix,lin_bed_file,args.min_cov,args.read_frac)	
+	lin_meta_dict = {}
+	lin_pos_dict = defaultdict(lambda:defaultdict(dict))
+	sample_lin = set()
+	for l in open(lin_bed_file):
+		arr = l.rstrip().split("\t")
+		lin_meta_dict[arr[3]] = arr[6:]
+		lin_pos_dict[arr[0]][arr[1]]["ref"] = arr[4]
+		lin_pos_dict[arr[0]][arr[1]]["alt"] = arr[5]
+		lin_pos_dict[arr[0]][arr[1]]["lin"] = arr[3]
+	for chrom in lin_pos_dict:
+		for pos in lin_pos_dict[chrom]:
+			if calls[chrom][pos]==lin_pos_dict[chrom][pos]["alt"]:
+				sample_lin.add(lin_pos_dict[chrom][pos]["lin"])
+	sample_lin = list(sample_lin)
+	dict_sample_lin = {}
+	for l in [x for x in sample_lin if "." not in x]:
+		dict_sample_lin[x] = sorted([x for x in sample_lin if "." in x and l in x])[-1]
+	meta = "/".join(lin_meta_dict[x][0] for x in dict_sample_lin.values())	
+	meta += "\t"+"/".join(lin_meta_dict[x][1] for x in dict_sample_lin.values())
+	meta += "\t"+"/".join(lin_meta_dict[x][2] for x in dict_sample_lin.values())
+	main_lin = "/".join(dict_sample_lin.keys())
+	sublin = "/".join(dict_sample_lin.values())
+	if verbose:
+		print "%s\nLineage:\n%s\t%s\t%s\n%s" % ("-"*40,main_lin,sublin,meta,"-"*40)
+	return {"main":main_lin,"sublin":sublin,"meta":meta}
+	
 def load_ann(bed_name):
+	if verbose:
+		print "Loading annotation"
 	ann_dict = defaultdict(dict)
 	annCMD = "%s %s -R %s" % (tabix,ref_annotation,bed_name)
 	annPIPE = subprocess.Popen(annCMD,shell=True,stdout=subprocess.PIPE)
@@ -79,6 +113,8 @@ def load_bed(bed_name):
 	return temp_bed
 
 def doMapping(r1,r2,threads,prefix):
+	if verbose:
+		print "Performing mapping"
 	if arch=="linux":
 		if r2:
 			cmd_mapping = "%s paired %s -compressedFastq %s %s -t %s -o -bam - | %s sort /dev/stdin -o %s.bam -t %s" % (snap,ref_dir,r1,r2,threads,sambamba,prefix,threads)
@@ -93,17 +129,19 @@ def doMapping(r1,r2,threads,prefix):
 #	subprocess.call(cmd_mapping,shell=True)
 
 def doPileup(prefix):
+	if verbose:
+		print "Performing pileup"
 	cmd_pileup = "%s pileup -f %s %s.bam | %s -c > %s.pileup.gz" % (htsbox,ref_file,prefix,bgzip,prefix)
 	subprocess.call(cmd_pileup,shell=True)
 
-def getCalls(prefix,min_cov,read_frac):
+def getCalls(prefix,bed_file,min_cov,read_frac):
 	pileup_file = prefix+".pileup.gz"
 	base_calls = defaultdict(lambda : defaultdict(dict))
 	index_file(pileup_file)
-	for l in open(dr_bed_file):
+	for l in open(bed_file):
 		arr = l.rstrip().split()
 		base_calls[arr[0]][arr[1]] = "NA"
-	cmd_tabix = "%s %s -T %s" % (tabix,pileup_file,dr_bed_file)
+	cmd_tabix = "%s %s -T %s" % (tabix,pileup_file,bed_file)
 	tabix_out = subprocess.Popen(cmd_tabix,shell=True,stdout=subprocess.PIPE)
 	for l in tabix_out.stdout:
 		chrom,pos,ref,temp_alts,temp_meta =  l.rstrip().split()
@@ -173,7 +211,7 @@ def annotate_calls(prefix,dr_calls):
 			pos = var["pos"]
 			gene = ann_dict[chrom][pos]["gene"]
 			lt = ann_dict[chrom][pos]["rv"]
-			temp_res += "%s\t%s\t%s\t%s\t%s\t%s\t" % (drug,prefix,chrom,pos,gene,lt)
+			temp_res += "%s\t%s\t%s\t%s\t%s\t" % (drug,chrom,pos,gene,lt)
 			alt_nt = var["alt"]
 			if len(alt_nt)>1:
 				temp_res += "INDEL\t%s" % var["alt"]
@@ -189,23 +227,24 @@ def annotate_calls(prefix,dr_calls):
 			temp_res += "SNP\t%s" % change
 			final_results.append(temp_res)
 	
-	if len(final_results)>0:
-		print "\n".join(final_results)
-	open(prefix+".results.txt","w").write("\n".join(final_results))
+	if len(final_results)>0 and verbose==True:
+		print "%s\nSmall variants found:\n%s\n%s" % ("-"*40,"\n".join(final_results),"-"*40)	
+	
+	return final_results
 
-def load_gene_bed(bed_file):
+
+def large_dels(prefix):
+	
 	gene_bed = defaultdict(dict)
 	gene_cov = defaultdict(lambda : defaultdict(int))
-	for l in open(bed_file):
-		chrom,start,end,gene,strand = l.rstrip().split()
+	gene_drugs = {}
+	for l in open(genes_bed_file):
+		chrom,start,end,gene,strand,drugs = l.rstrip().split()
+		gene_drugs[gene] = drugs
 		for pos in range(int(start),int(end)+1):
 			gene_bed[chrom][str(pos)] = gene
 			gene_cov[gene][str(pos)] = 0
 
-	return gene_bed,gene_cov
-
-def large_dels(prefix):
-	gene_bed,gene_cov = load_gene_bed(genes_bed_file)
 
 	pileup_file = prefix+".pileup.gz"
 
@@ -227,16 +266,86 @@ def large_dels(prefix):
 		int_good_cov = len(filter(lambda x: x>10,arr_cov))
 		float_gene_present = int_good_cov/len(arr_cov)
 
-		if float_gene_present<0.9:
-			print "%s\t%s\t%s\t%s" % (gene,len(arr_cov),int_good_cov,float_gene_present)
-			results.append({"gene":gene,"float_present":float_gene_present})
+		if float_gene_present<0.95:
+			results.append("%s\t%s\t%s\t%s\t%s" % (gene_drugs[gene],gene,len(arr_cov),int_good_cov,float_gene_present))
+	if len(results)>0 and verbose==True:
+		print "%s\nDeletions found:\n%s\n%s" % ("-"*40,"\n".join(results),"-"*40)
+
 	return results
 
-def cleanup(prefix):
-	cmd_clean = "rm %s.bam* %s.pileup* %s_temp.bed" % (prefix,prefix,prefix)
-	if arch=="mac":
-		cmd_clean = "rm %s.bam* %s.pileup* %s_temp.bed %s.unsort.bam" % (prefix,prefix,prefix,prefix)
-	subprocess.call(cmd_clean,shell=True)
+def cleanup(prefix,clean,stor_dir):
+	if verbose:
+		print "Cleaning up"
+
+	if clean:
+		subprocess.call("rm %s.bam* %s.pileup* %s_temp.bed" % (prefix,prefix,prefix),shell=True)
+	else:
+		subprocess.call("rm %s_temp.bed" % (prefix),shell=True)
+		subprocess.call("mv %s.bam* %s/bam" % (prefix,stor_dir),shell=True)
+		subprocess.call("mv %s.pileup.gz* %s/pileup" % (prefix,stor_dir),shell=True)
+	subprocess.call("mv %s.results.txt %s.results.json %s/results" % (prefix,prefix,stor_dir),shell=True)
+
+def init_storage(clean,stor_dir):
+	if clean:
+		tdir = stor_dir+"/results"
+		if not os.path.isdir(tdir):
+			subprocess.call("mkdir %s" % tdir,shell=True)
+	else:
+		for x in ["bam","pileup","results"]:
+			tdir = stor_dir+"/"+x
+			if not os.path.isdir(tdir):
+				subprocess.call("mkdir %s" % tdir,shell=True)
+
+def write_results(prefix,smv,dels,lin):
+	if verbose:
+		print "Writing outputs"
+	o = open(prefix+".results.txt","w")
+	o.write("#### %s results ####\n\n" % prefix)
+	o.write("#### Small Variants ####\n")
+	for l in smv:
+		o.write(l+"\n")
+	o.write("\n\n#### Big Deletions ####\n")
+	for l in dels:
+		o.write(l+"\n")
+	o.write("\n\n#### Lineage ####\n")
+	o.write("%s\t%s\t%s\n" % (lin["main"],lin["sublin"],lin["meta"]))
+	o.close()
+	
+	json_dict = {"smv":[],"del":[]}
+	json_dict["id"] = prefix
+	json_dict["lineage"] = lin
+	for l in smv:
+		arr = l.rstrip().split()
+		json_dict["smv"].append({"drug":arr[0],"chr":arr[1],"pos":arr[2],"gene":arr[3],"locus_tag":arr[4],"type":arr[5],"change":arr[6]})
+	for l in dels:
+		arr = l.rstrip().split()
+		json_dict["del"].append({"drug":arr[0],"gene":arr[1],"good_cov":arr[4]})	
+	json.dump(json_dict,open(prefix+".results.json","w"))	
+
+def results2tab(samples,outfile,stor_dir):
+	drugs = set()
+	for l in open(dr_bed_file):
+		arr = l.rstrip().split()
+		for d in arr[3].split(";"):
+			drugs.add(d)
+	drugs = sorted(list(drugs))
+	results = defaultdict(dict)
+	for s in samples:
+		for d in drugs:
+			results[s][d] = "-"
+	for s in samples:
+		temp = json.load(open("%s/results/%s.results.json" % (stor_dir,s)))
+		for x in temp["smv"]:
+			for d in x["drug"].split(";"):
+				results[s][d] = "R"
+		for x in temp["del"]:
+			for d in x["drug"].split(";"):
+				results[s][d] = "R"
+
+	o = open(outfile,"w")
+	o.write("sample\t"+"\t".join(drugs)+"\n")	
+	for s in samples:
+		o.write(s+"\t"+"\t".join([results[s][x] for x in drugs])+"\n")
 
 ################ Main functions ##################
 def main_mapping(args):
@@ -245,22 +354,28 @@ def main_mapping(args):
 	doPileup(args.prefix)
 
 def main_run_pipeline(args):
+	if args.verbose:
+		global verbose
+		verbose=True
 	check_files(args.read1,args.read2)
+	init_storage(args.clean,args.dir)
 	doMapping(args.read1,args.read2,args.threads,args.prefix)		
 	doPileup(args.prefix)
-	base_calls = getCalls(args.prefix,args.min_cov,args.read_frac)
+	base_calls = getCalls(args.prefix,dr_bed_file,args.min_cov,args.read_frac)
 	dr_calls,missing_calls = calls2variants(args.prefix,base_calls)	
-	annotate_calls(args.prefix,dr_calls)
+	smv = annotate_calls(args.prefix,dr_calls)
 	big_dels = large_dels(args.prefix)
-	if args.clean:
-		cleanup(args.prefix)
-def main_sv(args):
+	lin = assign_lin(args.prefix,args.min_cov,args.read_frac)
+	write_results(args.prefix,smv,big_dels,lin)	
+	cleanup(args.prefix,args.clean,args.dir)
+
+def main_smv(args):
 	if not os.path.isfile(args.prefix+".pileup.gz"):
 		print "Can't find %s" % args.prefix+".pileup.gz"
 		quit()
-	base_calls = getCalls(args.prefix,args.min_cov,args.read_frac)
+	base_calls = getCalls(args.prefix,dr_bed_file,args.min_cov,args.read_frac)
 	dr_calls,missing_calls = calls2variants(args.prefix,base_calls)	
-	annotate_calls(args.prefix,dr_calls)
+	smv = annotate_calls(args.prefix,dr_calls)
 
 def main_dels(args):
 	if not os.path.isfile(args.prefix+".pileup.gz"):
@@ -268,26 +383,17 @@ def main_dels(args):
 		quit()
 	big_dels = large_dels(args.prefix)
 
+def main_collate(args):
+	 
+	samples = [x.rstrip() for x in open(args.samples_file).readlines()]
+	results2tab(samples,args.out_file,args.dir)
+
 ####################### Argument Parser ###########################
 
 parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 subparsers = parser.add_subparsers(help="Task to perform")
 
-parser_sub = subparsers.add_parser('mapping', help='Look for Small Variants causing drug resistance', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser_sub.add_argument('--read1','-1',help='First read file [required]')
-parser_sub.add_argument('--read2','-2',help='Second read file')
-parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
-parser_sub.add_argument('--threads','-t',default="1",help='Threads')
-parser_sub.set_defaults(func=main_mapping)
-
-parser_sub = subparsers.add_parser('sv', help='Look for Small Variants causing drug resistance', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
-parser_sub.add_argument('--min_cov','-c',type=int,default=10,help='Minimum coverage required')
-parser_sub.add_argument('--read_frac','-f',type=float,default=0.7,help='Minimum fraction of total reads to call allele')
-parser_sub.add_argument('--threads','-t',default="1",help='Threads')
-parser_sub.set_defaults(func=main_sv)
-
-parser_sub = subparsers.add_parser('full', help='Look for Small Variants causing drug resistance', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub = subparsers.add_parser('full', help='Run whole pipeline', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_sub.add_argument('--read1','-1',help='First read file [required]')
 parser_sub.add_argument('--read2','-2',help='Second read file')
 parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
@@ -295,9 +401,34 @@ parser_sub.add_argument('--min_cov','-c',type=int,default=10,help='Minimum cover
 parser_sub.add_argument('--read_frac','-f',type=float,default=0.7,help='Minimum fraction of total reads to call allele')
 parser_sub.add_argument('--threads','-t',default="1",help='Threads')
 parser_sub.add_argument('--clean',help="Remove temporary files",action="store_true")
+parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+parser_sub.add_argument('--verbose',help="Remove temporary files",action="store_true")
+
 parser_sub.set_defaults(func=main_run_pipeline)
 
-parser_sub = subparsers.add_parser('del', help='Generate raw unfiltered matrix', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+parser_sub = subparsers.add_parser('collate', help='Collate results form multiple samples together', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub.add_argument('samples_file',help='File with samples (one per line)')
+parser_sub.add_argument('out_file',help='Output file name')
+parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+parser_sub.set_defaults(func=main_collate)
+
+
+parser_sub = subparsers.add_parser('mapping', help='Perform only mapping', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub.add_argument('--read1','-1',help='First read file [required]')
+parser_sub.add_argument('--read2','-2',help='Second read file')
+parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
+parser_sub.add_argument('--threads','-t',default="1",help='Threads')
+parser_sub.set_defaults(func=main_mapping)
+
+parser_sub = subparsers.add_parser('smv', help='Look for Small Variants causing drug resistance', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
+parser_sub.add_argument('--min_cov','-c',type=int,default=10,help='Minimum coverage required')
+parser_sub.add_argument('--read_frac','-f',type=float,default=0.7,help='Minimum fraction of total reads to call allele')
+parser_sub.add_argument('--threads','-t',default="1",help='Threads')
+parser_sub.set_defaults(func=main_smv)
+
+parser_sub = subparsers.add_parser('del', help='Look for regions with no coverage', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
 parser_sub.set_defaults(func=main_dels)
 
