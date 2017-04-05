@@ -31,11 +31,14 @@ def check_files(r1,r2):
 	if verbose:
 		print "Checking input files"
 
-	programs = {"bwa":bwa,"tabix":tabix,"bgzip":bgzip,"sambamba":sambamba,"snap":snap,"htsbox":htsbox}
-	for p in programs:
-		if not os.path.isfile(programs[p]):
-			print "Can't find %s" % p
-			quit()
+        programs = {}
+        programs["linux"] = {"tabix":tabix,"bgzip":bgzip,"sambamba":sambamba,"snap":snap,"htsbox":htsbox}
+        programs["mac"] = {"bwa":bwa,"tabix":tabix,"bgzip":bgzip,"sambamba":sambamba,"htsbox":htsbox}
+        for p in programs[arch]:
+                if not os.path.isfile(programs[arch][p]):
+                        print "Can't find %s" % p
+                        quit()
+	
 	if not r1:
 		print "Please provide at least one read file"
 		quit()
