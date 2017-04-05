@@ -27,17 +27,5 @@ Run whole pipeline:
 tb-profiler full -1 /path/to/reads_1.fastq.gz -2 /path/to/reads_2.fastq.gz -p prefix
 ```
 
-#### Step by Step
-Map reads and perform pileup:
-```
-tb-profiler mapping -1 /path/to/reads_1.fastq.gz -2 /path/to/reads_2.fastq.gz -p prefix
-``` 
-Look for small variations (SNPs and small INDELs) potentially causing drug resistance:
-```
-tb-profiler sv -p prefix
-```
-Look for large deletions 
-```
-tb-profiler del -p prefix
-```
-
+This will store BAM files, summary pileup and result files in respective directories.
+The pipeline searches for small variants and big deletions associated with drug resistance. It will also report the lineage.

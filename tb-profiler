@@ -53,11 +53,7 @@ def check_files(r1,r2):
 
 
 def index_file(infile):
-	import os
-	import subprocess
-	tbi = infile+".tbi"
-	if not os.path.isfile(tbi):
-		subprocess.call("%s -b 2 -e 2 -s 1 %s" % (tabix,infile),shell=True)
+	subprocess.call("%s -f -b 2 -e 2 -s 1 %s" % (tabix,infile),shell=True)
 
 
 def assign_lin(prefix,min_cov,read_frac):
