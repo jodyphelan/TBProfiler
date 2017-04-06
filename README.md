@@ -3,7 +3,7 @@
 This is the experimental commandline version of the TBProfiler.
 The pipeline aligns reads to the H37Rv reference using SNAP and then looks at the coverage across a number of different candidate regions.
 
-### Installation
+## Installation
 
 ```
 git clone --recursive https://github.com/jodyphelan/TBProfiler.git
