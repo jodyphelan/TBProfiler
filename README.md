@@ -47,7 +47,7 @@ It uses a text file database ```dr.bed``` to store the locations of drug resista
 #### Adding new genes
 If you are adding a new gene or locus then you can add a new line to the ```genes.bed``` with the same format (1. Chromosome 2. Position 3. Position 4. ID 5. Drug(s)). Again make sure it is numerically sorted according to the start position.
 
-### Citation
+# Citation
 
 The paper describing the original online profiler tool can be found here: https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-015-0164-0
 
