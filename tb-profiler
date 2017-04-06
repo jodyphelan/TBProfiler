@@ -238,7 +238,7 @@ def large_dels(prefix):
 	gene_cov = defaultdict(lambda : defaultdict(int))
 	gene_drugs = {}
 	for l in open(genes_bed_file):
-		chrom,start,end,gene,strand,drugs = l.rstrip().split()
+		chrom,start,end,gene,drugs = l.rstrip().split()
 		gene_drugs[gene] = drugs
 		for pos in range(int(start),int(end)+1):
 			gene_bed[chrom][str(pos)] = gene
