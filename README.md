@@ -1,6 +1,6 @@
 # TBProfiler
 
-This is the experimental commandline version of the TBProfiler described here: https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-015-0164-0
+This is the experimental commandline version of the TBProfiler described here: https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-015-0164-0 and is available here: http://tbdr.lshtm.ac.uk
 
 The pipeline aligns reads to the H37Rv reference using SNAP and then looks at the coverage across a number of different candidate regions.
 
@@ -32,7 +32,7 @@ Results are output in text format and json format.
 
 The results from numerous runs can be collated into one table using the following command:
 ```
-tb-prfiler collate samples_file out_file
+tb-profiler collate samples_file out_file
 ```
 Where  ```samples_file``` is a list of prefixes of previously run samples and ```out_file``` is the name of the output file.
 
