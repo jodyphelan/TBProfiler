@@ -358,12 +358,12 @@ def main_run_pipeline(args):
 		verbose=True
 	check_files(args.read1,args.read2)
 	init_storage(args.clean,args.dir)
-#	do_mapping(args.read1,args.read2,args.threads,args.prefix)
+	do_mapping(args.read1,args.read2,args.threads,args.prefix)
 	small_dr_variants,small_other_variants = small_dr_var(args.prefix)
 	big_dels = large_dels(args.prefix)
 	lin = assign_lin(args.prefix)
 	write_results(args.prefix,small_dr_variants,small_other_variants,big_dels,lin)
-#	cleanup(args.prefix,args.clean,args.dir)
+	cleanup(args.prefix,args.clean,args.dir)
 
 def main_collate(args):
 
