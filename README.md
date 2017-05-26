@@ -10,7 +10,7 @@ The pipeline aligns reads to the H37Rv reference using SNAP and then looks at th
 git clone --recursive https://github.com/jodyphelan/TBProfiler.git
 cd TBProfiler
 bash install_prerequisites.sh
-echo "export PATH=\$PATH:$PWD" >> ~/.bashrc
+echo "export PATH=$PWD:$PATH" >> ~/.bashrc
 ```
 
 For OSX use:
