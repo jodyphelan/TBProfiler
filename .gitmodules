@@ -10,3 +10,9 @@
 [submodule "bwa"]
 	path = bwa
 	url = https://github.com/lh3/bwa.git
+[submodule "bcftools"]
+	path = bcftools
+	url = https://github.com/samtools/bcftools.git
+[submodule "samtools"]
+	path = samtools
+	url = https://github.com/samtools/samtools.git

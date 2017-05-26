@@ -10,18 +10,23 @@ import os
 ################### Literals #####################
 scriptDir = os.path.dirname(os.path.realpath(__file__))
 tabix = scriptDir+"/bin/tabix"
-bgzip = scriptDir+"/bin/bgzip"
 snap = scriptDir+"/bin/snap-aligner"
-htsbox = scriptDir+"/bin/htsbox"
 bwa = scriptDir+"/bin/bwa"
-sambamba = scriptDir+"/bin/sambamba"
-dr_bed_file = scriptDir+"/dr.bed"
-lin_bed_file = scriptDir+"/lineages.bed"
-genes_bed_file = scriptDir+"/genes.bed"
+samtools = scriptDir+"/bin/samtools"
+bcftools = scriptDir+"/bin/bcftools"
+dr_bed_file = scriptDir+"/db/drdb.bed"
+lin_bed_file = scriptDir+"/db/lineages.bed"
 ref_dir = scriptDir+"/ref"
 ref_file = ref_dir+"/MTB-h37rv_asm19595v2-eg18.fa"
 ref_annotation = ref_dir+"/MTB-h37rv_asm19595v2-eg18.tab.ann.gz"
 verbose = False
+drdb = json.load(open(scriptDir+"/db/drdb.json"))
+
+codons = {'CTT': 'Leu', 'ATG': 'Met', 'ACA': 'Thr', 'ACG': 'Thr', 'ATC': 'Ile', 'AAC': 'Asn', 'ATA': 'Ile', 'AGG': 'Arg', 'CCT': 'Pro', 'ACT': 'Thr', 'AGC': 'Ser', 'AAG': 'Lys', 'AGA': 'Arg', 'CAT': 'His', 'AAT': 'Asn', 'ATT': 'Ile', 'CTG': 'Leu', 'CTA': 'Leu', 'CTC': 'Leu', 'CAC': 'His', 'AAA': 'Lys', 'CCG': 'Pro', 'AGT': 'Ser', 'CCA': 'Pro', 'CAA': 'Gln', 'CCC': 'Pro', 'TAT': 'Tyr', 'GGT': 'Gly', 'TGT': 'Cys', 'CGA': 'Arg', 'CAG': 'Gln', 'TCT': 'Ser', 'GAT': 'Asp', 'CGG': 'Arg', 'TTT': 'Phe', 'TGC': 'Cys', 'GGG': 'Gly', 'TAG': 'Stop', 'GGA': 'Gly', 'TGG': 'Trp', 'GGC': 'Gly', 'TAC': 'Tyr', 'TTC': 'Phe', 'TCG': 'Ser', 'TTA': 'Leu', 'TTG': 'Leu', 'TCC': 'Ser', 'ACC': 'Thr', 'TAA': 'Stop', 'GCA': 'Ala', 'GTA': 'Val', 'GCC': 'Ala', 'GTC': 'Val', 'GCG': 'Ala', 'GTG': 'Val', 'GAG': 'Glu', 'GTT': 'Val', 'GCT': 'Ala', 'TGA': 'Stop', 'GAC': 'Asp', 'CGT': 'Arg', 'GAA': 'Glu', 'TCA': 'Ser', 'CGC': 'Arg'}
+rn = {"1":2,"2":1,"3":0}
+nn = {"1":0,"2":1,"3":2}
+rc = {"A":"T","C":"G","G":"C","T":"A"}
+
 ################### Functions ####################
 
 arch = open(scriptDir+"/arch.txt").readline().rstrip()
@@ -31,16 +36,16 @@ def check_files(r1,r2):
 	if verbose:
 		print "Checking input files"
 
-        programs = {}
-        programs["linux"] = {"tabix":tabix,"bgzip":bgzip,"sambamba":sambamba,"snap":snap,"htsbox":htsbox}
-        programs["mac"] = {"bwa":bwa,"tabix":tabix,"bgzip":bgzip,"sambamba":sambamba,"htsbox":htsbox}
-        for p in programs[arch]:
-                if not os.path.isfile(programs[arch][p]):
-                        print "Can't find %s" % p
-                        quit()
-	
+		programs = {}
+		programs["linux"] = {"tabix":tabix,"snap":snap,"samtools":samtools,"bcftools":bcftools}
+		programs["mac"] = {"bwa":bwa,"tabix":tabix,"samtools":samtools,"bcftools":bcftools}
+		for p in programs[arch]:
+				if not os.path.isfile(programs[arch][p]):
+						print "Can't find %s" % p
+						quit()
+
 	if not r1:
-		print "Please provide at least one read file"
+		print "\nPlease provide at least one read file\n"
 		quit()
 
 	if not os.path.isfile(r1):
@@ -56,28 +61,31 @@ def index_file(infile):
 	subprocess.call("%s -f -b 2 -e 2 -s 1 %s" % (tabix,infile),shell=True)
 
 
-def assign_lin(prefix,min_cov,read_frac):
+def assign_lin(prefix):
 	if verbose:
 		print "Checking lineage"
-	calls = getCalls(args.prefix,lin_bed_file,args.min_cov,args.read_frac)	
+	calls = call_variants(prefix,lin_bed_file,"lineage")
 	lin_meta_dict = {}
-	lin_pos_dict = defaultdict(lambda:defaultdict(dict))
-	sample_lin = set()
+	lin_pos_dict = defaultdict(dict)
 	for l in open(lin_bed_file):
 		arr = l.rstrip().split("\t")
 		lin_meta_dict[arr[3]] = arr[6:]
-		lin_pos_dict[arr[0]][arr[1]]["ref"] = arr[4]
-		lin_pos_dict[arr[0]][arr[1]]["alt"] = arr[5]
-		lin_pos_dict[arr[0]][arr[1]]["lin"] = arr[3]
+		lin_pos_dict[arr[0]][arr[1]] = {"ref":arr[4],"alt":arr[5],"lin":arr[3]}
+
+	sample_lin = set()
 	for chrom in lin_pos_dict:
 		for pos in lin_pos_dict[chrom]:
+			if pos not in calls[chrom]: continue
 			if calls[chrom][pos]==lin_pos_dict[chrom][pos]["alt"]:
 				sample_lin.add(lin_pos_dict[chrom][pos]["lin"])
 	sample_lin = list(sample_lin)
 	dict_sample_lin = {}
-	for l in [x for x in sample_lin if "." not in x]:
-		dict_sample_lin[x] = sorted([x for x in sample_lin if "." in x and l in x])[-1]
-	meta = "/".join(lin_meta_dict[x][0] for x in dict_sample_lin.values())	
+	if len([x for x in sample_lin if "." not in x])==0:
+		dict_sample_lin[sample_lin[0].split(".")[0]] = sorted([x for x in sample_lin if "." in x and sample_lin[0].split(".")[0] in x])[-1]
+	else:
+		for l in [x for x in sample_lin if "." not in x]:
+			dict_sample_lin[x] = sorted([x for x in sample_lin if "." in x and l in x])[-1]
+	meta = "/".join(lin_meta_dict[x][0] for x in dict_sample_lin.values())
 	meta += "\t"+"/".join(lin_meta_dict[x][1] for x in dict_sample_lin.values())
 	meta += "\t"+"/".join(lin_meta_dict[x][2] for x in dict_sample_lin.values())
 	main_lin = "/".join(dict_sample_lin.keys())
@@ -85,12 +93,12 @@ def assign_lin(prefix,min_cov,read_frac):
 	if verbose:
 		print "%s\nLineage:\n%s\t%s\t%s\n%s" % ("-"*40,main_lin,sublin,meta,"-"*40)
 	return {"main":main_lin,"sublin":sublin,"meta":meta}
-	
+
 def load_ann(bed_name):
 	if verbose:
 		print "Loading annotation"
 	ann_dict = defaultdict(dict)
-	annCMD = "%s %s -R %s" % (tabix,ref_annotation,bed_name)
+	annCMD = "%s %s -T %s" % (tabix,ref_annotation,bed_name)
 	annPIPE = subprocess.Popen(annCMD,shell=True,stdout=subprocess.PIPE)
 	for l in annPIPE.stdout:
 		arr = l.rstrip().split()
@@ -99,145 +107,150 @@ def load_ann(bed_name):
 		nuc_obj[arr[3]] = {"codon":arr[8],"aa":arr[12]}
 		nuc_obj[arr[4]] = {"codon":arr[9],"aa":arr[13]}
 		nuc_obj[arr[5]] = {"codon":arr[10],"aa":arr[14]}
-		ann_dict[arr[0]][arr[1]] = {"ref_nt":arr[2],"ref_codon":arr[6],"ref_aa":arr[11],"chr":arr[0],"pos":arr[1],"ann":nuc_obj,"rv":arr[15],"gene":arr[16],"gene_syn":arr[17],"ncr":arr[18],"start":arr[19],"end":arr[20],"strand":arr[21],"drug":arr[22],"ppe":arr[23],"codon_num":arr[24],"gene_nt":arr[25],"operon":arr[26]}
+		ann_dict[arr[0]][arr[1]] = {"change_pos":arr[7],"ref_nt":arr[2],"ref_codon":arr[6],"ref_aa":arr[11],"chr":arr[0],"pos":arr[1],"ann":nuc_obj,"rv":arr[15],"gene":arr[16],"gene_syn":arr[17],"ncr":arr[18],"start":arr[19],"end":arr[20],"strand":arr[21],"drug":arr[22],"ppe":arr[23],"codon_num":arr[24],"gene_nt":arr[25],"operon":arr[26]}
 	return ann_dict
 
-def load_bed(bed_name):
-	temp_bed = defaultdict(lambda : defaultdict(set))
-	for l in open(bed_name):
-		arr = l.rstrip().split()
-		drugs = arr[3].split(";")
-		for d in drugs:
-			temp_bed[arr[0]][arr[1]].add(d)
-	return temp_bed
-
-def doMapping(r1,r2,threads,prefix):
-	if verbose:
-		print "Performing mapping"
+def do_mapping(r1,r2,threads,prefix):
+	if verbose:	print "Performing mapping"
 	if arch=="linux":
 		if r2:
-			cmd_mapping = "%s paired %s -compressedFastq %s %s -t %s -o -bam - | %s sort /dev/stdin -o %s.bam -t %s" % (snap,ref_dir,r1,r2,threads,sambamba,prefix,threads)
+			cmd_mapping = "%s paired %s -compressedFastq %s %s -t %s -o -bam - | %s sort -o %s.bam -@ %s - " % (snap,ref_dir,r1,r2,threads,samtools,prefix,threads)
 		else:
-			cmd_mapping = "%s single %s -compressedFastq %s -t %s -o -bam - | %s sort /dev/stdin -o %s.bam -t %s" % (snap,ref_dir,r1,threads,sambamba,prefix,threads)
+			cmd_mapping = "%s single %s -compressedFastq %s -t %s -o -bam - | %s sort -o %s.bam -@ %s -" % (snap,ref_dir,r1,threads,samtools,prefix,threads)
 	elif arch=="mac":
 		if r2:
-			cmd_mapping = "%s mem -t %s %s %s %s | %s view -S -f bam -t %s /dev/stdin | %s sort -t %s -o %s.bam /dev/stdin" % (bwa,threads,ref_file,r1,r2,sambamba,threads,sambamba,threads,prefix)
+			cmd_mapping = "%s mem -t %s %s %s %s | %s view -@ %s -b - | %s sort -@ %s -o %s.bam -" % (bwa,threads,ref_file,r1,r2,samtools,threads,samtools,threads,prefix)
 		else:
-			cmd_mapping = "%s mem -t %s %s %s | %s view -S -f bam -t %s /dev/stdin | %s sort -t %s -o %s.bam /dev/stdin" % (bwa,threads,ref_file,r1,sambamba,threads,sambamba,threads,prefix)
+			cmd_mapping = "%s mem -t %s %s %s | %s view -@ %s -b - | %s sort -@ %s -o %s.bam -" % (bwa,threads,ref_file,r1,samtools,threads,samtools,threads,prefix)
+	if verbose: print cmd_mapping
 	subprocess.call(cmd_mapping,shell=True,stderr=FNULL,stdout=FNULL)
-#	subprocess.call(cmd_mapping,shell=True)
 
-def doPileup(prefix):
-	if verbose:
-		print "Performing pileup"
-	cmd_pileup = "%s pileup -f %s %s.bam | %s -c > %s.pileup.gz" % (htsbox,ref_file,prefix,bgzip,prefix)
-	subprocess.call(cmd_pileup,shell=True)
-
-def getCalls(prefix,bed_file,min_cov,read_frac):
-	pileup_file = prefix+".pileup.gz"
+def call_variants(prefix,bed_file,file_prefix):
+	if verbose:	print "Calling Variants"
+	bamfile = prefix+".bam"
+	vcf_file = "%s.%s.vcf" % (prefix,file_prefix)
+	subprocess.call("%s view -bL %s %s | %s mpileup -ugf ../ref/MTB-h37rv_asm19595v2-eg18.fa - | %s call --ploidy 1 -vmO v -o %s" % (samtools,bed_file,bamfile,samtools,bcftools,vcf_file),shell=True,stdout=FNULL,stderr=FNULL)
 	base_calls = defaultdict(lambda : defaultdict(dict))
-	index_file(pileup_file)
-	for l in open(bed_file):
+	for l in open(vcf_file):
+		if l[0]=="#": continue
+		#Chromosome	4326451	.	TGCG	TGCGCG	225	.	INDEL;IDV=126;IMF=0.9;DP=140;VDB=0.00626444;SGB=-0.693147;MQSB=1;MQ0F=0;AC=1;AN=1;DP4=0,0,61,66;MQ=60	GT:PL	1:255,0
 		arr = l.rstrip().split()
-		base_calls[arr[0]][arr[1]] = "NA"
-	cmd_tabix = "%s %s -T %s" % (tabix,pileup_file,bed_file)
-	tabix_out = subprocess.Popen(cmd_tabix,shell=True,stdout=subprocess.PIPE)
-	for l in tabix_out.stdout:
-		chrom,pos,ref,temp_alts,temp_meta =  l.rstrip().split()
-		cov = temp_meta.split(":")[1]
-		alt_list = temp_alts.split(",")
-		cov_list = cov.split(",")
-		call_dict = {}
-		for i in range(len(alt_list)):
-			call_dict[alt_list[i]] = int(cov_list[i])
-	
-		total_cov = sum(call_dict.values())
-		if total_cov<min_cov:
-			base_calls[chrom][pos] = "NA"
-			continue
-		cutoff = 0
-		if total_cov==min_cov:
-			cutoff = min_cov
-		elif total_cov>min_cov:
-			cutoff = total_cov*read_frac
-		allele = ""
-		for call in call_dict:
-			if call_dict[call]>=cutoff:
-				allele = allele+call
-		if allele=="":
-			allele = "NA"
-		if allele!=ref:
-			base_calls[chrom][pos] = allele
+		if arr[5]<200: continue
+		if len(arr[3])>1 or len(arr[4])>1:
+				base_calls[arr[0]][arr[1]] = recode_indel(arr[3],arr[4])
 		else:
-			base_calls[chrom][pos] = "ref"
+			base_calls[arr[0]][arr[1]] = arr[4]
 	return base_calls
-	
-
-def calls2variants(prefix,base_calls):
-	
-	dr_dict =load_bed(dr_bed_file)
-	temp_bed = prefix+"_temp.bed"
-	dr_calls = defaultdict(list)
-	missing_calls = []
-	bedlines = 0
-	with open(temp_bed,"w") as o:
-		for chrom in sorted(base_calls):
-			for pos in [str(y) for y in sorted([int(x) for x in base_calls[chrom]])]:
-				if base_calls[chrom][pos]!="ref":
-					obj = {"chr":chrom,"pos":pos,"alt":base_calls[chrom][pos],"drugs":dr_dict[chrom][pos]}
-					if base_calls[chrom][pos]!="NA":
-						bedlines+=1
-						o.write("%s\t%s\t%s\n" % (chrom,int(pos)-1,pos))
-						for d in dr_dict[chrom][pos]:
-							dr_calls[d].append(obj)
-					elif base_calls[chrom][pos]=="NA":
-						missing_calls.append(obj)
-
-		if bedlines==0:
-			o.write("Chromosome\t1\t2\n")
-
-	return dr_calls,missing_calls
 
 
-def annotate_calls(prefix,dr_calls):
-	temp_bed = prefix+"_temp.bed"
-	ann_dict = load_ann(temp_bed)
-	final_results = []
-	for drug in dr_calls:
-		for var in dr_calls[drug]:
-			temp_res = ""
-			chrom = var["chr"]
-			pos = var["pos"]
-			gene = ann_dict[chrom][pos]["gene"]
-			lt = ann_dict[chrom][pos]["rv"]
-			temp_res += "%s\t%s\t%s\t%s\t%s\t" % (drug,chrom,pos,gene,lt)
-			alt_nt = var["alt"]
-			if len(alt_nt)>1:
-				temp_res += "INDEL\t%s" % var["alt"]
-				continue ## indel is found
-			alt_aa = ann_dict[chrom][pos]["ann"][alt_nt]["aa"]	
-			ref_aa = ann_dict[chrom][pos]["ref_aa"]
-			codon_pos = ann_dict[chrom][pos]["codon_num"]	
-			change = ref_aa+codon_pos+alt_aa
-			if ref_aa==alt_aa:
-				ref_nt = ann_dict[chrom][pos]["ref_nt"]
-				gene_pos = ann_dict[chrom][pos]["gene_nt"]
-				change=ref_nt+gene_pos+alt_nt
-			temp_res += "SNP\t%s" % change
-			final_results.append(temp_res)
-	
-	if len(final_results)>0 and verbose==True:
-		print "%s\nSmall variants found:\n%s\n%s" % ("-"*40,"\n".join(final_results),"-"*40)	
-	
-	return final_results
+def recode_indel(ref,alt):
+	if len(ref)<len(alt):
+		ldiff = len(alt)-len(ref)
+		return "%s+%s%s" % (ref[:1],ldiff,ref[1:1+ldiff])
+	else:
+		ldiff = len(ref)-len(alt)
+		return "%s-%s%s" % (ref[:1],ldiff,ref[1:1+ldiff])
+	return indel
 
+def small_dr_var(prefix):
+	# File name definitions
+	temp_bed = prefix+".temp.bed"
+
+	# Open dr gene bed file
+	dr_pos = defaultdict(list)
+	for l in open(dr_bed_file):
+		arr = l.rstrip().split()
+		for i in range(int(arr[1]),int(arr[2])+1):
+			dr_pos[arr[0]].append(str(i))
+
+	temp_variants = call_variants(prefix,dr_bed_file,"dr")
+	variants = defaultdict(dict)
+	var_loci = []
+	OUT = open(temp_bed,"w")
+	for chrom in sorted(temp_variants):
+		for pos in [str(y) for y in sorted([int(x) for x in temp_variants[chrom]])]:
+			if pos not in dr_pos[chrom]: continue
+			variants[chrom][pos] = temp_variants[chrom][pos]
+			var_loci.append([chrom,pos])
+			OUT.write("%s\t%s\t%s\n" % (chrom,pos,pos))
+	OUT.close()
+	ann = load_ann(temp_bed)
+	variant_bin = defaultdict(lambda:defaultdict(list))
+	gene_type = {}
+	for chrom,pos in var_loci:
+		gene_type[ann[chrom][pos]["rv"]] = ann[chrom][pos]["ncr"]
+		if ann[chrom][pos]["ncr"]=="CDS":
+				variant_bin[ann[chrom][pos]["rv"]][ann[chrom][pos]["codon_num"]].append((chrom,pos))
+		else:
+				variant_bin[ann[chrom][pos]["rv"]][ann[chrom][pos]["gene_nt"]].append((chrom,pos))
+
+	dr_variants = []
+	other_variants = []
+	processed_lines = defaultdict(lambda:defaultdict(list))
+	for gene in variant_bin:
+		if gene_type[gene]=="CDS":
+			for change_pos in variant_bin[gene]:
+				positions = variant_bin[gene][change_pos]
+				genome_positions = ",".join([x[1] for x in positions])
+				ref_codon = ann[positions[0][0]][positions[0][1]]["ref_codon"]
+				temp_vars = []
+				for chrom,pos in positions:
+					temp_vars.append((chrom,pos,ann[chrom][pos]["ref_nt"],variants[chrom][pos]))
+				alt_var = list(ref_codon)
+				indel_present = False
+				for arr in temp_vars:
+					chom,pos,ref,var = arr[0],arr[1],arr[2],arr[3]
+					if indel_present == True: continue
+					if "+" in var or "-" in var:
+						indel_present = True
+						alt_var = "%s%s%s" % (ref,ann[chrom][pos]["gene_nt"],var)
+						continue
+					temp_c_pos = int(ann[chrom][pos]["change_pos"])-1
+					alt_var[temp_c_pos] = rc[var] if ann[chrom][pos]["strand"] == "-" else var
+					alt_var = "".join(alt_var)
+					if "-" not in alt_var and "+" not in alt_var:
+						change_str = "%s%s%s" % (codons[ref_codon],change_pos,codons[alt_var])
+						if codons[ref_codon]==codons[alt_var]: #if there is a syonymous variant
+							non_dr_var = True
+							for chrom,pos in positions:
+								if gene in drdb["CDS-syn"] and pos in drdb["CDS-syn"][gene] and variants[chrom][pos] in drdb["CDS-syn"][gene][pos]:
+									non_dr_var = False
+									for d in drdb["CDS-syn"][gene][pos][variants[chrom][pos]]:
+										dr_variants.append({"drug":d,"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_positions,"chr":chrom,"change":change_str,"type":"SNP"})
+							if non_dr_var:
+								other_variants.append({"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_positions,"chr":chrom,"change":change_str,"type":"SNP"})
+						else: #else if the variant is non-synonymous
+							codon = codons[alt_var]
+							if gene in drdb["CDS-nsyn"] and change_pos in drdb["CDS-nsyn"][gene] and codon in drdb["CDS-nsyn"][gene][change_pos]:
+								for d in drdb["CDS-nsyn"][gene][change_pos][codon]:
+									dr_variants.append({"drug":d,"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_positions,"chr":chrom,"change":change_str,"type":"SNP"})
+							else:
+								other_variants.append({"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_positions,"chr":chrom,"change":change_str,"type":"SNP"})
+					else:
+						if gene in drdb["indel"] and change_pos in drdb["indel"][gene] and alt_var in drdb["indel"][gene][change_pos]:
+							for d in drdb["indel"][gene][change_pos][alt_var]:
+								dr_variants.append({"drug":d,"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_positions,"chr":chrom,"change":change_str,"type":"INDEL"})
+						else:
+							other_variants.append({"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_positions,"chr":chrom,"change":change_str,"type":"INDEL"})
+		else:
+			for change_pos in variant_bin[gene]:
+				genome_positions = ",".join([x[1] for x in variant_bin[gene][change_pos]])
+				chrom,pos = variant_bin[gene][change_pos][0]
+				alt_var = variants[chrom][pos]
+				change_str = "%s%s%s" % (ann[chrom][pos]["ref_nt"],change_pos,alt_var)
+				if gene in drdb["other"] and change_pos in drdb["other"][gene] and alt_var in drdb["other"][gene][change_pos]:
+					for d in drdb["other"][gene][change_pos][alt_var]:
+						dr_variants.append({"drug":d,"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_positions,"chr":chrom,"change":change_str,"type":"SNP"})
+				else:
+					other_variants.append({"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_positions,"chr":chrom,"change":change_str,"type":"SNP"})
+	return dr_variants,other_variants
 
 def large_dels(prefix):
-	
+
 	gene_bed = defaultdict(dict)
 	gene_cov = defaultdict(lambda : defaultdict(int))
 	gene_drugs = {}
-	for l in open(genes_bed_file):
+	for l in open(dr_bed_file):
 		chrom,start,end,gene,drugs = l.rstrip().split()
 		gene_drugs[gene] = drugs
 		for pos in range(int(start),int(end)+1):
@@ -245,20 +258,11 @@ def large_dels(prefix):
 			gene_cov[gene][str(pos)] = 0
 
 
-	pileup_file = prefix+".pileup.gz"
+	bamfile = prefix+".bam"
 
-	cmd_tabix = "%s %s -R %s" % (tabix,pileup_file,genes_bed_file)
-	tabix_out = subprocess.Popen(cmd_tabix,shell=True,stdout=subprocess.PIPE)
-	for l in tabix_out.stdout:
-		chrom,pos,ref,temp_alts,temp_meta =  l.rstrip().split()
-		cov = temp_meta.split(":")[1]
-		alt_list = temp_alts.split(",")
-		cov_list = cov.split(",")
-		call_dict = {}
-		for i in range(len(alt_list)):
-			call_dict[alt_list[i]] = int(cov_list[i])	
-		total_cov = sum(call_dict.values())
-		gene_cov[gene_bed[chrom][pos]][pos] = total_cov
+	for l in subprocess.Popen("%s depth -b %s %s" % (samtools,dr_bed_file,bamfile),shell=True,stdout=subprocess.PIPE).stdout:
+		chrom,pos,depth =  l.rstrip().split()
+		gene_cov[gene_bed[chrom][pos]][pos] = depth
 	results = []
 	for gene in gene_cov:
 		arr_cov = gene_cov[gene].values()
@@ -266,9 +270,7 @@ def large_dels(prefix):
 		float_gene_present = int_good_cov/len(arr_cov)
 
 		if float_gene_present<0.95:
-			results.append("%s\t%s\t%s\t%s\t%s" % (gene_drugs[gene],gene,len(arr_cov),int_good_cov,float_gene_present))
-	if len(results)>0 and verbose==True:
-		print "%s\nDeletions found:\n%s\n%s" % ("-"*40,"\n".join(results),"-"*40)
+			results.append({"drug":gene_drugs[gene],"gene":gene,"len":len(arr_cov),"good_cov":int_good_cov,"float_gene_present":float_gene_present})
 
 	return results
 
@@ -277,11 +279,11 @@ def cleanup(prefix,clean,stor_dir):
 		print "Cleaning up"
 
 	if clean:
-		subprocess.call("rm %s.bam* %s.pileup* %s_temp.bed" % (prefix,prefix,prefix),shell=True)
+		subprocess.call("rm %s.bam* %s.dr.vcf %s.lineage.vcf %s.temp.bed" % (prefix,prefix,prefix),shell=True)
 	else:
-		subprocess.call("rm %s_temp.bed" % (prefix),shell=True)
+		subprocess.call("rm %s.temp.bed" % (prefix),shell=True)
 		subprocess.call("mv %s.bam* %s/bam" % (prefix,stor_dir),shell=True)
-		subprocess.call("mv %s.pileup.gz* %s/pileup" % (prefix,stor_dir),shell=True)
+		subprocess.call("mv %s.*.vcf %s/vcf" % (prefix,stor_dir),shell=True)
 	subprocess.call("mv %s.results.txt %s.results.json %s/results" % (prefix,prefix,stor_dir),shell=True)
 
 def init_storage(clean,stor_dir):
@@ -290,42 +292,38 @@ def init_storage(clean,stor_dir):
 		if not os.path.isdir(tdir):
 			subprocess.call("mkdir %s" % tdir,shell=True)
 	else:
-		for x in ["bam","pileup","results"]:
+		for x in ["bam","vcf","results"]:
 			tdir = stor_dir+"/"+x
 			if not os.path.isdir(tdir):
 				subprocess.call("mkdir %s" % tdir,shell=True)
 
-def write_results(prefix,smv,dels,lin):
+def write_results(prefix,small_var_dr,small_var_other,dels,lin):
 	if verbose:
 		print "Writing outputs"
 	o = open(prefix+".results.txt","w")
 	o.write("#### %s results ####\n\n" % prefix)
-	o.write("#### Small Variants ####\n")
-	for l in smv:
-		o.write(l+"\n")
-	o.write("\n\n#### Big Deletions ####\n")
+	o.write("#### Drug resistance associated small variants ####\n")
+	for l in small_var_dr:
+		o.write("\t".join([l[x] for x in ["drug","chr","genome_pos","gene","locus_tag","change","type"]])+"\n")
+	o.write("\n\n#### Big Deletions in candidate genes ####\n")
 	for l in dels:
-		o.write(l+"\n")
+		o.write("\t".join([str(l[x]) for x in ["drug","gene","len","good_cov",'float_gene_present']]))
 	o.write("\n\n#### Lineage ####\n")
 	o.write("%s\t%s\t%s\n" % (lin["main"],lin["sublin"],lin["meta"]))
+	o.write("\n\n#### Other small variants in candidate genes ####\n")
+	for l in small_var_other:
+		o.write("\t".join([l[x] for x in ["chr","genome_pos","gene","locus_tag","change","type"]])+"\n")
 	o.close()
-	
-	json_dict = {"smv":[],"del":[]}
-	json_dict["id"] = prefix
-	json_dict["lineage"] = lin
-	for l in smv:
-		arr = l.rstrip().split()
-		json_dict["smv"].append({"drug":arr[0],"chr":arr[1],"pos":arr[2],"gene":arr[3],"locus_tag":arr[4],"type":arr[5],"change":arr[6]})
-	for l in dels:
-		arr = l.rstrip().split()
-		json_dict["del"].append({"drug":arr[0],"gene":arr[1],"good_cov":arr[4]})	
-	json.dump(json_dict,open(prefix+".results.json","w"))	
+
+	json_dict = {"small_variants_other":small_var_other,"small_variants_dr":small_var_dr,"del":dels,"lineage":lin,"id":prefix}
+
+	json.dump(json_dict,open(prefix+".results.json","w"))
 
 def results2tab(samples,outfile,stor_dir):
 	drugs = set()
 	for l in open(dr_bed_file):
 		arr = l.rstrip().split()
-		for d in arr[3].split(";"):
+		for d in arr[4].split(","):
 			drugs.add(d)
 	drugs = sorted(list(drugs))
 	results = defaultdict(dict)
@@ -334,7 +332,7 @@ def results2tab(samples,outfile,stor_dir):
 			results[s][d] = "-"
 	for s in samples:
 		temp = json.load(open("%s/results/%s.results.json" % (stor_dir,s)))
-		for x in temp["smv"]:
+		for x in temp["small_variants_dr"]:
 			for d in x["drug"].split(";"):
 				results[s][d] = "R"
 		for x in temp["del"]:
@@ -342,15 +340,17 @@ def results2tab(samples,outfile,stor_dir):
 				results[s][d] = "R"
 
 	o = open(outfile,"w")
-	o.write("sample\t"+"\t".join(drugs)+"\n")	
+	o.write("sample\t"+"\t".join(drugs)+"\n")
 	for s in samples:
 		o.write(s+"\t"+"\t".join([results[s][x] for x in drugs])+"\n")
 
+def print_db():
+	print "CDS non-synonymous mutations"
+	for gene in drdb["CDS-nsyn"]:
+		for pos in drdb["CDS-nsyn"][gene]:
+			print "%s\t%s\t%s" % (gene,pos,",".join(drdb["CDS-nsyn"][gene][pos]))
+
 ################ Main functions ##################
-def main_mapping(args):
-	check_files(args.read1,args.read2)
-	doMapping(args.read1,args.read2,args.threads,args.prefix)
-	doPileup(args.prefix)
 
 def main_run_pipeline(args):
 	if args.verbose:
@@ -358,34 +358,20 @@ def main_run_pipeline(args):
 		verbose=True
 	check_files(args.read1,args.read2)
 	init_storage(args.clean,args.dir)
-	doMapping(args.read1,args.read2,args.threads,args.prefix)		
-	doPileup(args.prefix)
-	base_calls = getCalls(args.prefix,dr_bed_file,args.min_cov,args.read_frac)
-	dr_calls,missing_calls = calls2variants(args.prefix,base_calls)	
-	smv = annotate_calls(args.prefix,dr_calls)
+#	do_mapping(args.read1,args.read2,args.threads,args.prefix)
+	small_dr_variants,small_other_variants = small_dr_var(args.prefix)
 	big_dels = large_dels(args.prefix)
-	lin = assign_lin(args.prefix,args.min_cov,args.read_frac)
-	write_results(args.prefix,smv,big_dels,lin)	
-	cleanup(args.prefix,args.clean,args.dir)
-
-def main_smv(args):
-	if not os.path.isfile(args.prefix+".pileup.gz"):
-		print "Can't find %s" % args.prefix+".pileup.gz"
-		quit()
-	base_calls = getCalls(args.prefix,dr_bed_file,args.min_cov,args.read_frac)
-	dr_calls,missing_calls = calls2variants(args.prefix,base_calls)	
-	smv = annotate_calls(args.prefix,dr_calls)
-
-def main_dels(args):
-	if not os.path.isfile(args.prefix+".pileup.gz"):
-		print "Can't find %s" % args.prefix+".pileup.gz"
-		quit()
-	big_dels = large_dels(args.prefix)
+	lin = assign_lin(args.prefix)
+	write_results(args.prefix,small_dr_variants,small_other_variants,big_dels,lin)
+#	cleanup(args.prefix,args.clean,args.dir)
 
 def main_collate(args):
-	 
+
 	samples = [x.rstrip() for x in open(args.samples_file).readlines()]
 	results2tab(samples,args.out_file,args.dir)
+
+def main_print_db(args):
+	print_db()
 
 ####################### Argument Parser ###########################
 
@@ -396,8 +382,6 @@ parser_sub = subparsers.add_parser('full', help='Run whole pipeline', formatter_
 parser_sub.add_argument('--read1','-1',help='First read file [required]')
 parser_sub.add_argument('--read2','-2',help='Second read file')
 parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
-parser_sub.add_argument('--min_cov','-c',type=int,default=10,help='Minimum coverage required')
-parser_sub.add_argument('--read_frac','-f',type=float,default=0.7,help='Minimum fraction of total reads to call allele')
 parser_sub.add_argument('--threads','-t',default="1",help='Threads')
 parser_sub.add_argument('--clean',help="Remove temporary files",action="store_true")
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
@@ -412,40 +396,9 @@ parser_sub.add_argument('out_file',help='Output file name')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.set_defaults(func=main_collate)
 
-
-parser_sub = subparsers.add_parser('mapping', help='Perform only mapping', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser_sub.add_argument('--read1','-1',help='First read file [required]')
-parser_sub.add_argument('--read2','-2',help='Second read file')
-parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
-parser_sub.add_argument('--threads','-t',default="1",help='Threads')
-parser_sub.set_defaults(func=main_mapping)
-
-parser_sub = subparsers.add_parser('smv', help='Look for Small Variants causing drug resistance', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
-parser_sub.add_argument('--min_cov','-c',type=int,default=10,help='Minimum coverage required')
-parser_sub.add_argument('--read_frac','-f',type=float,default=0.7,help='Minimum fraction of total reads to call allele')
-parser_sub.add_argument('--threads','-t',default="1",help='Threads')
-parser_sub.set_defaults(func=main_smv)
-
-parser_sub = subparsers.add_parser('del', help='Look for regions with no coverage', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
-parser_sub.set_defaults(func=main_dels)
+parser_sub = subparsers.add_parser('print_db', help='Collate results form multiple samples together', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub.set_defaults(func=main_print_db)
 
 
 args = parser.parse_args()
 args.func(args)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
