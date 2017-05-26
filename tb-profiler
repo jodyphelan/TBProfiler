@@ -129,7 +129,9 @@ def call_variants(prefix,bed_file,file_prefix):
 	if verbose:	print "Calling Variants"
 	bamfile = prefix+".bam"
 	vcf_file = "%s.%s.vcf" % (prefix,file_prefix)
-	subprocess.call("%s view -bL %s %s | %s mpileup -ugf ../ref/MTB-h37rv_asm19595v2-eg18.fa - | %s call --ploidy 1 -vmO v -o %s" % (samtools,bed_file,bamfile,samtools,bcftools,vcf_file),shell=True,stdout=FNULL,stderr=FNULL)
+	if verbose:
+		print "%s view -bL %s %s | %s mpileup -ugf %s - | %s call --ploidy 1 -vmO v -o %s" % (samtools,bed_file,bamfile,samtools,ref_file,bcftools,vcf_file)
+	subprocess.call("%s view -bL %s %s | %s mpileup -ugf %s - | %s call --ploidy 1 -vmO v -o %s" % (samtools,bed_file,bamfile,samtools,ref_file,bcftools,vcf_file),shell=True,stdout=FNULL,stderr=FNULL)
 	base_calls = defaultdict(lambda : defaultdict(dict))
 	for l in open(vcf_file):
 		if l[0]=="#": continue
@@ -345,10 +347,14 @@ def results2tab(samples,outfile,stor_dir):
 		o.write(s+"\t"+"\t".join([results[s][x] for x in drugs])+"\n")
 
 def print_db():
-	print "CDS non-synonymous mutations"
+	print "\n\nCDS non-synonymous mutations:\n"
 	for gene in drdb["CDS-nsyn"]:
 		for pos in drdb["CDS-nsyn"][gene]:
 			print "%s\t%s\t%s" % (gene,pos,",".join(drdb["CDS-nsyn"][gene][pos]))
+
+	print "\n\nIndels:\n"
+	for gene in drdb["indels"]:
+		pass
 
 ################ Main functions ##################
 
@@ -356,9 +362,10 @@ def main_run_pipeline(args):
 	if args.verbose:
 		global verbose
 		verbose=True
+		FNULL=open("/dev/stderr","w")
 	check_files(args.read1,args.read2)
 	init_storage(args.clean,args.dir)
-	do_mapping(args.read1,args.read2,args.threads,args.prefix)
+#	do_mapping(args.read1,args.read2,args.threads,args.prefix)
 	small_dr_variants,small_other_variants = small_dr_var(args.prefix)
 	big_dels = large_dels(args.prefix)
 	lin = assign_lin(args.prefix)
@@ -396,8 +403,6 @@ parser_sub.add_argument('out_file',help='Output file name')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.set_defaults(func=main_collate)
 
-parser_sub = subparsers.add_parser('print_db', help='Collate results form multiple samples together', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser_sub.set_defaults(func=main_print_db)
 
 
 args = parser.parse_args()
