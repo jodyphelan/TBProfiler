@@ -57,11 +57,11 @@ Add a new line corresponding to the desired variant with the following columns:
 
 ETHIONAMIDE     1674484/1674485 AT      CC      inhA    Ile95Pro
 
-A promoter mutation:
+##### A promoter mutation:
 
 ISONIAZID       2156118 C       T       katG_promoter   C-7T
 
-An indel:
+##### An indel:
 
 PYRAZINAMIDE    2288953 CC      C       pncA    CC289C
 
