@@ -349,8 +349,8 @@ def main_run_pipeline(args):
 	if args.db!="default":
 		global drdb
 		global dr_bed_file
-		drdb = json.load(open(args.db+".json"))
-		dr_bed_file = args.db+".bed"
+		drdb = json.load(open(scriptDir+"/db/"+args.db+".json"))
+		dr_bed_file = scriptDir+"/db/"+args.db+".bed"
 
 	check_files(args.read1,args.read2)
 	init_storage(args.clean,args.dir)

@@ -52,6 +52,9 @@ Add a new line corresponding to the desired variant with the following columns:
 4. Gene name
 5. Mutation - String with the mutation
 
+After editing the file run the ```parse_drdb.py <prefix>``` script using a prefix to generate a new database.
+To use the database use the ```--db <prefix>``` option in ```tb-profiler```.
+
 #### Examples:
 ##### A non-synonymous variant:
 
