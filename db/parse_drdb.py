@@ -4,9 +4,20 @@ import re
 import subprocess
 from collections import defaultdict
 import json
+import os
 
-tabix = "/Users/jody/github/TBProfiler/bin/tabix"
-ref_annotation = "/Users/jody/github/TBProfiler/ref/MTB-h37rv_asm19595v2-eg18.tab.ann.gz"
+if len(sys.argv)!=2:
+	print "parse_drdb.py <prefix>"
+	quit()
+
+scriptDir = os.path.dirname(os.path.realpath(__file__))+"/../"
+tabix = scriptDir+"/bin/tabix"
+ref_dir = scriptDir+"/ref/"
+ref_annotation = ref_dir+"/MTB-h37rv_asm19595v2-eg18.tab.ann.gz"
+
+jsonout = sys.argv[1]+".json"
+bedout = sys.argv[1]+".bed"
+
 chrom = "Chromosome"
 aa_convert = {"Ile":"I","Leu":"L","Val":"V","Phe":"F","Met":"M","Cys":"C","Ala":"A","Gly":"G","Pro":"P","Thr":"T","Ser":"S","Tyr":"Y","Trp":"W","Gln":"Q","Asn":"N","His":"H","Glu":"E","Asp":"D","Lys":"K","Arg":"R","Stop":"*"}
 rc = {"A":"T","C":"G","G":"C","T":"A"}
@@ -48,9 +59,9 @@ ann = load_ann("temp.bed")
 temp_drdb = defaultdict(list)
 
 for l in open("drdb.txt"):
-	print l
 	#ETHIONAMIDE	1674481	T	G	inhA	Ser94Ala
 	#ETHIONAMIDE	1674484/1674485	AT	CC	inhA	Ile95Pro
+	if l[0]=="#": continue
 	arr = l.rstrip().split()
 	if arr[2]=="-": continue
 	positions = arr[1].split("/")
@@ -75,42 +86,39 @@ for l in open("drdb.txt"):
 	re_obj = re.search("([A-Za-z]+)(-*\d+)([A-Za-z]+)",l)
 	ref,change_pos,alt = re_obj.group(1),re_obj.group(2),re_obj.group(3)
 
-	print ref_codon
 	if ann[chrom][pos]["strand"]=="-":
 		ref_codon = revcom(ref_codon)
-	print ref_codon
-	key = ""
+	keys = []
 
 	if ref in amino_acids and alt in amino_acids:
 		if ref==alt:
 			change_str = "%s%s%s" % (ref,change_pos,alt)
-			key = json.dumps({"genome_pos":[pos],"ref_nt":[ann[chrom][pos]["ref_nt"]],"alt_nt":[arr[3]],"locus_tag":rv,"gene":gene,"chr":"Chromosome","change":change_str})
+			keys.append(json.dumps({"genome_pos":[pos],"ref_nt":[ann[chrom][pos]["ref_nt"]],"alt_nt":[arr[3]],"locus_tag":rv,"gene":gene,"chr":"Chromosome","change":change_str}))
 		else:
 			for alt_codon in aa2codons[alt]:
 				if ann[chrom][pos]["strand"]=="-":
 					alt_codon = revcom(alt_codon)
-				print ref_codon
 				alt_pos = [unit_pos[j] for j in [i for i in range(3) if ref_codon[i]!=alt_codon[i]]]
 				ref_nts = [ref_codon[i] for i in range(3) if ref_codon[i]!=alt_codon[i]]
 				alt_nts = [alt_codon[i] for i in range(3) if ref_codon[i]!=alt_codon[i]]
-				print ref_nts
 				change_str = "%s%s%s" % (ref,change_pos,alt)
-				key = json.dumps({"genome_pos":alt_pos,"ref_nt":ref_nts,"alt_nt":alt_nts,"locus_tag":rv,"gene":gene,"chr":"Chromosome","change":change_str})
+				keys.append(json.dumps({"genome_pos":alt_pos,"ref_nt":ref_nts,"alt_nt":alt_nts,"locus_tag":rv,"gene":gene,"chr":"Chromosome","change":change_str}))
 	elif len(alt)!=len(ref):
 		change_str = "%s%s%s" % (ann[chrom][pos]["ref_nt"],ann[chrom][pos]["gene_nt"],recode_indel(ref,alt))
-		key = json.dumps({"genome_pos":[pos],"ref_nt":[ann[chrom][pos]["ref_nt"]],"alt_nt":[recode_indel(ref,alt)],"locus_tag":rv,"gene":gene,"chr":"Chromosome","change":change_str})
+		keys.append(json.dumps({"genome_pos":[pos],"ref_nt":[ann[chrom][pos]["ref_nt"]],"alt_nt":[recode_indel(ref,alt)],"locus_tag":rv,"gene":gene,"chr":"Chromosome","change":change_str}))
 
 	else:
 		change_str = "%s%s%s" % (ref,change_pos,alt)
- 		key = json.dumps({"genome_pos":[pos],"ref_nt":[ann[chrom][pos]["ref_nt"]],"alt_nt":[arr[3]],"locus_tag":rv,"gene":gene,"chr":"Chromosome","change":change_str})
-	temp_drdb[key].append(arr[0])
+ 		keys.append(json.dumps({"genome_pos":[pos],"ref_nt":[ann[chrom][pos]["ref_nt"]],"alt_nt":[arr[3]],"locus_tag":rv,"gene":gene,"chr":"Chromosome","change":change_str}))
+	for key in keys:
+		temp_drdb[key].append(arr[0])
 
 drdb = []
 for key in sorted(temp_drdb,key=lambda x: int(json.loads(x)["genome_pos"][0])):
 	obj = json.loads(key)
 	obj["drug"] = temp_drdb[key]
 	drdb.append(obj)
-json.dump(drdb,open("drdb.json","w"))
-with open("drdb.bed","w") as o:
+json.dump(drdb,open(jsonout,"w"))
+with open(bedout,"w") as o:
 	for p in sorted(list(bed_pos),key=lambda x:int(x[0])):
 		o.write("Chromosome\t%s\t%s\t%s\t%s\n" % (p[0],p[1],p[2],p[3]))
