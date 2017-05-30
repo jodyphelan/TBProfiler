@@ -52,8 +52,8 @@ Add a new line corresponding to the desired variant with the following columns:
 4. Gene name
 5. Mutation - String with the mutation
 
-Examples:
-A non-synonymous variant:
+####Examples:
+#####A non-synonymous variant:
 
 ETHIONAMIDE     1674484/1674485 AT      CC      inhA    Ile95Pro
 
