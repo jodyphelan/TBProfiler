@@ -42,7 +42,25 @@ Where  ```samples_file``` is a list of prefixes of previously run samples and ``
 The pipeline searches for small variants and big deletions associated with drug resistance. It will also report the lineage.
 
 ### Adding new genes/mutations
-This feature is coming soon
+To add new mutations navigate to the ```db``` directory and edit the ```drdb.txt``` file.
+Add a new line corresponding to the desired variant with the following columns:
+
+1. Drug - Drug name with no spaces
+2. Genomic position - If more than one position affected, seperate with "/".
+3. Reference nucleotides - String of nucleotides with length equal to the number of bases affected.
+3. Alternate nucleotides - String of nucleotides with length equal to the number of bases affected.
+4. Gene name
+5. Mutation - String with the mutation
+
+Examples:
+A non-synonymous variant:
+ETHIONAMIDE     1674484/1674485 AT      CC      inhA    Ile95Pro
+A promoter mutation:
+ISONIAZID       2156118 C       T       katG_promoter   C-7T
+An indel:
+PYRAZINAMIDE    2288953 CC      C       pncA    CC289C
+
+
 
 ## Citation
 
