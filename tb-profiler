@@ -6,6 +6,7 @@ import subprocess
 from collections import defaultdict
 import argparse
 import os
+import re
 
 ################### Literals #####################
 scriptDir = os.path.dirname(os.path.realpath(__file__))
@@ -23,8 +24,7 @@ verbose = False
 drdb = json.load(open(scriptDir+"/db/drdb.json"))
 
 codons = {'CTT': 'Leu', 'ATG': 'Met', 'ACA': 'Thr', 'ACG': 'Thr', 'ATC': 'Ile', 'AAC': 'Asn', 'ATA': 'Ile', 'AGG': 'Arg', 'CCT': 'Pro', 'ACT': 'Thr', 'AGC': 'Ser', 'AAG': 'Lys', 'AGA': 'Arg', 'CAT': 'His', 'AAT': 'Asn', 'ATT': 'Ile', 'CTG': 'Leu', 'CTA': 'Leu', 'CTC': 'Leu', 'CAC': 'His', 'AAA': 'Lys', 'CCG': 'Pro', 'AGT': 'Ser', 'CCA': 'Pro', 'CAA': 'Gln', 'CCC': 'Pro', 'TAT': 'Tyr', 'GGT': 'Gly', 'TGT': 'Cys', 'CGA': 'Arg', 'CAG': 'Gln', 'TCT': 'Ser', 'GAT': 'Asp', 'CGG': 'Arg', 'TTT': 'Phe', 'TGC': 'Cys', 'GGG': 'Gly', 'TAG': 'Stop', 'GGA': 'Gly', 'TGG': 'Trp', 'GGC': 'Gly', 'TAC': 'Tyr', 'TTC': 'Phe', 'TCG': 'Ser', 'TTA': 'Leu', 'TTG': 'Leu', 'TCC': 'Ser', 'ACC': 'Thr', 'TAA': 'Stop', 'GCA': 'Ala', 'GTA': 'Val', 'GCC': 'Ala', 'GTC': 'Val', 'GCG': 'Ala', 'GTG': 'Val', 'GAG': 'Glu', 'GTT': 'Val', 'GCT': 'Ala', 'TGA': 'Stop', 'GAC': 'Asp', 'CGT': 'Arg', 'GAA': 'Glu', 'TCA': 'Ser', 'CGC': 'Arg'}
-rn = {"1":2,"2":1,"3":0}
-nn = {"1":0,"2":1,"3":2}
+amino_acids = ['Cys', 'Ile', 'Ser', 'Val', 'Gly', 'Gln', 'Pro', 'Lys', 'Stop', 'Thr', 'Phe', 'Ala', 'Met', 'Asp', 'His', 'Leu', 'Arg', 'Trp', 'Glu', 'Asn', 'Tyr']
 rc = {"A":"T","C":"G","G":"C","T":"A"}
 
 ################### Functions ####################
@@ -94,11 +94,11 @@ def assign_lin(prefix):
 		print "%s\nLineage:\n%s\t%s\t%s\n%s" % ("-"*40,main_lin,sublin,meta,"-"*40)
 	return {"main":main_lin,"sublin":sublin,"meta":meta}
 
-def load_ann(bed_name):
+def load_ann(bed_name,qtype = "T"):
 	if verbose:
 		print "Loading annotation"
 	ann_dict = defaultdict(dict)
-	annCMD = "%s %s -T %s" % (tabix,ref_annotation,bed_name)
+	annCMD = "%s %s -%s %s" % (tabix,ref_annotation,qtype,bed_name)
 	annPIPE = subprocess.Popen(annCMD,shell=True,stdout=subprocess.PIPE)
 	for l in annPIPE.stdout:
 		arr = l.rstrip().split()
@@ -129,8 +129,7 @@ def call_variants(prefix,bed_file,file_prefix):
 	if verbose:	print "Calling Variants"
 	bamfile = prefix+".bam"
 	vcf_file = "%s.%s.vcf" % (prefix,file_prefix)
-	if verbose:
-		print "%s view -bL %s %s | %s mpileup -ugf %s - | %s call --ploidy 1 -vmO v -o %s" % (samtools,bed_file,bamfile,samtools,ref_file,bcftools,vcf_file)
+	if verbose: print "%s view -bL %s %s | %s mpileup -ugf %s - | %s call --ploidy 1 -vmO v -o %s" % (samtools,bed_file,bamfile,samtools,ref_file,bcftools,vcf_file)
 	subprocess.call("%s view -bL %s %s | %s mpileup -ugf %s - | %s call --ploidy 1 -vmO v -o %s" % (samtools,bed_file,bamfile,samtools,ref_file,bcftools,vcf_file),shell=True,stdout=FNULL,stderr=FNULL)
 	base_calls = defaultdict(lambda : defaultdict(dict))
 	for l in open(vcf_file):
@@ -188,64 +187,57 @@ def small_dr_var(prefix):
 
 	dr_variants = []
 	other_variants = []
-	processed_lines = defaultdict(lambda:defaultdict(list))
-	for gene in variant_bin:
-		if gene_type[gene]=="CDS":
-			for change_pos in variant_bin[gene]:
-				positions = variant_bin[gene][change_pos]
-				genome_positions = ",".join([x[1] for x in positions])
+	for rv in variant_bin:
+		for change_pos in variant_bin[rv]:
+			chrom = variant_bin[rv][change_pos][0][0]
+			nt_positions = [x[1] for x in variant_bin[rv][change_pos]]
+			genome_pos = ",".join(nt_positions)
+			pos = nt_positions[0]
+			positions = variant_bin[rv][change_pos]
+			alts = [variants[chrom][p] for p in nt_positions]
+			res = [dr for dr in drdb if dr["genome_pos"]==nt_positions and dr["alt_nt"]==alts]
+
+			change_str = ""
+			var_type = ""
+			if "+" in "".join(alts) or "-" in "".join(alts):
+				if len(alts)!=1:
+					print "Don't know what to do! ERROR!!"
+					quit()
+
+				change_str = "%s%s%s" % (ann[chrom][pos]["ref_nt"],ann[chrom][pos]["gene_nt"],alts[0])
+				var_type = "INDEL"
+			elif ann[chrom][pos]["change_pos"]!=".":
 				ref_codon = ann[positions[0][0]][positions[0][1]]["ref_codon"]
 				temp_vars = []
 				for chrom,pos in positions:
 					temp_vars.append((chrom,pos,ann[chrom][pos]["ref_nt"],variants[chrom][pos]))
 				alt_var = list(ref_codon)
-				indel_present = False
 				for arr in temp_vars:
 					chom,pos,ref,var = arr[0],arr[1],arr[2],arr[3]
-					if indel_present == True: continue
-					if "+" in var or "-" in var:
-						indel_present = True
-						alt_var = "%s%s%s" % (ref,ann[chrom][pos]["gene_nt"],var)
-						continue
 					temp_c_pos = int(ann[chrom][pos]["change_pos"])-1
 					alt_var[temp_c_pos] = rc[var] if ann[chrom][pos]["strand"] == "-" else var
-					alt_var = "".join(alt_var)
-					if "-" not in alt_var and "+" not in alt_var:
-						change_str = "%s%s%s" % (codons[ref_codon],change_pos,codons[alt_var])
-						if codons[ref_codon]==codons[alt_var]: #if there is a syonymous variant
-							non_dr_var = True
-							for chrom,pos in positions:
-								if gene in drdb["CDS-syn"] and pos in drdb["CDS-syn"][gene] and variants[chrom][pos] in drdb["CDS-syn"][gene][pos]:
-									non_dr_var = False
-									for d in drdb["CDS-syn"][gene][pos][variants[chrom][pos]]:
-										dr_variants.append({"drug":d,"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_positions,"chr":chrom,"change":change_str,"type":"SNP"})
-							if non_dr_var:
-								other_variants.append({"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_positions,"chr":chrom,"change":change_str,"type":"SNP"})
-						else: #else if the variant is non-synonymous
-							codon = codons[alt_var]
-							if gene in drdb["CDS-nsyn"] and change_pos in drdb["CDS-nsyn"][gene] and codon in drdb["CDS-nsyn"][gene][change_pos]:
-								for d in drdb["CDS-nsyn"][gene][change_pos][codon]:
-									dr_variants.append({"drug":d,"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_positions,"chr":chrom,"change":change_str,"type":"SNP"})
-							else:
-								other_variants.append({"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_positions,"chr":chrom,"change":change_str,"type":"SNP"})
-					else:
-						if gene in drdb["indel"] and change_pos in drdb["indel"][gene] and alt_var in drdb["indel"][gene][change_pos]:
-							for d in drdb["indel"][gene][change_pos][alt_var]:
-								dr_variants.append({"drug":d,"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_positions,"chr":chrom,"change":change_str,"type":"INDEL"})
-						else:
-							other_variants.append({"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_positions,"chr":chrom,"change":change_str,"type":"INDEL"})
-		else:
-			for change_pos in variant_bin[gene]:
-				genome_positions = ",".join([x[1] for x in variant_bin[gene][change_pos]])
-				chrom,pos = variant_bin[gene][change_pos][0]
-				alt_var = variants[chrom][pos]
-				change_str = "%s%s%s" % (ann[chrom][pos]["ref_nt"],change_pos,alt_var)
-				if gene in drdb["other"] and change_pos in drdb["other"][gene] and alt_var in drdb["other"][gene][change_pos]:
-					for d in drdb["other"][gene][change_pos][alt_var]:
-						dr_variants.append({"drug":d,"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_positions,"chr":chrom,"change":change_str,"type":"SNP"})
-				else:
-					other_variants.append({"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_positions,"chr":chrom,"change":change_str,"type":"SNP"})
+				alt_var = "".join(alt_var)
+				change_str = "%s%s%s" % (codons[ref_codon],ann[chrom][pos]["codon_num"],codons[alt_var])
+				var_type = "SNP"
+			else:
+				if len(alts)!=1:
+					print "ERROR!!!"
+					quit()
+				var = alts[0]
+				change_str = "%s%s%s" % (ann[chrom][pos]["ref_nt"],ann[chrom][pos]["gene_nt"],var)
+				var_type = "SNP"
+			if len(res)==1:
+				res = res[0]
+				for d in res["drug"]:
+					dr_variants.append({"drug":d,"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_pos,"chr":chrom,"change":change_str,"type":var_type})
+			elif len(res)==0:
+				other_variants.append({"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_pos,"chr":chrom,"change":change_str,"type":var_type})
+			else:
+				print "ERRROORRR!!!"
+				quit()
+
 	return dr_variants,other_variants
+
 
 def large_dels(prefix):
 
@@ -346,15 +338,7 @@ def results2tab(samples,outfile,stor_dir):
 	for s in samples:
 		o.write(s+"\t"+"\t".join([results[s][x] for x in drugs])+"\n")
 
-def print_db():
-	print "\n\nCDS non-synonymous mutations:\n"
-	for gene in drdb["CDS-nsyn"]:
-		for pos in drdb["CDS-nsyn"][gene]:
-			print "%s\t%s\t%s" % (gene,pos,",".join(drdb["CDS-nsyn"][gene][pos]))
 
-	print "\n\nIndels:\n"
-	for gene in drdb["indels"]:
-		pass
 
 ################ Main functions ##################
 
@@ -362,10 +346,12 @@ def main_run_pipeline(args):
 	if args.verbose:
 		global verbose
 		verbose=True
-		FNULL=open("/dev/stderr","w")
+	if args.db!="db/drdb.json":
+		global drdb
+		drdb = json.load(open(args.db))
 	check_files(args.read1,args.read2)
 	init_storage(args.clean,args.dir)
-#	do_mapping(args.read1,args.read2,args.threads,args.prefix)
+	do_mapping(args.read1,args.read2,args.threads,args.prefix)
 	small_dr_variants,small_other_variants = small_dr_var(args.prefix)
 	big_dels = large_dels(args.prefix)
 	lin = assign_lin(args.prefix)
@@ -376,9 +362,6 @@ def main_collate(args):
 
 	samples = [x.rstrip() for x in open(args.samples_file).readlines()]
 	results2tab(samples,args.out_file,args.dir)
-
-def main_print_db(args):
-	print_db()
 
 ####################### Argument Parser ###########################
 
@@ -392,6 +375,7 @@ parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix
 parser_sub.add_argument('--threads','-t',default="1",help='Threads')
 parser_sub.add_argument('--clean',help="Remove temporary files",action="store_true")
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+parser_sub.add_argument('--db','-b',default="db/drdb.json",help='Full path to mutation database json file to use (default: TBProfiler panel)')
 parser_sub.add_argument('--verbose',help="Remove temporary files",action="store_true")
 
 parser_sub.set_defaults(func=main_run_pipeline)
@@ -402,8 +386,6 @@ parser_sub.add_argument('samples_file',help='File with samples (one per line)')
 parser_sub.add_argument('out_file',help='Output file name')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.set_defaults(func=main_collate)
-
-
 
 args = parser.parse_args()
 args.func(args)
