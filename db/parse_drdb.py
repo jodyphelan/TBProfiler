@@ -33,9 +33,9 @@ def recode_indel(ref,alt):
 		return "%s-%s%s" % (ref[:1],ldiff,ref[1:1+ldiff])
 
 
-def load_ann(bed_name):
+def load_ann(bed_name,qtype="T"):
 	ann_dict = defaultdict(dict)
-	annCMD = "%s %s -T %s" % (tabix,ref_annotation,bed_name)
+	annCMD = "%s %s -%s %s" % (tabix,ref_annotation,qtype,bed_name)
 	annPIPE = subprocess.Popen(annCMD,shell=True,stdout=subprocess.PIPE)
 	for l in annPIPE.stdout:
 		arr = l.rstrip().split()
@@ -47,17 +47,34 @@ def load_ann(bed_name):
 		ann_dict[arr[0]][arr[1]] = {"ref_nt":arr[2],"ref_codon":arr[6],"ref_aa":arr[11],"chr":arr[0],"pos":arr[1],"ann":nuc_obj,"rv":arr[15],"gene":arr[16],"gene_syn":arr[17],"ncr":arr[18],"start":arr[19],"end":arr[20],"strand":arr[21],"drug":arr[22],"ppe":arr[23],"codon_num":arr[24],"gene_nt":arr[25],"operon":arr[26]}
 	return ann_dict
 
-
-
-bed_pos = set()
-
 def revcom(x):
 	return "".join([{"A":"T","C":"G","G":"C","T":"A"}[x[i]] for i in range(len(x)-1,-1,-1)])
 
-ann = load_ann("temp.bed")
+loci_pos = json.load(open("loci.json"))
+loci = set()
+print "Loading loci"
+for l in open("drdb.txt"):
+	#ETHIONAMIDE	1674481	T	G	inhA	Ser94Ala
+	#ETHIONAMIDE	1674484/1674485	AT	CC	inhA	Ile95Pro
+	if l[0]=="#": continue
+	arr = l.rstrip().split()
+	if arr[2]=="-": continue
+	positions = arr[1].split("/")
+	for p in positions:
+		for loc in [x for x in loci_pos if int(p)>loci_pos[x][0] and int(p)<loci_pos[x][1]]:
+			loci.add((loc,loci_pos[loc][0],loci_pos[loc][1]))
 
+o = open("temp.bed","w")
+for loc,p1,p2 in sorted(loci,key=lambda x: x[1]):
+	o.write("Chromosome\t%s\t%s\n" % (p1-1,p2+1))
+o.close()
+
+print "Loading Annotation"
+bed_pos = set()
+ann = load_ann("temp.bed","R")
 temp_drdb = defaultdict(list)
 
+print "Converting to DB"
 for l in open("drdb.txt"):
 	#ETHIONAMIDE	1674481	T	G	inhA	Ser94Ala
 	#ETHIONAMIDE	1674484/1674485	AT	CC	inhA	Ile95Pro
@@ -122,3 +139,4 @@ json.dump(drdb,open(jsonout,"w"))
 with open(bedout,"w") as o:
 	for p in sorted(list(bed_pos),key=lambda x:int(x[0])):
 		o.write("Chromosome\t%s\t%s\t%s\t%s\n" % (p[0],p[1],p[2],p[3]))
+subprocess.call("rm temp.bed",shell=True)

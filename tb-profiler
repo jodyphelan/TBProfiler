@@ -99,6 +99,7 @@ def load_ann(bed_name,qtype = "T"):
 		print "Loading annotation"
 	ann_dict = defaultdict(dict)
 	annCMD = "%s %s -%s %s" % (tabix,ref_annotation,qtype,bed_name)
+	print annCMD
 	annPIPE = subprocess.Popen(annCMD,shell=True,stdout=subprocess.PIPE)
 	for l in annPIPE.stdout:
 		arr = l.rstrip().split()
@@ -173,9 +174,9 @@ def small_dr_var(prefix):
 			if pos not in dr_pos[chrom]: continue
 			variants[chrom][pos] = temp_variants[chrom][pos]
 			var_loci.append([chrom,pos])
-			OUT.write("%s\t%s\t%s\n" % (chrom,pos,pos))
+			OUT.write("%s\t%s\t%s\n" % (chrom,int(pos)-1,int(pos)))
 	OUT.close()
-	ann = load_ann(temp_bed)
+	ann = load_ann(temp_bed,"R")
 	variant_bin = defaultdict(lambda:defaultdict(list))
 	gene_type = {}
 	for chrom,pos in var_loci:
