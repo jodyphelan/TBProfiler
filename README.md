@@ -21,7 +21,7 @@ bash osX_install_prerequisites.sh
 
 The first argument indicates the analysis type to perform. At the moment we currently only support the calling of small variants or the detection of large deletions.
 
-#### Quick start
+#### Quick start example
 Run whole pipeline:
 ```
 tb-profiler full -1 /path/to/reads_1.fastq.gz -2 /path/to/reads_2.fastq.gz -p prefix
@@ -29,6 +29,14 @@ tb-profiler full -1 /path/to/reads_1.fastq.gz -2 /path/to/reads_2.fastq.gz -p pr
 The prefix is usefull when you need to run more that one sample.
 This will store BAM files, summary pileup and result files in respective directories.
 Results are output in text format and json format.
+
+Example run:
+```
+mkdir test_run; cd test_run
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR166/009/ERR1664619/ERR1664619_1.fastq.gz & wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR166/009/ERR1664619/ERR1664619_2.fastq.gz
+tb-profiler full -1 ERR1664619_1.fastq.gz -2 ERR1664619_2.fastq.gz -t 4 -p ERR1664619
+cat results/ERR1664619.results.txt
+```
 
 The results from numerous runs can be collated into one table using the following command:
 ```
