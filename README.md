@@ -41,6 +41,8 @@ Where  ```samples_file``` is a list of prefixes of previously run samples and ``
 
 The pipeline searches for small variants and big deletions associated with drug resistance. It will also report the lineage.
 
+<img src="jodyphelan.github.io/img/TBProfiler.png">
+
 ### Adding new genes/mutations
 To add new mutations navigate to the ```db``` directory and edit the ```drdb.txt``` file.
 Add a new line corresponding to the desired variant with the following columns:
