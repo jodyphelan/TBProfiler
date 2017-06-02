@@ -214,7 +214,6 @@ def small_dr_var(prefix):
 			change_str = ""
 			var_type = ""
 			if "+" in "".join(alts) or "-" in "".join(alts):
-				print alts
 				if len(alts)!=1:
 					print "Don't know what to do! ERROR!!"
 					quit()
@@ -369,7 +368,7 @@ def main_run_pipeline(args):
 
 	check_files(args.read1,args.read2)
 	init_storage(args.clean,args.dir)
-#	do_mapping(args.read1,args.read2,args.threads,args.prefix)
+	do_mapping(args.read1,args.read2,args.threads,args.prefix)
 	small_dr_variants,small_other_variants = small_dr_var(args.prefix)
 	big_dels = large_dels(args.prefix)
 	lin = assign_lin(args.prefix)
