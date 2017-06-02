@@ -331,7 +331,7 @@ def results2tab(samples,outfile,stor_dir):
 	drugs = set()
 	for l in open(dr_bed_file):
 		arr = l.rstrip().split()
-		for d in arr[4].split(","):
+		for d in arr[5].split(";"):
 			drugs.add(d)
 	drugs = sorted(list(drugs))
 	results = defaultdict(dict)

@@ -70,7 +70,7 @@ for loc,p1,p2 in sorted(loci,key=lambda x: x[1]):
 o.close()
 
 print "Loading Annotation"
-bed_pos = set()
+bed_pos = defaultdict(set)
 ann = load_ann("temp.bed","R")
 temp_drdb = defaultdict(list)
 
@@ -83,7 +83,7 @@ for l in open("drdb.txt"):
 	if arr[2]=="-": continue
 	positions = arr[1].split("/")
 	for p in positions:
-		bed_pos.add((ann[chrom][p]["start"],ann[chrom][p]["end"],ann[chrom][p]["rv"],ann[chrom][p]["gene"]))
+		bed_pos[((ann[chrom][p]["start"],ann[chrom][p]["end"],ann[chrom][p]["rv"],ann[chrom][p]["gene"]))].add(arr[0])
 	pos = positions[0]
 	t_ann = ann["Chromosome"][pos]
 	ncr = ann["Chromosome"][pos]["ncr"]
@@ -137,6 +137,6 @@ for key in sorted(temp_drdb,key=lambda x: int(json.loads(x)["genome_pos"][0])):
 	drdb.append(obj)
 json.dump(drdb,open(jsonout,"w"))
 with open(bedout,"w") as o:
-	for p in sorted(list(bed_pos),key=lambda x:int(x[0])):
-		o.write("Chromosome\t%s\t%s\t%s\t%s\n" % (p[0],p[1],p[2],p[3]))
+	for p in sorted(bed_pos,key=lambda x:int(x[0])):
+		o.write("Chromosome\t%s\t%s\t%s\t%s\t%s\n" % (p[0],p[1],p[2],p[3],";".join(list(bed_pos[p]))))
 subprocess.call("rm temp.bed",shell=True)
