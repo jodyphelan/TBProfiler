@@ -318,7 +318,7 @@ def write_results(prefix,small_var_dr,small_var_other,dels,lin):
 		o.write("\t".join([l[x] for x in ["drug","chr","genome_pos","gene","locus_tag","change","type"]])+"\n")
 	o.write("\n\n#### Big Deletions in candidate genes ####\n")
 	for l in dels:
-		o.write("\t".join([str(l[x]) for x in ["drug","gene","len","good_cov",'float_gene_present']]))
+		o.write("\t".join([str(l[x]) for x in ["drug","gene","len","good_cov",'float_gene_present']])+"\n")
 	o.write("\n\n#### Lineage ####\n")
 	o.write("%s\t%s\t%s\n" % (lin["main"],lin["sublin"],lin["meta"]))
 	o.write("\n\n#### Other small variants in candidate genes ####\n")
