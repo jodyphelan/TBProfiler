@@ -9,7 +9,8 @@ mv tabix bgzip ../bin/
 cd ../
 
 #bwa
-wget pathogenseq.lshtm.ac.uk/downloads/bwa-0.6.2.tgz
+wget http://pathogenseq.lshtm.ac.uk/downloads/bwa-0.6.2.tgz
+tar -xvf bwa-0.6.2.tgz
 cd bwa-0.6.2; make
 mv bwa ../bin
 
