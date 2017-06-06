@@ -39,6 +39,8 @@ def check_files(r1,r2):
 		programs = {}
 		programs["linux"] = {"tabix":tabix,"snap":snap,"samtools":samtools,"bcftools":bcftools}
 		programs["mac"] = {"bwa":bwa,"tabix":tabix,"samtools":samtools,"bcftools":bcftools}
+		programs["rpi"] = {"bwa":bwa,"tabix":tabix,"samtools":samtools,"bcftools":bcftools}
+
 		for p in programs[arch]:
 				if not os.path.isfile(programs[arch][p]):
 						print "Can't find %s" % p
@@ -125,6 +127,11 @@ def do_mapping(r1,r2,threads,prefix):
 			cmd_mapping = "%s mem -t %s %s %s %s | %s view -@ %s -b - | %s sort -@ %s -o %s.bam -" % (bwa,threads,ref_file,r1,r2,samtools,threads,samtools,threads,prefix)
 		else:
 			cmd_mapping = "%s mem -t %s %s %s | %s view -@ %s -b - | %s sort -@ %s -o %s.bam -" % (bwa,threads,ref_file,r1,samtools,threads,samtools,threads,prefix)
+	elif arch=="rpi":
+		if r2:
+			cmd_mapping = "%s aln -t %s %s %s > %s_1.sai && %s aln -t %s %s %s > %s_2.sai && %s sampe %s %s_1.sai %s_2.sai %s %s | %s view -@ %s -b - | %s sort -@ %s -o %s.bam && rm %s_1.sai %s_2.sai" % (bwa,threads,ref_file,r1,prefix,bwa,threads,ref_file,r2,prefix,bwa,ref_file,prefix,prefix,r1,r2,samtools,threads,samtools,threads,prefix,prefix,prefix)
+		else:
+			cmd_mapping = "%s aln -t %s %s %s > %s_1.sai && %s samse %s %s_1.sai %s | %s view -@ %s -b - | %s sort -@ %s -o %s.bam && rm %s_1.sai %s_2.sai" % (bwa,threads,ref_file,r1,prefix,bwa,ref_file,prefix,r1,samtools,threads,samtools,threads,prefix,prefix,prefix)
 	if verbose: print cmd_mapping
 	subprocess.call(cmd_mapping,shell=True,stderr=FNULL,stdout=FNULL)
 
