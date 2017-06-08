@@ -107,12 +107,7 @@ def load_ann(bed_name,qtype = "T"):
 	annPIPE = subprocess.Popen(annCMD,shell=True,stdout=subprocess.PIPE)
 	for l in annPIPE.stdout:
 		arr = l.rstrip().split()
-		nuc_obj = {}
-		nuc_obj[arr[2]] = {"codon":arr[6],"aa":arr[11]}
-		nuc_obj[arr[3]] = {"codon":arr[8],"aa":arr[12]}
-		nuc_obj[arr[4]] = {"codon":arr[9],"aa":arr[13]}
-		nuc_obj[arr[5]] = {"codon":arr[10],"aa":arr[14]}
-		ann_dict[arr[0]][arr[1]] = {"change_pos":arr[7],"ref_nt":arr[2],"ref_codon":arr[6],"ref_aa":arr[11],"chr":arr[0],"pos":arr[1],"ann":nuc_obj,"rv":arr[15],"gene":arr[16],"gene_syn":arr[17],"ncr":arr[18],"start":arr[19],"end":arr[20],"strand":arr[21],"drug":arr[22],"ppe":arr[23],"codon_num":arr[24],"gene_nt":arr[25],"operon":arr[26]}
+		ann_dict[arr[0]][arr[1]] = {"change_pos":arr[7],"ref_nt":arr[2],"ref_codon":arr[6],"ref_aa":arr[11],"chr":arr[0],"pos":arr[1],"rv":arr[15],"gene":arr[16],"gene_syn":arr[17],"ncr":arr[18],"start":arr[19],"end":arr[20],"strand":arr[21],"drug":arr[22],"ppe":arr[23],"codon_num":arr[24],"gene_nt":arr[25],"operon":arr[26]}
 	return ann_dict
 
 def do_mapping(r1,r2,threads,prefix):
