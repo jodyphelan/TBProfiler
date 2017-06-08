@@ -107,7 +107,7 @@ def load_ann(bed_name,qtype = "T"):
 	annPIPE = subprocess.Popen(annCMD,shell=True,stdout=subprocess.PIPE)
 	for l in annPIPE.stdout:
 		arr = l.rstrip().split()
-		ann_dict[arr[0]][arr[1]] = {"change_pos":arr[7],"ref_nt":arr[2],"ref_codon":arr[6],"ref_aa":arr[11],"chr":arr[0],"pos":arr[1],"rv":arr[15],"gene":arr[16],"gene_syn":arr[17],"ncr":arr[18],"start":arr[19],"end":arr[20],"strand":arr[21],"drug":arr[22],"ppe":arr[23],"codon_num":arr[24],"gene_nt":arr[25],"operon":arr[26]}
+		ann_dict[arr[0]][arr[1]] = {"change_pos":arr[7],"ref_nt":arr[2],"ref_codon":arr[6],"ref_aa":arr[11],"chr":arr[0],"pos":arr[1],"rv":arr[15],"gene":arr[16],"gene_syn":arr[17],"ncr":arr[18],"start":arr[19],"end":arr[20],"strand":arr[21],"codon_num":arr[24],"gene_nt":arr[25],"operon":arr[26]}
 	return ann_dict
 
 def do_mapping(r1,r2,threads,prefix):
@@ -124,7 +124,7 @@ def do_mapping(r1,r2,threads,prefix):
 			cmd_mapping = "%s mem -t %s %s %s | %s view -@ %s -b - | %s sort -@ %s -o %s.bam -" % (bwa,threads,ref_file,r1,samtools,threads,samtools,threads,prefix)
 	elif arch=="rpi":
 		if r2:
-			cmd_mapping = "%s aln -t %s %s %s > %s_1.sai && %s aln -t %s %s %s > %s_2.sai && %s sampe %s %s_1.sai %s_2.sai %s %s | %s view -@ %s -b - > %s.unsort.bam | %s sort -m 600M -o %s.bam %s.unsort.bam && rm %s_1.sai %s_2.sai %s.unsort.bam" % (bwa,threads,ref_file,r1,prefix,bwa,threads,ref_file,r2,prefix,bwa,ref_file,prefix,prefix,r1,r2,samtools,threads,prefix,samtools,prefix,prefix,prefix,prefix,prefix)
+			cmd_mapping = "%s aln -t %s %s %s > %s_1.sai && %s aln -t %s %s %s > %s_2.sai && %s sampe %s %s_1.sai %s_2.sai %s %s | %s view -@ %s -b - > %s.unsort.bam && %s sort -m 600M -o %s.bam %s.unsort.bam && rm %s_1.sai %s_2.sai %s.unsort.bam" % (bwa,threads,ref_file,r1,prefix,bwa,threads,ref_file,r2,prefix,bwa,ref_file,prefix,prefix,r1,r2,samtools,threads,prefix,samtools,prefix,prefix,prefix,prefix,prefix)
 		else:
 			cmd_mapping = "%s aln -t %s %s %s > %s_1.sai && %s sampe %s %s_1.sai %s | %s view -@ %s -b - > %s.unsort.bam | %s sort -m 600M -o %s.bam %s.unsort.bam && rm %s_1.sai %s_2.sai %s.unsort.bam" % (bwa,threads,ref_file,r2,prefix,bwa,ref_file,prefix,r1,samtools,threads,prefix,samtools,prefix,prefix,prefix,prefix,prefix)
 	if verbose: print cmd_mapping
