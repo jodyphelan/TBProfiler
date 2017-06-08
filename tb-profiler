@@ -125,7 +125,6 @@ def do_mapping(r1,r2,threads,prefix):
 	elif arch=="rpi":
 		if r2:
 			cmd_mapping = "zcat %s %s | gzip -c > %s.merged.fq.gz && %s aln -t %s %s %s.merged.fq.gz > %s_1.sai && %s samse %s %s_1.sai %s.merged.fq.gz | %s view -@ %s -b - > %s.unsort.bam && %s sort -m 200M -o %s.bam %s.unsort.bam && rm %s_1.sai %s_2.sai %s.unsort.bam" % (r1,r2,prefix,bwa,threads,ref_file,prefix,prefix,bwa,ref_file,prefix,prefix,samtools,threads,prefix,samtools,prefix,prefix,prefix,prefix,prefix)
-#			cmd_mapping = "%s aln -t %s %s %s > %s_1.sai && %s aln -t %s %s %s > %s_2.sai && %s sampe %s %s_1.sai %s_2.sai %s %s | %s view -@ %s -b - > %s.unsort.bam && %s sort -m 600M -o %s.bam %s.unsort.bam && rm %s_1.sai %s_2.sai %s.unsort.bam" % (bwa,threads,ref_file,r1,prefix,bwa,threads,ref_file,r2,prefix,bwa,ref_file,prefix,prefix,r1,r2,samtools,threads,prefix,samtools,prefix,prefix,prefix,prefix,prefix)
 		else:
 			cmd_mapping = "%s aln -t %s %s %s > %s_1.sai && %s samse %s %s_1.sai %s | %s view -@ %s -b - > %s.unsort.bam | %s sort -m 600M -o %s.bam %s.unsort.bam && rm %s_1.sai %s_2.sai %s.unsort.bam" % (bwa,threads,ref_file,r2,prefix,bwa,ref_file,prefix,r1,samtools,threads,prefix,samtools,prefix,prefix,prefix,prefix,prefix)
 	if verbose: print cmd_mapping
