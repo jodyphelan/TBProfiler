@@ -327,6 +327,13 @@ def write_results_2(prefix,small_var_dr,small_var_other,dels,lin):
 		res = "R" if len(dr_vars)>0 else ""
 		muts = ["%(gene)s (%(change)s)" % x for x in dr_vars]
 		o.write("%s\t%s\t%s\n" % (d,res,", ".join(muts)))
+	dr_drugs = [x["drug"] for x in small_var_dr]
+
+	MDR = "R" if ("ISONIAZID" in dr_drugs and "RIFAMPICIN" in dr_drugs) else ""
+	XDR = "R" if MDR=="R" and ( "AMIKACIN" in dr_drugs or "KANAMYCIN" in dr_drugs or "CAPREOMYCIN" in dr_drugs ) and ( "FLUOROQUINOLONES" in dr_drugs) else ""
+	o.write("MDR\t%s\n" % MDR)
+	o.write("XDR\t%s\n" % XDR)
+
 	o.write("\n\n#### Big Deletions in candidate genes ####\n")
 	for l in dels:
 		o.write("\t".join([str(l[x]) for x in ["drug","gene","len","good_cov",'float_gene_present']])+"\n")
