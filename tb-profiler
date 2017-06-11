@@ -315,9 +315,36 @@ def init_storage(clean,stor_dir):
 			if not os.path.isdir(tdir):
 				subprocess.call("mkdir %s" % tdir,shell=True)
 
-def write_results(prefix,small_var_dr,small_var_other,dels,lin):
+def write_results_2(prefix,small_var_dr,small_var_other,dels,lin):
 	if verbose:
 		print "Writing outputs"
+	drugs = load_drgus()
+	o = open(prefix+".results.txt","w")
+	o.write("#### %s results ####\n\n" % prefix)
+	o.write("#### Drug resistance associated small variants ####\n")
+	for d in drugs:
+		dr_vars = [x for x in small_var_dr if x["drug"]==d]
+		res = "R" if len(dr_vars)>0 else ""
+		muts = ["%(gene)s (%(change)s)" % x for x in dr_vars]
+		o.write("%s\t%s\t%s\n" % (d,res,", ".join(muts)))
+	o.write("\n\n#### Big Deletions in candidate genes ####\n")
+	for l in dels:
+		o.write("\t".join([str(l[x]) for x in ["drug","gene","len","good_cov",'float_gene_present']])+"\n")
+	o.write("\n\n#### Lineage ####\n")
+	o.write("%s\t%s\t%s\n" % (lin["main"],lin["sublin"],lin["meta"]))
+	o.write("\n\n#### Other small variants in candidate genes ####\n")
+	for l in small_var_other:
+		o.write("\t".join([l[x] for x in ["chr","genome_pos","gene","locus_tag","change","type"]])+"\n")
+	o.close()
+
+	json_dict = {"small_variants_other":small_var_other,"small_variants_dr":small_var_dr,"del":dels,"lineage":lin,"id":prefix}
+
+	json.dump(json_dict,open(prefix+".results.json","w"))
+
+def write_results_1(prefix,small_var_dr,small_var_other,dels,lin):
+	if verbose:
+		print "Writing outputs"
+	drugs = load_drgus()
 	o = open(prefix+".results.txt","w")
 	o.write("#### %s results ####\n\n" % prefix)
 	o.write("#### Drug resistance associated small variants ####\n")
@@ -337,13 +364,17 @@ def write_results(prefix,small_var_dr,small_var_other,dels,lin):
 
 	json.dump(json_dict,open(prefix+".results.json","w"))
 
-def results2tab(samples,outfile,stor_dir):
+def load_drgus():
 	drugs = set()
 	for l in open(dr_bed_file):
 		arr = l.rstrip().split()
 		for d in arr[5].split(";"):
 			drugs.add(d)
-	drugs = sorted(list(drugs))
+	return sorted(list(drugs))
+
+
+def results2tab(samples,outfile,stor_dir):
+	drugs = load_drgus()
 	results = defaultdict(dict)
 	for s in samples:
 		for d in drugs:
@@ -378,11 +409,14 @@ def main_run_pipeline(args):
 
 	check_files(args.read1,args.read2)
 	init_storage(args.clean,args.dir)
-	do_mapping(args.read1,args.read2,args.threads,args.prefix)
+#	do_mapping(args.read1,args.read2,args.threads,args.prefix)
 	small_dr_variants,small_other_variants = small_dr_var(args.prefix)
 	big_dels = large_dels(args.prefix)
 	lin = assign_lin(args.prefix)
-	write_results(args.prefix,small_dr_variants,small_other_variants,big_dels,lin)
+	if args.format=="classic":
+		write_results_2(args.prefix,small_dr_variants,small_other_variants,big_dels,lin)
+	elif args.format=="new":
+		write_results_1(args.prefix,small_dr_variants,small_other_variants,big_dels,lin)
 	cleanup(args.prefix,args.clean,args.dir)
 
 def main_collate(args):
@@ -403,6 +437,7 @@ parser_sub.add_argument('--threads','-t',default="1",help='Threads')
 parser_sub.add_argument('--clean',help="Remove temporary files",action="store_true")
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--db','-b',default="default",help='Full path to mutation database json file to use (default: TBProfiler panel)')
+parser_sub.add_argument('--format','-f',default="classic",help='Output format [classic,new]')
 parser_sub.add_argument('--verbose',help="Remove temporary files",action="store_true")
 
 parser_sub.set_defaults(func=main_run_pipeline)
