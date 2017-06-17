@@ -133,7 +133,8 @@ for l in open("drdb.txt"):
 drdb = []
 for key in sorted(temp_drdb,key=lambda x: int(json.loads(x)["genome_pos"][0])):
 	obj = json.loads(key)
-	obj["drug"] = temp_drdb[key]
+
+	obj["drug"] = list(set(temp_drdb[key]))
 	drdb.append(obj)
 json.dump(drdb,open(jsonout,"w"))
 with open(bedout,"w") as o:
