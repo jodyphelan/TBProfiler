@@ -1,4 +1,3 @@
-mkdir bin
 
 #htslib
 cd htslib
@@ -21,11 +20,15 @@ mv bcftools ../bin
 cd ../
 
 #samtools
-git clone https://github.com/samtools/samtools.git
 cd samtools
 make
 mv samtools ../bin
 cd ../
+
+#lofreq
+cd lofreq/dist/
+tar -xvf lofreq_star-2.1.3.1_macosx.tgz 
+mv lofreq_star-2.1.3.1/bin/lofreq ../../bin/
 
 wget http://pathogenseq.lshtm.ac.uk/downloads/TBProfilerFiles.tgz
 tar -xvf TBProfilerFiles.tgz

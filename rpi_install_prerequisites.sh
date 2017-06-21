@@ -1,4 +1,3 @@
-mkdir bin
 
 #htslib
 cd htslib

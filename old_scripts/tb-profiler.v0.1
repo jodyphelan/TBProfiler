@@ -13,7 +13,6 @@ scriptDir = os.path.dirname(os.path.realpath(__file__))
 tabix = scriptDir+"/bin/tabix"
 snap = scriptDir+"/bin/snap-aligner"
 bwa = scriptDir+"/bin/bwa"
-lofreq = scriptDir+"/bin/lofreq"
 samtools = scriptDir+"/bin/samtools"
 bcftools = scriptDir+"/bin/bcftools"
 dr_bed_file = scriptDir+"/db/drdb.bed"
@@ -38,9 +37,9 @@ def check_files(r1,r2):
 		print "Checking input files"
 
 		programs = {}
-		programs["linux"] = {"tabix":tabix,"snap":snap,"samtools":samtools,"bcftools":bcftools,"lofreq":lofreq}
-		programs["mac"] = {"bwa":bwa,"tabix":tabix,"samtools":samtools,"bcftools":bcftools,"lofreq":lofreq}
-		programs["rpi"] = {"bwa":bwa,"tabix":tabix,"samtools":samtools,"bcftools":bcftools,"lofreq":lofreq}
+		programs["linux"] = {"tabix":tabix,"snap":snap,"samtools":samtools,"bcftools":bcftools}
+		programs["mac"] = {"bwa":bwa,"tabix":tabix,"samtools":samtools,"bcftools":bcftools}
+		programs["rpi"] = {"bwa":bwa,"tabix":tabix,"samtools":samtools,"bcftools":bcftools}
 
 		for p in programs[arch]:
 				if not os.path.isfile(programs[arch][p]):
@@ -67,7 +66,7 @@ def index_file(infile):
 def assign_lin(prefix):
 	if verbose:
 		print "Checking lineage"
-	calls = call_variants(prefix,lin_bed_file,"lineage")
+	calls = call_variants(prefix,lin_bed_file,"lineage","f")
 	lin_meta_dict = {}
 	lin_pos_dict = defaultdict(dict)
 	for l in open(lin_bed_file):
@@ -80,10 +79,10 @@ def assign_lin(prefix):
 	for chrom in lin_pos_dict:
 		for pos in lin_pos_dict[chrom]:
 			if pos not in calls[chrom]: continue
-			if lin_pos_dict[chrom][pos]["alt"] in [x[0] for x in calls[chrom][pos]]:
+			if calls[chrom][pos]==lin_pos_dict[chrom][pos]["alt"]:
 				sample_lin.add(lin_pos_dict[chrom][pos]["lin"])
 				lin_support[lin_pos_dict[chrom][pos]["lin"]] +=1
-	print sample_lin
+
 	sample_lin = list(sample_lin)
 	dict_sample_lin = {} #{'lineage4': 'lineage4.1.1.3'}
 	if len([x for x in sample_lin if "." not in x])==0: #['lineage4', 'lineage4.1', 'lineage4.1.1.3', 'lineage4.1.1']
@@ -120,19 +119,19 @@ def do_mapping(r1,r2,threads,prefix):
 	if verbose:	print "Performing mapping"
 	if arch=="linux":
 		if r2:
-			cmd_mapping = "%s paired %s -compressedFastq %s %s -t %s -o -bam - | %s sort -o %s.bam -@ %s - && %s index %s.bam" % (snap,ref_dir,r1,r2,threads,samtools,prefix,threads,samtools,prefix)
+			cmd_mapping = "%s paired %s -compressedFastq %s %s -t %s -o -bam - | %s sort -o %s.bam -@ %s - " % (snap,ref_dir,r1,r2,threads,samtools,prefix,threads)
 		else:
-			cmd_mapping = "%s single %s -compressedFastq %s -t %s -o -bam - | %s sort -o %s.bam -@ %s - && %s index %s.bam" % (snap,ref_dir,r1,threads,samtools,prefix,threads,samtools,prefix)
+			cmd_mapping = "%s single %s -compressedFastq %s -t %s -o -bam - | %s sort -o %s.bam -@ %s -" % (snap,ref_dir,r1,threads,samtools,prefix,threads)
 	elif arch=="mac":
 		if r2:
-			cmd_mapping = "%s mem -t %s %s %s %s | %s view -@ %s -b - | %s sort -@ %s -o %s.bam - && %s index %s.bam" % (bwa,threads,ref_file,r1,r2,samtools,threads,samtools,threads,prefix,samtools,prefix)
+			cmd_mapping = "%s mem -t %s %s %s %s | %s view -@ %s -b - | %s sort -@ %s -o %s.bam -" % (bwa,threads,ref_file,r1,r2,samtools,threads,samtools,threads,prefix)
 		else:
-			cmd_mapping = "%s mem -t %s %s %s | %s view -@ %s -b - | %s sort -@ %s -o %s.bam - && %s index %s.bam" % (bwa,threads,ref_file,r1,samtools,threads,samtools,threads,prefix,samtools,prefix)
+			cmd_mapping = "%s mem -t %s %s %s | %s view -@ %s -b - | %s sort -@ %s -o %s.bam -" % (bwa,threads,ref_file,r1,samtools,threads,samtools,threads,prefix)
 	elif arch=="rpi":
 		if r2:
-			cmd_mapping = "zcat %s %s | gzip -c > %s.merged.fq.gz && %s aln -t %s %s %s.merged.fq.gz > %s_1.sai && %s samse %s %s_1.sai %s.merged.fq.gz | %s view -@ %s -b - > %s.unsort.bam && %s sort -m 200M -o %s.bam %s.unsort.bam && rm %s_1.sai %s_2.sai %s.unsort.bam && %s index %s.bam" % (r1,r2,prefix,bwa,threads,ref_file,prefix,prefix,bwa,ref_file,prefix,prefix,samtools,threads,prefix,samtools,prefix,prefix,prefix,prefix,prefix,samtools,prefix)
+			cmd_mapping = "zcat %s %s | gzip -c > %s.merged.fq.gz && %s aln -t %s %s %s.merged.fq.gz > %s_1.sai && %s samse %s %s_1.sai %s.merged.fq.gz | %s view -@ %s -b - > %s.unsort.bam && %s sort -m 200M -o %s.bam %s.unsort.bam && rm %s_1.sai %s_2.sai %s.unsort.bam" % (r1,r2,prefix,bwa,threads,ref_file,prefix,prefix,bwa,ref_file,prefix,prefix,samtools,threads,prefix,samtools,prefix,prefix,prefix,prefix,prefix)
 		else:
-			cmd_mapping = "%s aln -t %s %s %s > %s_1.sai && %s samse %s %s_1.sai %s | %s view -@ %s -b - > %s.unsort.bam | %s sort -m 600M -o %s.bam %s.unsort.bam && rm %s_1.sai %s_2.sai %s.unsort.bam && %s index %s.bam" % (bwa,threads,ref_file,r2,prefix,bwa,ref_file,prefix,r1,samtools,threads,prefix,samtools,prefix,prefix,prefix,prefix,prefix,samtools,prefix)
+			cmd_mapping = "%s aln -t %s %s %s > %s_1.sai && %s samse %s %s_1.sai %s | %s view -@ %s -b - > %s.unsort.bam | %s sort -m 600M -o %s.bam %s.unsort.bam && rm %s_1.sai %s_2.sai %s.unsort.bam" % (bwa,threads,ref_file,r2,prefix,bwa,ref_file,prefix,r1,samtools,threads,prefix,samtools,prefix,prefix,prefix,prefix,prefix)
 	if verbose: print cmd_mapping
 	subprocess.call(cmd_mapping,shell=True,stderr=FNULL,stdout=FNULL)
 
@@ -141,61 +140,32 @@ def call_variants(prefix,bed_file,file_prefix,qtype="v"):
 	bamfile = prefix+".bam"
 	vcf_file = "%s.%s.vcf" % (prefix,file_prefix)
 	if qtype=="v":
-		if verbose: print "%s view -bL %s %s | %s indelqual -u 30 - | %s call -f %s --call-indels - | %s norm -f %s - > %s" % (samtools,bed_file,bamfile,lofreq,lofreq,ref_file,bcftools,ref_file,vcf_file)
-		subprocess.call("%s view -bL %s %s | %s indelqual -u 30 - |%s call -f %s --call-indels - | %s norm -f %s - > %s" % (samtools,bed_file,bamfile,lofreq,lofreq,ref_file,bcftools,ref_file,vcf_file),shell=True,stdout=FNULL,stderr=FNULL)
+		if verbose: print "%s view -bL %s %s | %s mpileup -ugf %s - | %s call --ploidy 1 -vmO v | %s norm -f %s - > %s" % (samtools,bed_file,bamfile,samtools,ref_file,bcftools,bcftools,ref_file,vcf_file)
+		subprocess.call("%s view -bL %s %s | %s mpileup -ugf %s - | %s call --ploidy 1 -vmO v | %s norm -f %s - > %s" % (samtools,bed_file,bamfile,samtools,ref_file,bcftools,bcftools,ref_file,vcf_file),shell=True,stdout=FNULL,stderr=FNULL)
 	elif qtype=="f":
-		if verbose: print "%s view -bL %s %s | %s mpileup -Augf %s - | %s call --ploidy 1 -mO v | %s norm -f %s - > %s" % (samtools,bed_file,bamfile,samtools,ref_file,bcftools,bcftools,ref_file,vcf_file)
-		subprocess.call("%s view -bL %s %s | %s mpileup -Augf %s - | %s call --ploidy 1 -mO v | %s norm -f %s - > %s" % (samtools,bed_file,bamfile,samtools,ref_file,bcftools,bcftools,ref_file,vcf_file),shell=True,stdout=FNULL,stderr=FNULL)
+		if verbose: print "%s view -bL %s %s | %s mpileup -ugf %s - | %s call --ploidy 1 -mO v | %s norm -f %s - > %s" % (samtools,bed_file,bamfile,samtools,ref_file,bcftools,bcftools,ref_file,vcf_file)
+		subprocess.call("%s view -bL %s %s | %s mpileup -ugf %s - | %s call --ploidy 1 -mO v | %s norm -f %s - > %s" % (samtools,bed_file,bamfile,samtools,ref_file,bcftools,bcftools,ref_file,vcf_file),shell=True,stdout=FNULL,stderr=FNULL)
 
 	bed_pos = set()
 	for l in open(bed_file):
 		arr = l.rstrip().split()
 		for i in range(int(arr[1]),int(arr[2])+1):
 			bed_pos.add((arr[0],str(i)))
-	rare_var = []
-	final_calls = defaultdict(lambda:defaultdict(dict))
+	base_calls = defaultdict(lambda : defaultdict(dict))
 	for l in open(vcf_file):
 		if l[0]=="#": continue
 		#Chromosome	4326451	.	TGCG	TGCGCG	225	.	INDEL;IDV=126;IMF=0.9;DP=140;VDB=0.00626444;SGB=-0.693147;MQSB=1;MQ0F=0;AC=1;AN=1;DP4=0,0,61,66;MQ=60	GT:PL	1:255,0
 		arr = l.rstrip().split()
+		if arr[5]<200: continue
 		if qtype=="f":
 			if (arr[0],arr[1]) not in bed_pos:
 				continue
-
-		if arr[4]==".":
-			if qtype=="f":
-				arr[4]=arr[3]
-			else:
-				continue
-
-		DP4 = [int(x) for x in re.search("DP4=([\d,]+)",l).group(1).split(",")]
-		if sum(DP4)==0:continue
-		DP4r = (DP4[2]+DP4[3])/(DP4[0]+DP4[1]+DP4[2]+DP4[3])
-		if "," in arr[4]:
-			print "Tri allelic site"
-			quit()
-		if (DP4r>0.1 and DP4r<0.9):
-			final_calls[arr[0]][arr[1]] = [(arr[3],1-DP4r),(arr[4],DP4r)]
-#			rare_var.append((arr[0],int(arr[1])))
+		if arr[4]==".": arr[4]=arr[3]
+		if len(arr[3])>1 or len(arr[4])>1:
+				base_calls[arr[0]][arr[1]] = recode_indel(arr[3],arr[4])
 		else:
-			if DP4r<=0.1: continue
-			else:
-				if len(arr[3])>1 or len(arr[4])>1:
-					final_calls[arr[0]][arr[1]] = [(recode_indel(arr[3],arr[4]),1.0)]
-				else:
-					final_calls[arr[0]][arr[1]] = [(arr[4],1.0)]
-
-#	if len(rare_var)>0:
-#		temp_bed = "%s.temp.bed"%prefix
-#		open(temp_bed,"w").write("\n".join(["%s\t%s\t%s" % (x[0],x[1]-1,x[1]) for x in rare_var]))
-#		for l in subprocess.Popen("/Users/jody/github/htsbox/htsbox pileup -b %s %s" % (temp_bed,bamfile),shell=True,stdout=subprocess.PIPE).stdout:
-#			#Chromosome	2789661	N	A,C	0/1:63,47
-#			arr = l.rstrip().split()
-#			alleles = arr[3].split(",")
-#			dp = [int(x) for x in arr[4].split(":")[1].split(",")]
-#			tot = sum(dp)
-#			final_calls[arr[0]][arr[1]] = [(a,dp[i]/tot) for i,a in enumerate(alleles)]
-	return final_calls
+			base_calls[arr[0]][arr[1]] = arr[4]
+	return base_calls
 
 
 def recode_indel(ref,alt):
@@ -219,7 +189,6 @@ def small_dr_var(prefix):
 			dr_pos[arr[0]].append(str(i))
 
 	temp_variants = call_variants(prefix,dr_bed_file,"dr")
-#	temp_variants = {'Chromosome': {'4240670': [('C', 0.34075471698113206), ('G', 0.03773584905660377), ('T', 0.6515094339622641)], '4240671': [('C', 0.32075471698113206), ('G', 0.03773584905660377), ('T', 0.6415094339622641)]}}
 	variants = defaultdict(dict)
 	var_loci = []
 	OUT = open(temp_bed,"w")
@@ -230,7 +199,7 @@ def small_dr_var(prefix):
 			var_loci.append([chrom,pos])
 			OUT.write("%s\t%s\t%s\n" % (chrom,int(pos)-1,int(pos)))
 	OUT.close()
-	ann = load_ann(temp_bed,"T")
+	ann = load_ann(temp_bed,"R")
 	variant_bin = defaultdict(lambda:defaultdict(list))
 	gene_type = {}
 	for chrom,pos in var_loci:
@@ -239,6 +208,7 @@ def small_dr_var(prefix):
 				variant_bin[ann[chrom][pos]["rv"]][ann[chrom][pos]["codon_num"]].append((chrom,pos))
 		else:
 				variant_bin[ann[chrom][pos]["rv"]][ann[chrom][pos]["gene_nt"]].append((chrom,pos))
+
 	dr_variants = []
 	other_variants = []
 	for rv in variant_bin:
@@ -248,95 +218,48 @@ def small_dr_var(prefix):
 			genome_pos = ",".join(nt_positions)
 			pos = nt_positions[0]
 			positions = variant_bin[rv][change_pos]
-			if set([len(x) for x in [variants[chrom][p] for p in nt_positions]])==set([1]):
-				alt_bins = [([item[0] for sublist in [variants[chrom][p] for p in nt_positions] for item in sublist],1.0)]
-			else:
-				alt_bins = []
-				tplp = {}
-				temp_refs = {}
-				for l in subprocess.Popen("%s view %s.bam Chromosome:%s-%s -h | python ../TBProfiler_new/get_covering_reads.py %s | %s view -b | %s mpileup -Q0 -f %s - " % (samtools,prefix,pos,pos,",".join(nt_positions),samtools,samtools,ref_file),shell=True,stderr=FNULL,stdout=subprocess.PIPE).stdout:
-					arr = l.rstrip().split()
-					if arr[1] in nt_positions:
-						tplp[arr[1]] = arr[4].upper()
-						temp_refs[arr[1]] = arr[2]
-				counts = defaultdict(int)
-				pileup = {}
-				for p in nt_positions:
-					pileup[p] = []
-					i=0
-					while(i<len(tplp[p])):
-						if i+1==len(tplp[p]):
-							pileup[p].append(temp_refs[p] if tplp[p][i]=="." or tplp[p][i]=="," else tplp[p][i])
-							i+=1
-						elif tplp[p][i+1]!="-" and tplp[p][i+1]!="+":
-							pileup[p].append(temp_refs[p] if tplp[p][i]=="." or tplp[p][i]=="," else tplp[p][i])
-							i+=1
-						elif tplp[p][i+1]=="-" or tplp[p][i+1]=="+":
-							indel_len = int(re.match("(\d+)",tplp[p][i+2:]).group(1))
-							indel_nchar = len(str(indel_len))
-							extra_seq = tplp[p][i+2+indel_nchar:i+2+indel_nchar+indel_len]
-							sbase = temp_refs[p] if tplp[p][i]=="." or tplp[p][i]=="," else tplp[p][i]
+			alts = [variants[chrom][p] for p in nt_positions]
+			res = [dr for dr in drdb if dr["genome_pos"]==nt_positions and dr["alt_nt"]==alts]
 
-							pileup[p].append("%s%s%s%s" % (sbase,tplp[p][i+1],indel_len,extra_seq))
-							i+=+2+indel_nchar+indel_len
-						else:
-							print "ajaisdjijo!!!"
-							quit()
-
-
-
-				for i in range(len(pileup[nt_positions[0]])):
-					k = tuple([pileup[x][i] for x in nt_positions])
-					counts[k]+=1
-				for k in counts:
-					freq = counts[k]/len(pileup[nt_positions[0]])
-					alt_bins.append([list(k),freq])
-
-
-			for alts,alts_freq in alt_bins:
-
-				res = [dr for dr in drdb if dr["genome_pos"]==nt_positions and dr["alt_nt"]==alts]
-
-				change_str = ""
-				var_type = ""
-				if "+" in "".join(alts) or "-" in "".join(alts):
-					if len(alts)!=1:
-						print "Don't know what to do! ERROR!!"
-						quit()
-
-					change_str = "%s%s%s" % (ann[chrom][pos]["ref_nt"],ann[chrom][pos]["gene_nt"],alts[0])
-					var_type = "INDEL"
-				elif ann[chrom][pos]["change_pos"]!=".":
-					ref_codon = ann[positions[0][0]][positions[0][1]]["ref_codon"]
-					temp_vars = []
-					for i,(chrom,pos) in enumerate(positions):
-						temp_vars.append((chrom,pos,ann[chrom][pos]["ref_nt"],alts[i]))
-
-					alt_var = list(ref_codon)
-					for arr in temp_vars:
-						chom,pos,ref,var = arr[0],arr[1],arr[2],arr[3]
-						temp_c_pos = int(ann[chrom][pos]["change_pos"])-1
-						alt_var[temp_c_pos] = rc[var] if ann[chrom][pos]["strand"] == "-" else var
-					if alt_var==list(ref_codon): continue
-					alt_var = "".join(alt_var)
-					change_str = "%s%s%s" % (codons[ref_codon],ann[chrom][pos]["codon_num"],codons[alt_var])
-					var_type = "SNP"
-				else:
-					if len(alts)!=1:
-						print "ERROR!!!"
-						quit()
-					var = alts[0]
-					change_str = "%s%s%s" % (ann[chrom][pos]["ref_nt"],ann[chrom][pos]["gene_nt"],var)
-					var_type = "SNP"
-				if len(res)==1:
-					res = res[0]
-					for d in res["drug"]:
-						dr_variants.append({"drug":d,"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_pos,"chr":chrom,"change":change_str,"type":var_type,"freq":str(round(alts_freq,2))})
-				elif len(res)==0:
-					other_variants.append({"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_pos,"chr":chrom,"change":change_str,"type":var_type,"freq":str(round(alts_freq,2))})
-				else:
-					print "ERRROORRR!!!"
+			change_str = ""
+			var_type = ""
+			if "+" in "".join(alts) or "-" in "".join(alts):
+				if len(alts)!=1:
+					print "Don't know what to do! ERROR!!"
 					quit()
+
+				change_str = "%s%s%s" % (ann[chrom][pos]["ref_nt"],ann[chrom][pos]["gene_nt"],alts[0])
+				var_type = "INDEL"
+			elif ann[chrom][pos]["change_pos"]!=".":
+				ref_codon = ann[positions[0][0]][positions[0][1]]["ref_codon"]
+				temp_vars = []
+				for chrom,pos in positions:
+					temp_vars.append((chrom,pos,ann[chrom][pos]["ref_nt"],variants[chrom][pos]))
+				alt_var = list(ref_codon)
+				for arr in temp_vars:
+					chom,pos,ref,var = arr[0],arr[1],arr[2],arr[3]
+					temp_c_pos = int(ann[chrom][pos]["change_pos"])-1
+					alt_var[temp_c_pos] = rc[var] if ann[chrom][pos]["strand"] == "-" else var
+				alt_var = "".join(alt_var)
+				change_str = "%s%s%s" % (codons[ref_codon],ann[chrom][pos]["codon_num"],codons[alt_var])
+				var_type = "SNP"
+			else:
+				if len(alts)!=1:
+					print "ERROR!!!"
+					quit()
+				var = alts[0]
+				change_str = "%s%s%s" % (ann[chrom][pos]["ref_nt"],ann[chrom][pos]["gene_nt"],var)
+				var_type = "SNP"
+			if len(res)==1:
+				res = res[0]
+				for d in res["drug"]:
+					dr_variants.append({"drug":d,"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_pos,"chr":chrom,"change":change_str,"type":var_type})
+			elif len(res)==0:
+				other_variants.append({"locus_tag":ann[chrom][pos]["rv"],"gene":ann[chrom][pos]["gene"],"genome_pos":genome_pos,"chr":chrom,"change":change_str,"type":var_type})
+			else:
+				print "ERRROORRR!!!"
+				quit()
+
 	return dr_variants,other_variants
 
 
@@ -402,7 +325,7 @@ def write_results_2(prefix,small_var_dr,small_var_other,dels,lin):
 	for d in drugs:
 		dr_vars = [x for x in small_var_dr if x["drug"]==d]
 		res = "R" if len(dr_vars)>0 else ""
-		muts = ["%(gene)s (%(change)s, %(freq)s)" % x for x in dr_vars]
+		muts = ["%(gene)s (%(change)s)" % x for x in dr_vars]
 		o.write("%s\t%s\t%s\n" % (d,res,", ".join(muts)))
 	dr_drugs = [x["drug"] for x in small_var_dr]
 
@@ -433,7 +356,7 @@ def write_results_1(prefix,small_var_dr,small_var_other,dels,lin):
 	o.write("#### %s results ####\n\n" % prefix)
 	o.write("#### Drug resistance associated small variants ####\n")
 	for l in small_var_dr:
-		o.write("\t".join([l[x] for x in ["drug","chr","genome_pos","gene","locus_tag","change","type","freq"]])+"\n")
+		o.write("\t".join([l[x] for x in ["drug","chr","genome_pos","gene","locus_tag","change","type"]])+"\n")
 	o.write("\n\n#### Big Deletions in candidate genes ####\n")
 	for l in dels:
 		o.write("\t".join([str(l[x]) for x in ["drug","gene","len","good_cov",'float_gene_present']])+"\n")
@@ -441,7 +364,7 @@ def write_results_1(prefix,small_var_dr,small_var_other,dels,lin):
 	o.write("%s\t%s\t%s\n" % (lin["main"],lin["sublin"],lin["meta"]))
 	o.write("\n\n#### Other small variants in candidate genes ####\n")
 	for l in small_var_other:
-		o.write("\t".join([l[x] for x in ["chr","genome_pos","gene","locus_tag","change","type","freq"]])+"\n")
+		o.write("\t".join([l[x] for x in ["chr","genome_pos","gene","locus_tag","change","type"]])+"\n")
 	o.close()
 
 	json_dict = {"small_variants_other":small_var_other,"small_variants_dr":small_var_dr,"del":dels,"lineage":lin,"id":prefix}

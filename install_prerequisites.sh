@@ -1,4 +1,3 @@
-mkdir bin
 
 #htslib
 cd htslib
@@ -26,6 +25,13 @@ cd snap
 make
 mv snap-aligner ../bin/
 cd ../
+
+#lofreq
+cd lofreq/dist/
+tar -xvf lofreq_star-2.1.3.1_linux-x86-64.tgz 
+mv lofreq_star-2.1.3.1/bin/lofreq ../../bin/
+
+
 
 wget http://pathogenseq.lshtm.ac.uk/downloads/TBProfilerFiles.tgz
 tar -xvf TBProfilerFiles.tgz
