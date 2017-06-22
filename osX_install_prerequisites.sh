@@ -29,6 +29,7 @@ cd ../
 cd lofreq/dist/
 tar -xvf lofreq_star-2.1.3.1_macosx.tgz 
 mv lofreq_star-2.1.3.1/bin/lofreq ../../bin/
+cd ../../
 
 wget http://pathogenseq.lshtm.ac.uk/downloads/TBProfilerFiles.tgz
 tar -xvf TBProfilerFiles.tgz
