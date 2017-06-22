@@ -2,7 +2,7 @@
 
 This is the experimental commandline version of the TBProfiler described here: https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-015-0164-0 and is available here: http://tbdr.lshtm.ac.uk
 
-The pipeline aligns reads to the H37Rv reference using SNAP and then looks at the coverage across a number of different candidate regions.
+The pipeline aligns reads to the H37Rv reference using SNAP (or BWA on mac) and then looks at the coverage across a number of different candidate regions. We also predict the number of reads supporting drug resistance variants.
 
 ## Installation
 
