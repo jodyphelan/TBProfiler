@@ -255,7 +255,7 @@ def small_dr_var(prefix):
 				alt_bins = []
 				tplp = {}
 				temp_refs = {}
-				for l in subprocess.Popen("%s view %s.bam Chromosome:%s-%s -h | python get_reads %s | %s view -b | %s mpileup -Q0 -f %s - " % (samtools,prefix,pos,pos,get_reads,",".join(nt_positions),samtools,samtools,ref_file),shell=True,stderr=FNULL,stdout=subprocess.PIPE).stdout:
+				for l in subprocess.Popen("%s view %s.bam Chromosome:%s-%s -h | python %s %s | %s view -b | %s mpileup -Q0 -f %s - " % (samtools,prefix,pos,pos,get_reads,",".join(nt_positions),samtools,samtools,ref_file),shell=True,stderr=FNULL,stdout=subprocess.PIPE).stdout:
 					arr = l.rstrip().split()
 					if arr[1] in nt_positions:
 						tplp[arr[1]] = arr[4].upper()
