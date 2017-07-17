@@ -534,6 +534,8 @@ def main_run_pipeline(args):
 		do_mapping(args.read1,args.read2,args.threads,args.prefix)
 	else:
 		if not os.path.isfile("%s.bam"%args.prefix):
+			if verbose:
+				print "Symbolic linking bam and indexing"
 			subprocess.call("ln -s %s %s.bam && %s index %s.bam" % (args.bam,args.prefix,samtools,args.prefix),shell=True)
 	small_dr_variants,small_other_variants = small_dr_var(args.prefix)
 	big_dels = large_dels(args.prefix)

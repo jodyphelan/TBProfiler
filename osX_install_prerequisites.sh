@@ -2,6 +2,7 @@
 cd htsbox
 make
 mv htsbox ../bin
+cd ../
 
 #htslib
 cd htslib
@@ -31,7 +32,7 @@ cd ../
 
 #lofreq
 cd lofreq/dist/
-tar -xvf lofreq_star-2.1.3.1_macosx.tgz 
+tar -xvf lofreq_star-2.1.3.1_macosx.tgz
 mv lofreq_star-2.1.3.1/bin/lofreq ../../bin/
 cd ../../
 
