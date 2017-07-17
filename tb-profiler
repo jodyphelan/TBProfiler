@@ -93,7 +93,7 @@ def htsbox_calls(prefix,bedfile):
 def assign_lin(prefix):
 	if verbose:
 		print "Checking lineage"
-		calls = htsbox_calls(prefix,lin_bed_file)
+	calls = htsbox_calls(prefix,lin_bed_file)
 #	calls = call_variants(prefix,lin_bed_file,"lineage")
 	lin_meta_dict = {}
 	lin_pos_dict = defaultdict(dict)
