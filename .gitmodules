@@ -16,3 +16,6 @@
 [submodule "lofreq"]
 	path = lofreq
 	url = https://github.com/CSB5/lofreq.git
+[submodule "htsbox"]
+	path = htsbox
+	url = https://github.com/lh3/htsbox.git

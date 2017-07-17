@@ -1,3 +1,7 @@
+#htsbox
+cd htsbox
+make
+mv htsbox ../bin
 
 #htslib
 cd htslib
