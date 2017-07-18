@@ -7,7 +7,7 @@ from collections import defaultdict
 import argparse
 import os
 import re
-import numpy as np
+import math
 
 ################### Literals #####################
 scriptDir = os.path.dirname(os.path.realpath(__file__))
@@ -90,6 +90,11 @@ def htsbox_calls(prefix,bedfile):
 			final_calls[arr[0]][arr[1]].append((calls[i],cov[i]/tot,cov[i]))
 	subprocess.call("rm %s.temp.bam"%prefix,shell=True)
 	return final_calls
+
+def stdev(arr):
+	mean = sum(arr)/len(arr)
+	return math.sqrt(sum([(x-mean)**2 for x in arr])/len(arr))
+
 def assign_lin(prefix):
 	if verbose:
 		print "Checking lineage"
@@ -114,7 +119,7 @@ def assign_lin(prefix):
 
 	lin_frac = defaultdict(float)
 	for l in lin_support:
-		if np.std([x[0]/(x[0]+x[1]) for x in lin_support[l]])>0.1: continue
+		if stdev([x[0]/(x[0]+x[1]) for x in lin_support[l]])>0.1: continue
 		lin_pos_reads = sum([x[0] for x in lin_support[l]])
 		lin_neg_reads = sum([x[1] for x in lin_support[l]])
 		lf = lin_pos_reads/(lin_pos_reads+lin_neg_reads)
