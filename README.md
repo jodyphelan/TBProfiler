@@ -30,6 +30,7 @@ The prefix is usefull when you need to run more that one sample.
 This will store BAM files, summary pileup and result files in respective directories.
 Results are output in text format and json format.
 
+
 Example run:
 ```
 mkdir test_run; cd test_run
@@ -38,6 +39,15 @@ wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR166/009/ERR1664619/ERR1664619_2.fastq
 ../tb-profiler full -1 ERR1664619_1.fastq.gz -2 ERR1664619_2.fastq.gz -t 4 -p ERR1664619
 cat results/ERR1664619.results.txt
 ```
+
+#### Running with an existing BAM file:
+
+By using the ```-a``` option you can specify to use an existing BAM file instead of fastq files.
+**Warning!!!**: The BAM files must have been created using the ensembl version of the genome which can be downloaded here:
+```
+ftp://ftp.ensemblgenomes.org/pub/release-32/bacteria//fasta/bacteria_0_collection/mycobacterium_tuberculosis_h37rv/dna/Mycobacterium_tuberculosis_h37rv.ASM19595v2.dna.toplevel.fa.gz
+```
+
 
 The results from numerous runs can be collated into one table using the following command:
 ```
