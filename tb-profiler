@@ -451,7 +451,6 @@ def cleanup(prefix,clean,stor_dir,bamfile):
 	else:
 		subprocess.call("rm %s.temp.bed" % (prefix),shell=True)
 		if bamfile:
-			if bamfile=="bam/%s.bam"%(prefix):
 				subprocess.call("rm %s.bam*" % (prefix),shell=True)
 		else:
 			subprocess.call("mv %s.bam* %s/bam" % (prefix,stor_dir),shell=True)
