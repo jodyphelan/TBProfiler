@@ -554,10 +554,10 @@ def main_run_pipeline(args):
 		if not os.path.isfile("%s.bam"%args.prefix):
 			if verbose:
 				print "Symbolic linking bam and indexing"
-			rtnc = subprocess.call("set -o pipefail; ln -s %s %s.bam && %s index %s.bam" % (args.bam,args.prefix,samtools,args.prefix),shell=True)
+			rtnc = subprocess.call("ln -s %s %s.bam && %s index %s.bam" % (args.bam,args.prefix,samtools,args.prefix),shell=True)
 			if rtnc!=0:
 				print "ERROR: Linking command failed. Please run the following command to find out more:\n"
-				print "set -o pipefail; ln -s %s %s.bam && %s index %s.bam" % (args.bam,args.prefix,samtools,args.prefix)
+				print "ln -s %s %s.bam && %s index %s.bam" % (args.bam,args.prefix,samtools,args.prefix)
 				quit()
 
 	small_dr_variants,small_other_variants = small_dr_var(args.prefix)
