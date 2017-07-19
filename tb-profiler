@@ -133,22 +133,38 @@ def assign_lin(prefix):
 
 
 	temp_lins = set()
-	lin_clusters = []
 	dict_sample_lin = {} #{'lineage4': 'lineage4.1.1.3'}
+	sample_lin = list(sample_lin)
+	edges = []
+	for i,l in enumerate(sample_lin):
+		parent = ".".join(l.split(".")[:-1])
+		if parent in sample_lin:
+			edges.append((i,sample_lin.index(parent)))
 
-	while(len(temp_lins)!=len(sample_lin)):
-		for l in sample_lin:
-			if l in temp_lins: continue
-			if "." not in l:
-				lin_clusters.append([l])
-				temp_lins.add(l)
-			else:
-				for x  in lin_clusters:
-					for y in x:
-						if y in l:
-							x.append(l)
-							temp_lins.add(l)
-							break
+	def test_clusters(clusters):
+ 		n = False
+
+		for i,c1 in enumerate(clusters):
+	 		for j,c2 in enumerate(clusters):
+	 			if i==j: continue
+	 			if len(c1|c2)<len(c1)+len(c2):
+	 				n = True
+		return n
+
+	lin_clusters =  [set([sample_lin[x[0]],sample_lin[x[1]]]) for x in edges]
+	while(test_clusters(lin_clusters)==True):
+		new_cl = []
+		for i,c1 in enumerate(lin_clusters):
+			n = False
+			for j,c2 in enumerate(lin_clusters):
+				if i==j: continue
+				if len(c1|c2)<len(c1)+len(c2):
+					n = True
+					if c1|c2 not in new_cl:
+						new_cl.append(c1|c2)
+			if n==False:
+				new_cl.append(c1)
+		lin_clusters = new_cl
 
 	for cl in lin_clusters:
 		dict_sample_lin[sorted(cl)[0]] = sorted(cl)[-1]
