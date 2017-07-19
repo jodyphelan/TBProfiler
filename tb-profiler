@@ -122,7 +122,6 @@ def assign_lin(prefix):
 				lin_support[lin_pos_dict[chrom][pos]["lin"]].append((0,sum([x[2] for x in calls[chrom][pos] if x[0]!=lin_pos_dict[chrom][pos]["alt"]])))
 
 	lin_frac = defaultdict(float)
-	if verbose: print lin_support
 	for l in lin_support:
 		if stdev([x[0]/(x[0]+x[1]) for x in lin_support[l]])>0.1: continue
 		lin_pos_reads = sum([x[0] for x in lin_support[l]])
