@@ -285,6 +285,8 @@ def small_dr_var(prefix):
 			dr_pos[arr[0]].append(str(i))
 
 	temp_variants = call_variants(prefix,dr_bed_file,"dr")
+	htsbox_variants = htsbox_calls(prefix,dr_bed_file) #'2726321': [('C', 1.0, 61)]
+
 #	temp_variants = {'Chromosome': {'4240670': [('C', 0.34075471698113206), ('G', 0.03773584905660377), ('T', 0.6515094339622641)], '4240671': [('C', 0.32075471698113206), ('G', 0.03773584905660377), ('T', 0.6415094339622641)]}}
 	variants = defaultdict(dict)
 	var_loci = []
@@ -307,6 +309,8 @@ def small_dr_var(prefix):
 				variant_bin[ann[chrom][pos]["rv"]][ann[chrom][pos]["gene_nt"]].append((chrom,pos))
 	dr_variants = []
 	other_variants = []
+	#alt_bins = [[['C'], 0.16666666666666666], [['T'], 0.8333333333333334]]
+
 	for rv in variant_bin:
 		for change_pos in variant_bin[rv]:
 			chrom = variant_bin[rv][change_pos][0][0]
@@ -316,6 +320,8 @@ def small_dr_var(prefix):
 			positions = variant_bin[rv][change_pos]
 			if set([len(x) for x in [variants[chrom][p] for p in nt_positions]])==set([1]):
 				alt_bins = [([item[0] for sublist in [variants[chrom][p] for p in nt_positions] for item in sublist],1.0)]
+			elif len([variants[chrom][p] for p in nt_positions])==1:
+				alt_bins = [[[item[0]],item[1]] for sublist in [htsbox_variants[chrom][p] for p in nt_positions] for item in sublist]
 			else:
 				alt_bins = []
 				tplp = {}
