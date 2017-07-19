@@ -79,7 +79,11 @@ def htsbox_calls(prefix,bedfile):
 			bed_pos.add((arr[0],str(i)))
 
 	final_calls = defaultdict(lambda :defaultdict(list))
-	subprocess.call("%s view -L %s %s.bam -b > %s.temp.bam" % (samtools,bedfile,prefix,prefix),shell=True)
+	rtnc = subprocess.call("%s view -L %s %s.bam -b > %s.temp.bam" % (samtools,bedfile,prefix,prefix),shell=True)
+	if rtnc!=0:
+		print "ERROR: htsbox command failed. Please run the following command to find out more:\n"
+		print "%s view -L %s %s.bam -b > %s.temp.bam" % (samtools,bedfile,prefix,prefix)
+		quit()
 	for l in subprocess.Popen("%s pileup -Q 23 -q 30 %s.temp.bam" % (htsbox,prefix),shell=True,stdout=subprocess.PIPE).stdout:
 		arr = l.rstrip().split()
 		if (arr[0],arr[1]) not in bed_pos: continue
@@ -174,29 +178,38 @@ def do_mapping(r1,r2,threads,prefix):
 	if verbose:	print "Performing mapping"
 	if arch=="linux":
 		if r2:
-			cmd_mapping = "%s paired %s -compressedFastq %s %s -t %s -o -bam - | %s sort -o %s.bam -@ %s - && %s index %s.bam" % (snap,ref_dir,r1,r2,threads,samtools,prefix,threads,samtools,prefix)
+			cmd_mapping = "set -o pipefail; %s paired %s -compressedFastq %s %s -t %s -o -bam - | %s sort -o %s.bam -@ %s - && %s index %s.bam" % (snap,ref_dir,r1,r2,threads,samtools,prefix,threads,samtools,prefix)
 		else:
-			cmd_mapping = "%s single %s -compressedFastq %s -t %s -o -bam - | %s sort -o %s.bam -@ %s - && %s index %s.bam" % (snap,ref_dir,r1,threads,samtools,prefix,threads,samtools,prefix)
+			cmd_mapping = "set -o pipefail; %s single %s -compressedFastq %s -t %s -o -bam - | %s sort -o %s.bam -@ %s - && %s index %s.bam" % (snap,ref_dir,r1,threads,samtools,prefix,threads,samtools,prefix)
 	elif arch=="mac":
 		if r2:
-			cmd_mapping = "%s mem -t %s %s %s %s | %s view -@ %s -b - | %s sort -@ %s -o %s.bam - && %s index %s.bam" % (bwa,threads,ref_file,r1,r2,samtools,threads,samtools,threads,prefix,samtools,prefix)
+			cmd_mapping = "set -o pipefail; %s mem -t %s %s %s %s | %s view -@ %s -b - | %s sort -@ %s -o %s.bam - && %s index %s.bam" % (bwa,threads,ref_file,r1,r2,samtools,threads,samtools,threads,prefix,samtools,prefix)
 		else:
-			cmd_mapping = "%s mem -t %s %s %s | %s view -@ %s -b - | %s sort -@ %s -o %s.bam - && %s index %s.bam" % (bwa,threads,ref_file,r1,samtools,threads,samtools,threads,prefix,samtools,prefix)
+			cmd_mapping = "set -o pipefail; %s mem -t %s %s %s | %s view -@ %s -b - | %s sort -@ %s -o %s.bam - && %s index %s.bam" % (bwa,threads,ref_file,r1,samtools,threads,samtools,threads,prefix,samtools,prefix)
 	elif arch=="rpi":
 		if r2:
-			cmd_mapping = "zcat %s %s | gzip -c > %s.merged.fq.gz && %s aln -t %s %s %s.merged.fq.gz > %s_1.sai && %s samse %s %s_1.sai %s.merged.fq.gz | %s view -@ %s -b - > %s.unsort.bam && %s sort -m 200M -o %s.bam %s.unsort.bam && rm %s_1.sai %s_2.sai %s.unsort.bam && %s index %s.bam" % (r1,r2,prefix,bwa,threads,ref_file,prefix,prefix,bwa,ref_file,prefix,prefix,samtools,threads,prefix,samtools,prefix,prefix,prefix,prefix,prefix,samtools,prefix)
+			cmd_mapping = "set -o pipefail; zcat %s %s | gzip -c > %s.merged.fq.gz && %s aln -t %s %s %s.merged.fq.gz > %s_1.sai && %s samse %s %s_1.sai %s.merged.fq.gz | %s view -@ %s -b - > %s.unsort.bam && %s sort -m 200M -o %s.bam %s.unsort.bam && rm %s_1.sai %s_2.sai %s.unsort.bam && %s index %s.bam" % (r1,r2,prefix,bwa,threads,ref_file,prefix,prefix,bwa,ref_file,prefix,prefix,samtools,threads,prefix,samtools,prefix,prefix,prefix,prefix,prefix,samtools,prefix)
 		else:
-			cmd_mapping = "%s aln -t %s %s %s > %s_1.sai && %s samse %s %s_1.sai %s | %s view -@ %s -b - > %s.unsort.bam | %s sort -m 600M -o %s.bam %s.unsort.bam && rm %s_1.sai %s_2.sai %s.unsort.bam && %s index %s.bam" % (bwa,threads,ref_file,r2,prefix,bwa,ref_file,prefix,r1,samtools,threads,prefix,samtools,prefix,prefix,prefix,prefix,prefix,samtools,prefix)
+			cmd_mapping = "set -o pipefail; %s aln -t %s %s %s > %s_1.sai && %s samse %s %s_1.sai %s | %s view -@ %s -b - > %s.unsort.bam | %s sort -m 600M -o %s.bam %s.unsort.bam && rm %s_1.sai %s_2.sai %s.unsort.bam && %s index %s.bam" % (bwa,threads,ref_file,r2,prefix,bwa,ref_file,prefix,r1,samtools,threads,prefix,samtools,prefix,prefix,prefix,prefix,prefix,samtools,prefix)
 	if verbose: print cmd_mapping
-	subprocess.call(cmd_mapping,shell=True,stderr=FNULL,stdout=FNULL)
+	rntc = subprocess.call(cmd_mapping,shell=True,stderr=FNULL,stdout=FNULL)
+	if rntc == 1:
+		print "ERROR: Mapping command failed. Please run the following to find out more:\n"
+		print cmd_mapping
+		quit()
 
 def call_variants(prefix,bed_file,file_prefix):
 	if verbose:	print "Calling Variants"
 	bamfile = prefix+".bam"
 	file_exists(bamfile)
 	vcf_file = "%s.%s.vcf" % (prefix,file_prefix)
-	if verbose: print "%s view -bL %s %s | %s indelqual -u 30 - | %s call -f %s --call-indels - | %s norm -f %s - > %s" % (samtools,bed_file,bamfile,lofreq,lofreq,ref_file,bcftools,ref_file,vcf_file)
-	subprocess.call("%s view -bL %s %s | %s indelqual -u 30 - |%s call -f %s --call-indels - | %s norm -f %s - > %s" % (samtools,bed_file,bamfile,lofreq,lofreq,ref_file,bcftools,ref_file,vcf_file),shell=True,stdout=FNULL,stderr=FNULL)
+	lofreq_cmd = "set -o pipefail; %s view -bL %s %s | %s indelqual -u 30 - |%s call -f %s --call-indels - | %s norm -f %s - > %s" % (samtools,bed_file,bamfile,lofreq,lofreq,ref_file,bcftools,ref_file,vcf_file)
+	if verbose: print lofreq_cmd
+	rtnc = subprocess.call(lofreq_cmd,shell=True,stdout=FNULL,stderr=FNULL)
+	if rtnc!=0:
+		print "ERROR: Variant calling command failed. Please run the following command to find out more:\n"
+		print lofreq_cmd
+		quit()
 
 	bed_pos = set()
 	for l in open(bed_file):
@@ -541,7 +554,12 @@ def main_run_pipeline(args):
 		if not os.path.isfile("%s.bam"%args.prefix):
 			if verbose:
 				print "Symbolic linking bam and indexing"
-			subprocess.call("ln -s %s %s.bam && %s index %s.bam" % (args.bam,args.prefix,samtools,args.prefix),shell=True)
+			rtnc = subprocess.call("set -o pipefail; ln -s %s %s.bam && %s index %s.bam" % (args.bam,args.prefix,samtools,args.prefix),shell=True)
+			if rntc!=0:
+				print "ERROR: Linking command failed. Please run the following command to find out more:\n"
+				print "set -o pipefail; ln -s %s %s.bam && %s index %s.bam" % (args.bam,args.prefix,samtools,args.prefix)
+				quit()
+
 	small_dr_variants,small_other_variants = small_dr_var(args.prefix)
 	big_dels = large_dels(args.prefix)
 	lin = assign_lin(args.prefix)
