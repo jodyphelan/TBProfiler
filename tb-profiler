@@ -555,7 +555,7 @@ def main_run_pipeline(args):
 			if verbose:
 				print "Symbolic linking bam and indexing"
 			rtnc = subprocess.call("set -o pipefail; ln -s %s %s.bam && %s index %s.bam" % (args.bam,args.prefix,samtools,args.prefix),shell=True)
-			if rntc!=0:
+			if rtnc!=0:
 				print "ERROR: Linking command failed. Please run the following command to find out more:\n"
 				print "set -o pipefail; ln -s %s %s.bam && %s index %s.bam" % (args.bam,args.prefix,samtools,args.prefix)
 				quit()
