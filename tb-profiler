@@ -536,6 +536,7 @@ def load_drgus():
 def results2tab(samples,outfile,stor_dir):
 	drugs = load_drgus()
 	results = defaultdict(dict)
+	linresults = defaultdict(dict)
 	for s in samples:
 		for d in drugs:
 			results[s][d] = "-"
@@ -547,11 +548,13 @@ def results2tab(samples,outfile,stor_dir):
 		for x in temp["del"]:
 			for d in x["drug"].split(";"):
 				results[s][d] = "R"
+		linresults[s]["main"] = temp["lineage"]["main"]
+		linresults[s]["sublin"] = temp["lineage"]["sublin"]
 
 	o = open(outfile,"w")
-	o.write("sample\t"+"\t".join(drugs)+"\n")
+	o.write("sample\tmain_lineage\tsub_lineage\t"+"\t".join(drugs)+"\n")
 	for s in samples:
-		o.write(s+"\t"+"\t".join([results[s][x] for x in drugs])+"\n")
+		o.write("%s\t%s\t%s\t%s\n" %(s,linresults[s]["main"],linresults[s]["sublin"],"\t".join([results[s][x] for x in drugs])))
 
 
 
@@ -595,6 +598,8 @@ def main_collate(args):
 	samples = [x.rstrip() for x in open(args.samples_file).readlines()]
 	results2tab(samples,args.out_file,args.dir)
 
+def main_version(args):
+	print "\nTBProfiler version 0.1\n\nContact: Jody Phelan (jody.phelan@lshtm.ac.uk)\n"
 ####################### Argument Parser ###########################
 
 parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -611,7 +616,6 @@ parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--db','-b',default="default",help='Full path to mutation database json file to use (default: TBProfiler panel)')
 parser_sub.add_argument('--format','-f',default="classic",help='Output format [classic,new]')
 parser_sub.add_argument('--verbose',help="Remove temporary files",action="store_true")
-
 parser_sub.set_defaults(func=main_run_pipeline)
 
 
@@ -620,6 +624,11 @@ parser_sub.add_argument('samples_file',help='File with samples (one per line)')
 parser_sub.add_argument('out_file',help='Output file name')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.set_defaults(func=main_collate)
+
+parser_sub = subparsers.add_parser('version', help='Output program version and exit', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub.set_defaults(func=main_version)
+
+
 
 args = parser.parse_args()
 args.func(args)
