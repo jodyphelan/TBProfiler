@@ -365,6 +365,7 @@ def small_dr_var(prefix):
 					alt_bins.append([list(k),freq])
 
 			alt_bins = [x for x in alt_bins if "*" not in x[0]]
+			alt_bins = [x for x in alt_bins if x[1]>0.05] #filtering out haplotypes which are less than 0.05 in freq
 			for alts,alts_freq in alt_bins:
 
 				res = [dr for dr in drdb if dr["genome_pos"]==nt_positions and dr["alt_nt"]==alts]
