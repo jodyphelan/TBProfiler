@@ -308,14 +308,9 @@ def small_dr_var(prefix,gene_del_set):
 	variant_bin = defaultdict(lambda:defaultdict(list))
 	gene_type = {}
 	for chrom,pos in var_loci:
-		print ann[chrom][pos]["rv"]
-		print gene_del_set
-		print set([x["locus_tag"] for x in drdb])
 		if ann[chrom][pos]["rv"] not in [x["locus_tag"] for x in drdb]:
-			print "gene not in fjiowqhdqoihdf"
 			continue
 		if ann[chrom][pos]["rv"] in gene_del_set:
-			print "sdjaiodjqdoiqhj"
 			continue
 		gene_type[ann[chrom][pos]["rv"]] = ann[chrom][pos]["ncr"]
 		if ann[chrom][pos]["ncr"]=="CDS":
@@ -367,7 +362,7 @@ def small_dr_var(prefix,gene_del_set):
 							pileup[p].append("%s%s%s%s" % (sbase,tplp[p][i+1],indel_len,extra_seq))
 							i+=+2+indel_nchar+indel_len
 						else:
-							print "ajaisdjijo!!!"
+							print "ERROR 0: Please contact flag up an issue at the TBProfiler github"
 							quit()
 
 
