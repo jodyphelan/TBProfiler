@@ -41,7 +41,7 @@ def check_files(r1,r2,bamfile):
 		print "Checking input files"
 
 		programs = {}
-		programs["linux"] = {"htsbox":htsbox,"tabix":tabix,"snap":snap,"samtools":samtools,"bcftools":bcftools,"lofreq":lofreq}
+		programs["linux"] = {"bwa":bwa,"htsbox":htsbox,"tabix":tabix,"snap":snap,"samtools":samtools,"bcftools":bcftools,"lofreq":lofreq}
 		programs["mac"] = {"htsbox":htsbox,"bwa":bwa,"tabix":tabix,"samtools":samtools,"bcftools":bcftools,"lofreq":lofreq}
 		programs["rpi"] = {"htsbox":htsbox,"bwa":bwa,"tabix":tabix,"samtools":samtools,"bcftools":bcftools,"lofreq":lofreq}
 
@@ -190,13 +190,19 @@ def load_ann(bed_name,qtype = "T"):
 		ann_dict[arr[0]][arr[1]] = {"change_pos":arr[7],"ref_nt":arr[2],"ref_codon":arr[6],"ref_aa":arr[11],"chr":arr[0],"pos":arr[1],"rv":arr[15],"gene":arr[16],"gene_syn":arr[17],"ncr":arr[18],"start":arr[19],"end":arr[20],"strand":arr[21],"codon_num":arr[24],"gene_nt":arr[25],"operon":arr[26]}
 	return ann_dict
 
-def do_mapping(r1,r2,threads,prefix):
+def do_mapping(r1,r2,threads,prefix,mapper):
 	if verbose:	print "Performing mapping"
 	if arch=="linux":
-		if r2:
-			cmd_mapping = "set -euf pipefail; %s paired %s -compressedFastq %s %s -t %s -o -bam - | %s sort -o %s.bam -@ %s - && %s index %s.bam" % (snap,ref_dir,r1,r2,threads,samtools,prefix,threads,samtools,prefix)
-		else:
-			cmd_mapping = "set -euf pipefail; %s single %s -compressedFastq %s -t %s -o -bam - | %s sort -o %s.bam -@ %s - && %s index %s.bam" % (snap,ref_dir,r1,threads,samtools,prefix,threads,samtools,prefix)
+		if mapper=="snap":
+			if r2:
+				cmd_mapping = "set -euf pipefail; %s paired %s -compressedFastq %s %s -t %s -o -bam - | %s sort -o %s.bam -@ %s - && %s index %s.bam" % (snap,ref_dir,r1,r2,threads,samtools,prefix,threads,samtools,prefix)
+			else:
+				cmd_mapping = "set -euf pipefail; %s single %s -compressedFastq %s -t %s -o -bam - | %s sort -o %s.bam -@ %s - && %s index %s.bam" % (snap,ref_dir,r1,threads,samtools,prefix,threads,samtools,prefix)
+		elif mapper=="bwa":
+			if r2:
+				cmd_mapping = "set -euf pipefail; %s mem -t %s %s %s %s | %s view -@ %s -b - | %s sort -@ %s -o %s.bam - && %s index %s.bam" % (bwa,threads,ref_file,r1,r2,samtools,threads,samtools,threads,prefix,samtools,prefix)
+			else:
+				cmd_mapping = "set -euf pipefail; %s mem -t %s %s %s | %s view -@ %s -b - | %s sort -@ %s -o %s.bam - && %s index %s.bam" % (bwa,threads,ref_file,r1,samtools,threads,samtools,threads,prefix,samtools,prefix)
 	elif arch=="mac":
 		if r2:
 			cmd_mapping = "set -euf pipefail; %s mem -t %s %s %s %s | %s view -@ %s -b - | %s sort -@ %s -o %s.bam - && %s index %s.bam" % (bwa,threads,ref_file,r1,r2,samtools,threads,samtools,threads,prefix,samtools,prefix)
@@ -273,7 +279,7 @@ def recode_indel(ref,alt):
 		return "%s-%s%s" % (ref[:1],ldiff,ref[1:1+ldiff])
 	return indel
 
-def small_dr_var(prefix):
+def small_dr_var(prefix,gene_del_set):
 	# File name definitions
 	temp_bed = prefix+".temp.bed"
 
@@ -302,6 +308,15 @@ def small_dr_var(prefix):
 	variant_bin = defaultdict(lambda:defaultdict(list))
 	gene_type = {}
 	for chrom,pos in var_loci:
+		print ann[chrom][pos]["rv"]
+		print gene_del_set
+		print set([x["locus_tag"] for x in drdb])
+		if ann[chrom][pos]["rv"] not in [x["locus_tag"] for x in drdb]:
+			print "gene not in fjiowqhdqoihdf"
+			continue
+		if ann[chrom][pos]["rv"] in gene_del_set:
+			print "sdjaiodjqdoiqhj"
+			continue
 		gene_type[ann[chrom][pos]["rv"]] = ann[chrom][pos]["ncr"]
 		if ann[chrom][pos]["ncr"]=="CDS":
 				variant_bin[ann[chrom][pos]["rv"]][ann[chrom][pos]["codon_num"]].append((chrom,pos))
@@ -416,30 +431,31 @@ def small_dr_var(prefix):
 
 def large_dels(prefix):
 
-	gene_bed = defaultdict(dict)
-	gene_cov = defaultdict(lambda : defaultdict(int))
-	gene_drugs = {}
+	lt_bed = defaultdict(dict)
+	lt_cov = defaultdict(lambda : defaultdict(int))
+	lt_drugs = {}
+	lt2gene = {}
 	for l in open(dr_bed_file):
 		chrom,start,end,lt,gene,drugs = l.rstrip().split()
-		gene_drugs[gene] = drugs
+		lt_drugs[lt] = drugs
 		for pos in range(int(start),int(end)+1):
-			gene_bed[chrom][str(pos)] = gene
-			gene_cov[gene][str(pos)] = 0
-
-
+			lt_cov[lt][str(pos)] = 0
+			lt_bed[chrom][str(pos)] = lt
+			lt2gene[lt] = gene
 	bamfile = prefix+".bam"
 
 	for l in subprocess.Popen("%s depth -b %s %s" % (samtools,dr_bed_file,bamfile),shell=True,stdout=subprocess.PIPE).stdout:
 		chrom,pos,depth =  l.rstrip().split()
-		gene_cov[gene_bed[chrom][pos]][pos] = depth
+		lt_cov[lt_bed[chrom][pos]][pos] = depth
 	results = []
-	for gene in gene_cov:
-		arr_cov = gene_cov[gene].values()
+	for lt in lt_cov:
+		arr_cov = lt_cov[lt].values()
 		int_good_cov = len(filter(lambda x: x>10,arr_cov))
 		float_gene_present = int_good_cov/len(arr_cov)
 
 		if float_gene_present<0.95:
-			results.append({"drug":gene_drugs[gene],"gene":gene,"len":len(arr_cov),"good_cov":int_good_cov,"float_gene_present":float_gene_present})
+
+			results.append({"drug":lt_drugs[lt],"gene":lt2gene[lt],"locus_tag":lt,"len":len(arr_cov),"good_cov":int_good_cov,"float_gene_present":float_gene_present})
 
 	return results
 
@@ -574,7 +590,7 @@ def main_run_pipeline(args):
 	check_files(args.read1,args.read2,args.bam)
 	init_storage(args.clean,args.dir)
 	if args.read1:
-		do_mapping(args.read1,args.read2,args.threads,args.prefix)
+		do_mapping(args.read1,args.read2,args.threads,args.prefix,args.mapping)
 	else:
 		if not os.path.isfile("%s.bam"%args.prefix):
 			if verbose:
@@ -585,8 +601,9 @@ def main_run_pipeline(args):
 				print "ln -s %s %s.bam && %s index %s.bam" % (args.bam,args.prefix,samtools,args.prefix)
 				quit()
 
-	small_dr_variants,small_other_variants = small_dr_var(args.prefix)
 	big_dels = large_dels(args.prefix)
+	gene_del_set =  set([x["locus_tag"] for x in big_dels])
+	small_dr_variants,small_other_variants = small_dr_var(args.prefix,gene_del_set)
 	lin = assign_lin(args.prefix)
 	if args.format=="classic":
 		write_results_2(args.prefix,small_dr_variants,small_other_variants,big_dels,lin)
@@ -616,6 +633,10 @@ parser_sub.add_argument('--clean',help="Remove temporary files",action="store_tr
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--db','-b',default="default",help='Full path to mutation database json file to use (default: TBProfiler panel)')
 parser_sub.add_argument('--format','-f',default="classic",help='Output format [classic,new]')
+if arch=="mac":
+	parser_sub.add_argument("--mapping","-m",type=str,default="bwa",choices=["bwa"],help="Change the default mapping tool (Linux:[snap|bwa], Mac:[bwa]). Only bwa is available for Mac")
+elif arch=="linux":
+	parser_sub.add_argument("--mapping","-m",type=str,default="snap",choices=["bwa","snap"],help="Change the default mapping tool (Linux:[snap|bwa], Mac:[bwa]). Only bwa is available for Mac")
 parser_sub.add_argument('--verbose',help="Remove temporary files",action="store_true")
 parser_sub.set_defaults(func=main_run_pipeline)
 

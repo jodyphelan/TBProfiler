@@ -12,6 +12,12 @@ autoconf
 mv tabix bgzip ../bin/
 cd ../
 
+#bwa
+cd bwa
+make
+mv bwa ../bin
+cd ../
+
 #bcftools
 cd bcftools
 make
