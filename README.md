@@ -90,6 +90,15 @@ ISONIAZID       2156118 C       T       katG_promoter   C-7T
 PYRAZINAMIDE    2288953 CC      C       pncA    CC289C
 
 
+## Change Log
+#### v0.2
+* Allow for the choice of BWA or SNAP for Linux users
+* Calling of deletions before small variant calling to avoid low quality variants around deletion breakpoints
+
+#### v0.1
+* Allow users to provide BAM file as input
+* Ability to print out version
+
 
 ## Citation
 
