@@ -225,7 +225,7 @@ def call_variants(prefix,bed_file,file_prefix):
 	bamfile = prefix+".bam"
 	file_exists(bamfile)
 	vcf_file = "%s.%s.vcf" % (prefix,file_prefix)
-	lofreq_cmd = "set -euf pipefail; %s view -bL %s %s | %s indelqual -u 30 - |%s call -f %s --call-indels - | %s norm -f %s - > %s" % (samtools,bed_file,bamfile,lofreq,lofreq,ref_file,bcftools,ref_file,vcf_file)
+	lofreq_cmd = "set -euf pipefail; %s view -bL %s %s | %s indelqual -u 30 - |%s call -f %s --call-indels --no-default-filter - | %s norm -f %s - > %s" % (samtools,bed_file,bamfile,lofreq,lofreq,ref_file,bcftools,ref_file,vcf_file)
 	if verbose: print lofreq_cmd
 	rtnc = subprocess.call(lofreq_cmd,shell=True,stdout=FNULL,stderr=FNULL)
 	if rtnc!=0:
