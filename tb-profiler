@@ -131,7 +131,7 @@ def assign_lin(prefix):
 		lin_frac[l] = lf
 		sample_lin.add(l)
 
-
+	print sample_lin
 	temp_lins = set()
 	dict_sample_lin = {} #{'lineage4': 'lineage4.1.1.3'}
 	sample_lin = list(sample_lin)
@@ -140,34 +140,37 @@ def assign_lin(prefix):
 		parent = ".".join(l.split(".")[:-1])
 		if parent in sample_lin:
 			edges.append((i,sample_lin.index(parent)))
+	if len(sample_lin)==1 and len(edges)==0:
+		dict_sample_lin[sample_lin[0]] = sample_lin[0]
+	else:
+		def test_clusters(clusters):
+	 		n = False
 
-	def test_clusters(clusters):
- 		n = False
+			for i,c1 in enumerate(clusters):
+		 		for j,c2 in enumerate(clusters):
+		 			if i==j: continue
+		 			if len(c1|c2)<len(c1)+len(c2):
+		 				n = True
+			return n
 
-		for i,c1 in enumerate(clusters):
-	 		for j,c2 in enumerate(clusters):
-	 			if i==j: continue
-	 			if len(c1|c2)<len(c1)+len(c2):
-	 				n = True
-		return n
+		lin_clusters =  [set([sample_lin[x[0]],sample_lin[x[1]]]) for x in edges]
+		while(test_clusters(lin_clusters)==True):
+			new_cl = []
+			for i,c1 in enumerate(lin_clusters):
+				n = False
+				for j,c2 in enumerate(lin_clusters):
+					if i==j: continue
+					if len(c1|c2)<len(c1)+len(c2):
+						n = True
+						if c1|c2 not in new_cl:
+							new_cl.append(c1|c2)
+				if n==False:
+					new_cl.append(c1)
+			lin_clusters = new_cl
 
-	lin_clusters =  [set([sample_lin[x[0]],sample_lin[x[1]]]) for x in edges]
-	while(test_clusters(lin_clusters)==True):
-		new_cl = []
-		for i,c1 in enumerate(lin_clusters):
-			n = False
-			for j,c2 in enumerate(lin_clusters):
-				if i==j: continue
-				if len(c1|c2)<len(c1)+len(c2):
-					n = True
-					if c1|c2 not in new_cl:
-						new_cl.append(c1|c2)
-			if n==False:
-				new_cl.append(c1)
-		lin_clusters = new_cl
-
-	for cl in lin_clusters:
-		dict_sample_lin[sorted(cl)[0]] = sorted(cl)[-1]
+		print lin_clusters
+		for cl in lin_clusters:
+			dict_sample_lin[sorted(cl)[0]] = sorted(cl)[-1]
 
 	meta = "/".join(lin_meta_dict[x][0] for x in dict_sample_lin.values())
 	meta += "\t"+"/".join(lin_meta_dict[x][1] for x in dict_sample_lin.values())
@@ -595,11 +598,10 @@ def main_run_pipeline(args):
 				print "ERROR: Linking command failed. Please run the following command to find out more:\n"
 				print "ln -s %s %s.bam && %s index %s.bam" % (args.bam,args.prefix,samtools,args.prefix)
 				quit()
-
+	lin = assign_lin(args.prefix)
 	big_dels = large_dels(args.prefix)
 	gene_del_set =  set([x["locus_tag"] for x in big_dels])
 	small_dr_variants,small_other_variants = small_dr_var(args.prefix,gene_del_set)
-	lin = assign_lin(args.prefix)
 	if args.format=="classic":
 		write_results_2(args.prefix,small_dr_variants,small_other_variants,big_dels,lin)
 	elif args.format=="new":
