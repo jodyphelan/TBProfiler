@@ -8,6 +8,7 @@ import argparse
 import os
 import re
 import math
+import gzip
 
 ################### Literals #####################
 scriptDir = os.path.dirname(os.path.realpath(__file__))
@@ -120,7 +121,6 @@ def assign_lin(prefix):
 				lin_support[lin_pos_dict[chrom][pos]["lin"]].append((sum([x[2] for x in calls[chrom][pos] if x[0]==lin_pos_dict[chrom][pos]["alt"]]),sum([x[2] for x in calls[chrom][pos] if x[0]!=lin_pos_dict[chrom][pos]["alt"]])))
 			else:
 				lin_support[lin_pos_dict[chrom][pos]["lin"]].append((0,sum([x[2] for x in calls[chrom][pos] if x[0]!=lin_pos_dict[chrom][pos]["alt"]])))
-
 	lin_frac = defaultdict(float)
 	for l in lin_support:
 		if stdev([x[0]/(x[0]+x[1]) for x in lin_support[l]])>0.1: continue
@@ -130,57 +130,18 @@ def assign_lin(prefix):
 		if lf<0.05:continue
 		lin_frac[l] = lf
 		sample_lin.add(l)
-
-	print sample_lin
-	temp_lins = set()
-	dict_sample_lin = {} #{'lineage4': 'lineage4.1.1.3'}
-	sample_lin = list(sample_lin)
-	edges = []
-	for i,l in enumerate(sample_lin):
-		parent = ".".join(l.split(".")[:-1])
-		if parent in sample_lin:
-			edges.append((i,sample_lin.index(parent)))
-	if len(sample_lin)==1 and len(edges)==0:
-		dict_sample_lin[sample_lin[0]] = sample_lin[0]
-	else:
-		def test_clusters(clusters):
-	 		n = False
-
-			for i,c1 in enumerate(clusters):
-		 		for j,c2 in enumerate(clusters):
-		 			if i==j: continue
-		 			if len(c1|c2)<len(c1)+len(c2):
-		 				n = True
-			return n
-
-		lin_clusters =  [set([sample_lin[x[0]],sample_lin[x[1]]]) for x in edges]
-		while(test_clusters(lin_clusters)==True):
-			new_cl = []
-			for i,c1 in enumerate(lin_clusters):
-				n = False
-				for j,c2 in enumerate(lin_clusters):
-					if i==j: continue
-					if len(c1|c2)<len(c1)+len(c2):
-						n = True
-						if c1|c2 not in new_cl:
-							new_cl.append(c1|c2)
-				if n==False:
-					new_cl.append(c1)
-			lin_clusters = new_cl
-
-		print lin_clusters
-		for cl in lin_clusters:
-			dict_sample_lin[sorted(cl)[0]] = sorted(cl)[-1]
-
-	meta = "/".join(lin_meta_dict[x][0] for x in dict_sample_lin.values())
-	meta += "\t"+"/".join(lin_meta_dict[x][1] for x in dict_sample_lin.values())
-	meta += "\t"+"/".join(lin_meta_dict[x][2] for x in dict_sample_lin.values())
-	main_lin = "/".join(dict_sample_lin.keys())
-	sublin = "/".join(dict_sample_lin.values())
-	frac = "/".join(["%f"%lin_frac[x] for x in dict_sample_lin])
+	lin_str = ""
+	lin_list = []
+	for l in sorted(list(sample_lin)):
+		lin_list.append({"lin":l,"frac":lin_frac[l],"family":lin_meta_dict[l][0],"spoligotype":lin_meta_dict[l][1],"rd":lin_meta_dict[l][2]})
+		lin_str+= "%s\t%s\t%s\t%s\t%s\n" % (l,lin_frac[l],lin_meta_dict[l][0],lin_meta_dict[l][1],lin_meta_dict[l][2])
 	if verbose:
-		print "%s\nLineage:\n%s\t%s\t%s\t%s\n%s" % ("-"*40,main_lin,frac,sublin,meta,"-"*40)
-	return {"main":main_lin,"sublin":sublin,"meta":meta,"frac":frac}
+		print lin_str
+	return lin_list
+
+
+
+
 
 def load_ann(bed_name,qtype = "T"):
 	if verbose:
@@ -455,6 +416,7 @@ def large_dels(prefix):
 			if lt=="Rv0667":
 				print "Missing coverage on essential gene rpoB. Stopping pipeline. Check for contamination"
 				return []
+				quit()
 			results.append({"drug":lt_drugs[lt],"gene":lt2gene[lt],"locus_tag":lt,"len":len(arr_cov),"good_cov":int_good_cov,"float_gene_present":float_gene_present})
 
 	return results
@@ -508,7 +470,8 @@ def write_results_2(prefix,small_var_dr,small_var_other,dels,lin):
 	for l in dels:
 		o.write("\t".join([str(l[x]) for x in ["drug","gene","len","good_cov",'float_gene_present']])+"\n")
 	o.write("\n\n#### Lineage ####\n")
-	o.write("%s\t%s\t%s\t%s\n" % (lin["main"],lin["frac"],lin["sublin"],lin["meta"]))
+	o.write("\n".join(["%s\t%s\t%s\t%s\t%s" % (x["lin"],x["frac"],x["family"],x["spoligotype"],x["rd"]) for x in lin]))
+
 	o.write("\n\n#### Other small variants in candidate genes ####\n")
 	for l in small_var_other:
 		o.write("\t".join([l[x] for x in ["chr","genome_pos","gene","locus_tag","change","type"]])+"\n")
@@ -531,7 +494,7 @@ def write_results_1(prefix,small_var_dr,small_var_other,dels,lin):
 	for l in dels:
 		o.write("\t".join([str(l[x]) for x in ["drug","gene","len","good_cov",'float_gene_present']])+"\n")
 	o.write("\n\n#### Lineage ####\n")
-	o.write("%s\t%s\t%s\n" % (lin["main"],lin["sublin"],lin["meta"]))
+	o.write("\n".join(["%s\t%s\t%s\t%s\t%s" % (x["lin"],x["frac"],x["family"],x["spoligotype"],x["rd"]) for x in lin]))
 	o.write("\n\n#### Other small variants in candidate genes ####\n")
 	for l in small_var_other:
 		o.write("\t".join([l[x] for x in ["chr","genome_pos","gene","locus_tag","change","type","freq"]])+"\n")
@@ -573,6 +536,12 @@ def results2tab(samples,outfile,stor_dir):
 	for s in samples:
 		o.write("%s\t%s\t%s\t%s\n" %(s,linresults[s]["main"],linresults[s]["sublin"],"\t".join([results[s][x] for x in drugs])))
 
+def verify_fq(filename):
+	FQ = open(filename) if filename[-3:]!=".gz" else gzip.open(filename)
+	l1 = FQ.readline()
+	if l1[0]!="@":
+		print "First character is not \"@\"\nPlease make sure this is fastq format\nExiting..."
+		quit()
 
 
 ################ Main functions ##################
@@ -590,6 +559,7 @@ def main_run_pipeline(args):
 	check_files(args.read1,args.read2,args.bam)
 	init_storage(args.clean,args.dir)
 	if args.read1:
+		verify_fq(args.read1)
 		do_mapping(args.read1,args.read2,args.threads,args.prefix,args.mapping)
 	else:
 		if not os.path.isfile("%s.bam"%args.prefix):
