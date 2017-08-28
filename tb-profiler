@@ -85,7 +85,7 @@ def htsbox_calls(prefix,bedfile):
 		print "ERROR: htsbox command failed. Please run the following command to find out more:\n"
 		print "%s view -L %s %s.bam -b > %s.temp.bam" % (samtools,bedfile,prefix,prefix)
 		quit()
-	for l in subprocess.Popen("%s pileup -Q 23 -q 30 %s.temp.bam" % (htsbox,prefix),shell=True,stdout=subprocess.PIPE).stdout:
+	for l in subprocess.Popen("%s pileup -f %s -Q 23 -q 30 %s.temp.bam" % (htsbox,ref_file,prefix),shell=True,stdout=subprocess.PIPE).stdout:
 		arr = l.rstrip().split()
 		if (arr[0],arr[1]) not in bed_pos: continue
 		calls = arr[3].split(",")
