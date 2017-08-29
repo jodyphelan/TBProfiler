@@ -586,7 +586,7 @@ def main_collate(args):
 	results2tab(samples,args.out_file,args.dir)
 
 def main_version(args):
-	print "\nTBProfiler version 0.2\n\nContact: Jody Phelan (jody.phelan@lshtm.ac.uk)\n"
+	print "\nTBProfiler version 0.2.1\n\nContact: Jody Phelan (jody.phelan@lshtm.ac.uk)\n"
 ####################### Argument Parser ###########################
 
 parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)

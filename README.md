@@ -76,6 +76,21 @@ Add a new line corresponding to the desired variant with the following columns:
 After editing the file run the ```parse_drdb.py <prefix>``` script using a prefix to generate a new database.
 To use the database use the ```--db <prefix>``` option in ```tb-profiler```.
 
+### Adding new lineages
+To add new lineages navigate to the ```db``` directory and edit the ```lineages.bed``` file.
+Add a new line with the columns:
+1. Chromosome
+2. Genomic position
+3. Genomic position (same again)
+4. Lineage name
+5. Reference at position
+6. Alternate at position
+7. Associated Metadata 1
+8. Associated Metadata 2
+9. Associated Metadata 3
+
+All columns must be complete but you can use "-" for 7-9 if you don't need to use these column.
+
 #### Examples:
 ##### A non-synonymous variant:
 
@@ -92,6 +107,7 @@ PYRAZINAMIDE    2288953 CC      C       pncA    CC289C
 
 ## Change Log
 #### v0.2
+* Allow users to create new lineages
 * Allow for the choice of BWA or SNAP for Linux users
 * Calling of deletions before small variant calling to avoid low quality variants around deletion breakpoints
 
