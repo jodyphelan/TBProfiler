@@ -85,7 +85,7 @@ def htsbox_calls(prefix,bedfile):
 		print "ERROR: htsbox command failed. Please run the following command to find out more:\n"
 		print "%s view -L %s %s.bam -b > %s.temp.bam" % (samtools,bedfile,prefix,prefix)
 		quit()
-	for l in subprocess.Popen("%s pileup -f %s -Q 23 -q 30 %s.temp.bam" % (htsbox,ref_file,prefix),shell=True,stdout=subprocess.PIPE).stdout:
+	for l in subprocess.Popen("%s pileup -Q 23 -q 30 %s.temp.bam" % (htsbox,prefix),shell=True,stdout=subprocess.PIPE).stdout:
 		arr = l.rstrip().split()
 		if (arr[0],arr[1]) not in bed_pos: continue
 		calls = arr[3].split(",")
@@ -340,6 +340,9 @@ def small_dr_var(prefix,gene_del_set):
 
 			alt_bins = [x for x in alt_bins if "*" not in x[0]]
 			alt_bins = [x for x in alt_bins if x[1]>0.05] #filtering out haplotypes which are less than 0.05 in freq
+			print positions
+
+			print alt_bins
 			for alts,alts_freq in alt_bins:
 
 				res = [dr for dr in drdb if dr["genome_pos"]==nt_positions and dr["alt_nt"]==alts]
@@ -513,7 +516,7 @@ def load_drgus():
 	return sorted(list(drugs))
 
 
-def results2tab(samples,outfile,stor_dir):
+def results2tab(samples,outfile,stor_dir,itol):
 	drugs = load_drgus()
 	results = defaultdict(dict)
 	linresults = defaultdict(dict)
@@ -528,13 +531,66 @@ def results2tab(samples,outfile,stor_dir):
 		for x in temp["del"]:
 			for d in x["drug"].split(";"):
 				results[s][d] = "R"
-		linresults[s]["main"] = temp["lineage"]["main"]
-		linresults[s]["sublin"] = temp["lineage"]["sublin"]
+		linresults[s]["main"] = sorted([x["lin"] for x in temp["lineage"]])[0] if len(temp["lineage"])>0 else "-"
+		linresults[s]["sublin"] = sorted([x["lin"] for x in temp["lineage"]])[-1] if len(temp["lineage"])>0 else "-"
+		dr_drugs = [x["drug"] for x in temp["small_variants_dr"]]
+
+		MDR = "R" if ("ISONIAZID" in dr_drugs and "RIFAMPICIN" in dr_drugs) else "-"
+		XDR = "R" if MDR=="R" and ( "AMIKACIN" in dr_drugs or "KANAMYCIN" in dr_drugs or "CAPREOMYCIN" in dr_drugs ) and ( "FLUOROQUINOLONES" in dr_drugs) else "-"
+		drtype = "Sensitive"
+		if XDR=="R":
+			drtype="XDR"
+		elif MDR=="R":
+			drtype="MDR"
+		elif len(dr_drugs)>0:
+			drtype="Drug-resistant"
+		results[s]["XDR"] = XDR
+		results[s]["MDR"] = MDR
+		results[s]["drtype"] = drtype
 
 	o = open(outfile,"w")
 	o.write("sample\tmain_lineage\tsub_lineage\t"+"\t".join(drugs)+"\n")
 	for s in samples:
-		o.write("%s\t%s\t%s\t%s\n" %(s,linresults[s]["main"],linresults[s]["sublin"],"\t".join([results[s][x] for x in drugs])))
+		o.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" %(s,linresults[s]["main"],linresults[s]["sublin"],results[s]["drtype"],results[s]["MDR"],results[s]["XDR"],"\t".join([results[s][x] for x in drugs])))
+	o.close()
+
+	lineage_cols = {"lineage1":"#FF0000","lineage2":"#FFBF00","lineage3":"#80FF00","lineage4":"#00FF40","lineage5":"#00FFFF","lineage6":"#0040FF","lineage7":"#8000FF","lineageBOV":"#FF00BF"}
+	o = open(outfile+".lineage.itol.txt","w")
+	o.write("""DATASET_COLORSTRIP
+SEPARATOR TAB
+DATASET_LABEL	Lineage
+COLOR	#ff0000
+
+LEGEND_TITLE	Lineage
+LEGEND_SHAPES	1	1	1	1	1	1	1	1	1
+LEGEND_COLORS	#FF0000	#FFBF00	#80FF00	#00FF40	#00FFFF	#0040FF	#8000FF	#FF00BF	#000000
+LEGEND_LABELS	Lineage1	Lineage2	Lineage3	Lineage4	Lineage5	Lineage6	Lineage7	Bovis	Other
+
+DATA
+""")
+	for s in samples:
+		o.write("%s\t%s\n" % (s,lineage_cols.get(linresults[s]["main"],"#000000")))
+	o.close()
+
+	o = open(outfile+".dr.itol.txt","w")
+	dr_cols = {"Sensitive":"#FF0000","Drug-resistant":"#80FF00","MDR":"#00FFFF","XDR":"#8000FF"}
+	o.write("""DATASET_COLORSTRIP
+SEPARATOR TAB
+DATASET_LABEL	Lineage
+COLOR	#ff0000
+
+LEGEND_TITLE	Drug resistance
+LEGEND_SHAPES	1	1	1	1
+LEGEND_COLORS	#FF0000	#80FF00	#00FFFF	#8000FF
+LEGEND_LABELS	Sensitive	Drug-resisant	MDR	XDR
+
+DATA
+""")
+	for s in samples:
+		o.write("%s\t%s\n" % (s,dr_cols.get(results[s]["drtype"],"#000000")))
+	o.close()
+
+
 
 def verify_fq(filename):
 	FQ = open(filename) if filename[-3:]!=".gz" else gzip.open(filename)
@@ -583,10 +639,10 @@ def main_run_pipeline(args):
 def main_collate(args):
 
 	samples = [x.rstrip() for x in open(args.samples_file).readlines()]
-	results2tab(samples,args.out_file,args.dir)
+	results2tab(samples,args.out_file,args.dir,args.itol)
 
 def main_version(args):
-	print "\nTBProfiler version 0.2.1\n\nContact: Jody Phelan (jody.phelan@lshtm.ac.uk)\n"
+	print "\nTBProfiler version 0.2\n\nContact: Jody Phelan (jody.phelan@lshtm.ac.uk)\n"
 ####################### Argument Parser ###########################
 
 parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -614,7 +670,9 @@ parser_sub = subparsers.add_parser('collate', help='Collate results form multipl
 parser_sub.add_argument('samples_file',help='File with samples (one per line)')
 parser_sub.add_argument('out_file',help='Output file name')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+parser_sub.add_argument('--itol',help='Generate ITOL file',action="store_true")
 parser_sub.set_defaults(func=main_collate)
+
 
 parser_sub = subparsers.add_parser('version', help='Output program version and exit', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_sub.set_defaults(func=main_version)
