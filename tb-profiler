@@ -547,7 +547,7 @@ def results2tab(samples,outfile,stor_dir,itol):
 		results[s]["drtype"] = drtype
 
 	o = open(outfile,"w")
-	o.write("sample\tmain_lineage\tsub_lineage\tDR-type\tMDR\tXDR\t%s" % "\t".join(drugs)+"\n")
+	o.write("sample\tmain_lineage\tsub_lineage\tDR_type\tMDR\tXDR\t%s" % "\t".join(drugs)+"\n")
 	for s in samples:
 		o.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" %(s,linresults[s]["main"],linresults[s]["sublin"],results[s]["drtype"],results[s]["MDR"],results[s]["XDR"],"\t".join([results[s][x] for x in drugs])))
 	o.close()
