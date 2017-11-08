@@ -9,9 +9,9 @@ min_frac = 0.7
 def do_pileup(self,bed_file=None):
     self.params["temp"] = bed_file
     if bed_file:
-        cmd = "%(samtools)s view -bL %(temp)s %(bamfile)s  > %(temp_bam)s && %(htsbox)s pileup -f %(reffile)s -Q 8 %(temp_bam)s > %(temp_pileup)s" % self.params
+        cmd = "%(samtools)s view -@ %(threads)s -bL %(temp)s %(bamfile)s  > %(temp_bam)s && %(htsbox)s pileup -f %(reffile)s -Q 8 %(temp_bam)s > %(temp_pileup)s" % self.params
     else:
-        cmd = "%(samtools)s view -b %(bamfile)s  > %(temp_bam)s && %(htsbox)s pileup -f %(reffile)s -Q 8 %(temp_bam)s > %(temp_pileup)s" % self.params
+        cmd = "%(samtools)s view -@ %(threads)s -b %(bamfile)s  > %(temp_bam)s && %(htsbox)s pileup -f %(reffile)s -Q 8 %(temp_bam)s > %(temp_pileup)s" % self.params
     run_cmd(cmd,verbose=self.params["verbose"])
 
 def htsbox_calls(self,bed_file):
