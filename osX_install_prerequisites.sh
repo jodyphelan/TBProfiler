@@ -1,3 +1,4 @@
+mkdir bin
 #minimap2
 cd minimap2
 make

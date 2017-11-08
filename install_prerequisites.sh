@@ -1,5 +1,6 @@
-#minimap2
+mkdir bin
 
+#minimap2
 cd minimap2
 make
 cp minimap2 ../bin
