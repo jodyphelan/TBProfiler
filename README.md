@@ -2,7 +2,12 @@
 
 This is the experimental commandline version of the TBProfiler described here: https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-015-0164-0 and is available here: http://tbdr.lshtm.ac.uk
 
-The pipeline aligns reads to the H37Rv reference using SNAP (or BWA on mac) and then looks at the coverage across a number of different candidate regions. We also predict the number of reads supporting drug resistance variants.
+This repository contains a complete rewrite of the web version of TBProfiler. It allows the use of profiling through a command line interface.
+
+The pipeline aligns reads to the H37Rv reference BWA or minimap2 and then looks at the coverage across a number of different candidate regions. We also predict the number of reads supporting drug resistance variants as an insight into hetero-resistance (not applicable for minION data)
+
+## Important Changes as of v0.3
+Version 0.3 features many changes to the code including the modularisation through creation of specific classes and functions for various functions. This will make it easier to maintain and add additional functionality. Support for minION has also been added. In the process some old functionality has not been added yet and some required arguments have changed. Please download v0.2.1 from the releases if you require the old code.
 
 ## Installation
 
@@ -91,6 +96,10 @@ PYRAZINAMIDE    2288953 CC      C       pncA    CC289C
 
 
 ## Change Log
+#### v0.3
+Modularisation of code into classes and functions
+Support for minION
+
 #### v0.2.1
 * Collate data fix
 * Generation of ITOL data files for visualisation
