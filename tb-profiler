@@ -23,7 +23,7 @@ if __name__=="__main__":
     subparsers = parser.add_subparsers(help="Task to perform")
 
     parser_sub = subparsers.add_parser('profile', help='Run whole pipeline', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser_sub.add_argument('--platform','-m',default="Illumina",help='NGS Platform')
+    parser_sub.add_argument('--platform','-m',choices=["Illumina","minION"],default="Illumina",help='NGS Platform')
     parser_sub.add_argument('--read1','-1',help='First read file')
     parser_sub.add_argument('--read2','-2',help='Second read file')
     parser_sub.add_argument('--bam','-a',help='Second read file')
