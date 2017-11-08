@@ -10,7 +10,7 @@ file_json = "%s/conf.json" % script_dir
 
 def main_profile(args):
     obj = tbp_main.tbp_seq_obj(file_json,args.prefix,fq1=args.read1,fq2=args.read2,bam=args.bam,platform=args.platform,threads=args.threads,verbose=args.verbose,stor_dir=args.dir)
-    obj.run_profiler(conf_file,samples_file,outfile,stor_dir)
+    obj.run_profiler()
 
 def main_collate(args):
     obj = collate.profiling_results(file_json,args.samples,args.prefix,args.dir)
