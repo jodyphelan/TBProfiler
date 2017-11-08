@@ -23,16 +23,16 @@ if __name__=="__main__":
     subparsers = parser.add_subparsers(help="Task to perform")
 
     parser_sub = subparsers.add_parser('profile', help='Run whole pipeline', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser_sub.add_argument('--platform','-m',help='NGS Platform')
+    parser_sub.add_argument('--platform','-m',default="Illumina",help='NGS Platform')
     parser_sub.add_argument('--read1','-1',help='First read file')
     parser_sub.add_argument('--read2','-2',help='Second read file')
     parser_sub.add_argument('--bam','-a',help='Second read file')
     parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
-    parser_sub.add_argument('--threads','-t',default="1",help='Threads')
+    parser_sub.add_argument('--threads','-t',default=1,help='Threads',type=int)
     parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
     parser_sub.add_argument('--db','-b',help='Full path to mutation database json file to use (default: TBProfiler panel)')
     parser_sub.add_argument('--format','-f',default="classic",help='Output format [classic,new]')
-    parser_sub.add_argument('--verbose','-v',default=0, help="Integer: [0|1|2] - verbosity increases from 0 to 2",type=int)
+    parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
     parser_sub.set_defaults(func=main_profile)
 
 

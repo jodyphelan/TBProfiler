@@ -46,3 +46,5 @@ cd ../../
 
 wget http://pathogenseq.lshtm.ac.uk/downloads/TBProfilerFiles.tgz
 tar -xvf TBProfilerFiles.tgz
+
+python scripts/create_config.py 

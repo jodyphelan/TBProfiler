@@ -33,12 +33,16 @@ class tbp_seq_obj:
         self.params["depthfile"] = "%s.depth" % prefix
         self.params["txt_results"] = "%s.results.txt" % prefix
         self.params["json_results"] = "%s.results.json" % prefix
+        self.params["threads"] = threads
 
         tmp = json.load(open(conf_file))
         for x in tmp:
             self.params[x] = tmp[x]
         if db:
             self.params["dr_json"] = db
+        if not fq1 and not fq1 and not bam:
+            print "\nNo BAM or fastQ file provided. Please specify using -a or -1 (and -2).\n"
+            quit()
 
     def run_profiler(self):
         self.init_dirs()
