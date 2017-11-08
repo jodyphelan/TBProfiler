@@ -1,3 +1,10 @@
+#minimap2
+
+cd minimap2
+make
+cp minimap2 ../bin
+cd ../
+
 #htsbox
 cd htsbox
 make
@@ -25,16 +32,9 @@ mv bcftools ../bin
 cd ../
 
 #samtools
-git clone https://github.com/samtools/samtools.git
 cd samtools
 make
 mv samtools ../bin
-cd ../
-
-#snap
-cd snap
-make
-mv snap-aligner ../bin/
 cd ../
 
 #lofreq
@@ -46,4 +46,3 @@ cd ../../
 
 wget http://pathogenseq.lshtm.ac.uk/downloads/TBProfilerFiles.tgz
 tar -xvf TBProfilerFiles.tgz
-echo "linux" > arch.txt

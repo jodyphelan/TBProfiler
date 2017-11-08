@@ -1,9 +1,6 @@
 [submodule "htslib"]
 	path = htslib
 	url = https://github.com/samtools/htslib.git
-[submodule "snap"]
-	path = snap
-	url = https://github.com/amplab/snap.git
 [submodule "bwa"]
 	path = bwa
 	url = https://github.com/lh3/bwa.git
@@ -19,3 +16,6 @@
 [submodule "htsbox"]
 	path = htsbox
 	url = https://github.com/lh3/htsbox.git
+[submodule "minimap2"]
+	path = minimap2
+	url = https://github.com/lh3/minimap2.git
