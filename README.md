@@ -6,8 +6,8 @@ This repository contains a complete rewrite of the web version of TBProfiler. It
 
 The pipeline aligns reads to the H37Rv reference BWA or minimap2 and then looks at the coverage across a number of different candidate regions. We also predict the number of reads supporting drug resistance variants as an insight into hetero-resistance (not applicable for minION data)
 
-## Important changes as of v0.3
-Version 0.3 features many changes to the code including the modularisation through creation of specific classes and functions for various functions. This will make it easier to maintain and add additional functionality. Support for minION has also been added. In the process some old functionality has not been added yet and some required arguments have changed. Please download v0.2.1 from the releases if you require the old code.
+## Important changes as of v0.3.0
+Version 0.3.0 features many changes to the code including the modularisation through creation of specific classes and functions for various functions. This will make it easier to maintain and add additional functionality. Support for minION has also been added. In the process some old functionality has not been added yet and some required arguments have changed. Please download v0.2.1 from the releases if you require the old code.
 
 ## Installation
 
@@ -29,7 +29,7 @@ The first argument indicates the analysis type to perform. At the moment we curr
 #### Quick start example
 Run whole pipeline:
 ```
-tb-profiler full -1 /path/to/reads_1.fastq.gz -2 /path/to/reads_2.fastq.gz -p prefix
+tb-profiler profile -1 /path/to/reads_1.fastq.gz -2 /path/to/reads_2.fastq.gz -p prefix
 ```
 The prefix is usefull when you need to run more that one sample.
 This will store BAM files, summary pileup and result files in respective directories.
@@ -41,7 +41,7 @@ Example run:
 mkdir test_run; cd test_run
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR166/009/ERR1664619/ERR1664619_1.fastq.gz
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR166/009/ERR1664619/ERR1664619_2.fastq.gz
-../tb-profiler full -1 ERR1664619_1.fastq.gz -2 ERR1664619_2.fastq.gz -t 4 -p ERR1664619
+../tb-profiler profile -1 ERR1664619_1.fastq.gz -2 ERR1664619_2.fastq.gz -t 4 -p ERR1664619
 cat results/ERR1664619.results.txt
 ```
 

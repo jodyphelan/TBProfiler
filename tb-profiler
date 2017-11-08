@@ -2,21 +2,23 @@
 from __future__ import division
 import sys
 import os.path
-from tbprofiler import tbp_main
+from tbprofiler import tbp_main,collate
 import argparse
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 file_json = "%s/conf.json" % script_dir
 
 def main_profile(args):
-    inst = tbp_main.tbp_seq_obj(file_json,args.prefix,fq1=args.read1,fq2=args.read2,bam=args.bam,platform=args.platform,threads=args.threads,verbose=args.verbose,stor_dir=args.dir)
-    inst.run_profiler()
+    obj = tbp_main.tbp_seq_obj(file_json,args.prefix,fq1=args.read1,fq2=args.read2,bam=args.bam,platform=args.platform,threads=args.threads,verbose=args.verbose,stor_dir=args.dir)
+    obj.run_profiler(conf_file,samples_file,outfile,stor_dir)
 
 def main_collate(args):
-    pass
+    obj = collate.profiling_results(file_json,args.samples,args.prefix,args.dir)
+    obj.results2tab()
 
 def main_version(args):
-    pass
+    print "\nTBProfiler version 0.3.0\n\nContact: Jody Phelan (jody.phelan@lshtm.ac.uk)\n"
+
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -37,10 +39,9 @@ if __name__=="__main__":
 
 
     parser_sub = subparsers.add_parser('collate', help='Collate results form multiple samples together', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser_sub.add_argument('samples_file',help='File with samples (one per line)')
-    parser_sub.add_argument('out_file',help='Output file name')
+    parser_sub.add_argument('samples',help='File with samples (one per line)')
+    parser_sub.add_argument('prefix',help='Output file name')
     parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
-    parser_sub.add_argument('--itol',help='Generate ITOL file',action="store_true")
     parser_sub.set_defaults(func=main_collate)
 
 
