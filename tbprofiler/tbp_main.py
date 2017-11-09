@@ -24,7 +24,7 @@ class tbp_seq_obj:
         self.params["verbose"] = verbose
         self.params["outfmt"] = outfmt
         self.params["prefix"] = prefix
-        self.params["dr_vcffile"] = "%s.vcf" % prefix
+        self.params["dr_vcffile"] = "%s.dr.vcf" % prefix
         self.params["temp_file"] = "%s.temp_file" % prefix
         self.params["temp_bam"] = "%s.temp.bam" % prefix
         self.params["temp_pileup"] = "%s.temp.pileup" % prefix

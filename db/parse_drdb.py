@@ -2,6 +2,7 @@ import sys
 import json
 import re
 from collections import defaultdict
+import os.path
 sys.path.insert(0,"../tbprofiler/")
 from tbprofiler import ann
 
@@ -22,7 +23,10 @@ for l in open(infile):
 		if p=="-": continue
 		positions.add(int(p))
 
-obj_ann = ann.ann("/Users/jody/github/TBProfiler/ref/MTB-h37rv_asm19595v2-eg18.tab.ann.gz","/Users/jody/github/TBProfiler/bin/tabix")
+script_dir = "/".join(os.path.dirname(os.path.realpath(__file__)).split("/")[:-1])
+annfile = "%s/ref/MTB-h37rv_asm19595v2-eg18.tab.ann.gz" % script_dir
+tabix = "%s/bin/tabix" % script_dir
+obj_ann = ann.ann(annfile,tabix)
 
 annot = obj_ann.pos2ann([("Chromosome",str(x)) for x in sorted(positions)])
 loci = {}
