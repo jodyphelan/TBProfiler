@@ -45,10 +45,13 @@ for l in open(infile):
 	loci[tmp["rv"]] = (tmp["start"],tmp["end"],tmp["rv"],tmp["gene"],drugs)
 	if ref in amino_acids:
 		mutation = "%s%s>%s%s" % (gene_pos,aa_long2short[ref],gene_pos,aa_long2short[alt])
-		drdb[tmp["rv"]][mutation].append(arr[0])
+		drdb[tmp["rv"]][mutation].add(arr[0])
 	else:
 		mutation = "%s%s>%s" % (tmp["gene_nt"],arr[2],arr[3])
-		drdb[tmp["rv"]][mutation].append(arr[0])
+		drdb[tmp["rv"]][mutation].add(arr[0])
+for loc in drdb:
+	for mut in drdb[loc]:
+		drdb[loc][mut] = list(drdb[loc][mut])
 json.dump(drdb,open(json_db,"w"))
 O = open(bedfile,"w")
 for rv in sorted(loci,key=lambda x:int(loci[x][0])):
