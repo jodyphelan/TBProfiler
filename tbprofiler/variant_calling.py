@@ -36,7 +36,7 @@ def do_pileup(self,bed_file=None):
 	if bed_file:
 		cmd = "%(samtools)s view -@ %(threads)s -bL %(temp)s %(bamfile)s  > %(temp_bam)s && %(htsbox)s pileup -f %(reffile)s -Q 8 %(temp_bam)s > %(temp_pileup)s" % self.params
 	else:
-		cmd = "%(samtools)s view -@ %(threads)s -b %(bamfile)s  > %(temp_bam)s && %(htsbox)s pileup -f %(reffile)s -Q 8 %(temp_bam)s > %(temp_pileup)s" % self.params
+		cmd = "%(htsbox)s pileup -f %(reffile)s -Q 8 %(bamfile)s > %(temp_pileup)s" % self.params
 	run_cmd(cmd,verbose=self.params["verbose"])
 
 def htsbox_calls(self,bed_file):
@@ -77,13 +77,37 @@ def htsbox_calls(self,bed_file):
 			final_calls[arr[0]][arr[1]].append((call,1,max_allele_dp))
 	return final_calls
 
-def call_dr_variants(self):
+def call_variants(self,bed_file=False,vcf_file=False,caller="bcftools",gvcf=False):
+	if bed_file:
+		self.params["temp_bed"] = bed_file
+		self.params["temp_vcf_file"] = vcf_file
+	if gvcf: caller="bcftools"
+
 	if self.params["platform"] == "Illumina":
-		cmd = "set -euf pipefail; %(samtools)s view -bL %(dr_bed_file)s %(bamfile)s | %(lofreq)s indelqual -u 30 - |%(lofreq)s call -f %(reffile)s --call-indels --no-default-filter - | %(bcftools)s norm -f %(reffile)s -  | %(bcftools)s csq -f %(reffile)s -g %(gfffile)s - > %(dr_vcffile)s" %  self.params
+		if caller=="lofreq":
+			if bed_file:
+				cmd = "set -euf pipefail; %(samtools)s view -bL %(temp_bed)s %(bamfile)s | %(lofreq)s indelqual -u 30 - |%(lofreq)s call -f %(reffile)s --call-indels --no-default-filter - | %(bcftools)s norm -f %(reffile)s -  | %(bcftools)s csq -f %(reffile)s -g %(gfffile)s - > %(temp_vcf_file)s" %  self.params
+			else:
+				cmd = "set -euf pipefail; %(samtools)s view -b %(bamfile)s | %(lofreq)s indelqual -u 30 - |%(lofreq)s call -f %(reffile)s --call-indels --no-default-filter - | %(bcftools)s norm -f %(reffile)s -  | %(bcftools)s csq -f %(reffile)s -g %(gfffile)s - > %(vcffile)s" %  self.params
+		elif caller=="bcftools":
+			if bed_file:
+				cmd = "set -euf pipefail; %(samtools)s view -bL %(temp_bed)s %(bamfile)s | %(samtools)s mpileup -ugf %(reffile)s - | %(bcftools)s call --threads -mv %(threads)s | %(bcftools)s norm -f %(reffile)s -  | %(bcftools)s csq --phase a -f %(reffile)s -g %(gfffile)s - > %(temp_vcf_file)s" %  self.params
+			else:
+				if gvcf:
+					cmd = "set -euf pipefail; %(samtools)s view -b %(bamfile)s | %(samtools)s mpileup -ugf %(reffile)s -t DP - | %(bcftools)s call --threads %(threads)s -mg 10 | %(bcftools)s norm -f %(reffile)s -O z -o %(gvcffile)s" %  self.params
+				else:
+					cmd = "set -euf pipefail; %(samtools)s view -b %(bamfile)s | %(samtools)s mpileup -ugf %(reffile)s -t DP - | %(bcftools)s call --threads %(threads)s -mv | %(bcftools)s norm -f %(reffile)s -  | %(bcftools)s csq --phase a -f %(reffile)s -g %(gfffile)s - > %(vcffile)s" %  self.params
+		else:
+			print "\nOnly lofreq or bcftools available to call variants...exiting\n"; quit()
+
 		run_cmd(cmd,verbose=self.params["verbose"])
-	if self.params["platform"] == "minION":
-		pileup2vcf(self,bed_file=self.params["dr_bed_file"])
-		cmd = "%(bcftools)s csq -g %(gfffile)s -f %(reffile)s %(temp_file)s > %(dr_vcffile)s" % self.params
+	elif self.params["platform"] == "minION":
+		if bed_file:
+			pileup2vcf(self,bed_file=self.params["temp_bed"])
+			cmd = "%(bcftools)s csq -g %(gfffile)s -f %(reffile)s %(temp_file)s > %(temp_vcf_file)s" % self.params
+		else:
+			pileup2vcf(self)
+			cmd = "%(bcftools)s csq -g %(gfffile)s -f %(reffile)s %(temp_file)s > %(vcffile)s" % self.params
 		run_cmd(cmd,verbose=self.params["verbose"])
 
 
@@ -97,13 +121,23 @@ def pileup2vcf(self,bed_file=False):
 #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t%(prefix)s
 """ % self.params
 
-	do_pileup(self,bed_file)
-
+	if bed_file:
+		do_pileup(self,bed_file)
+		bed_pos = set()
+		for l in open(bed_file):
+			arr = l.rstrip().split()
+			for i in range(int(arr[1]),int(arr[2])):
+				bed_pos.add(str(i))
+	else:
+		do_pileup(self)
 	OUT = open("%(temp_file)s" % self.params,"w")
 	OUT.write(header)
 	for l in open(self.params["temp_pileup"]):
 		#Chromosome	  23	  G	   G,G-1C,G+3AAA   0/1:49,1,1
 		arr = l.rstrip().split()
+		if bed_file:
+			if arr[1] not in bed_pos:
+				continue
 		alleles = arr[3].split(",")
 		depth = [int(x) for x in arr[4].split(":")[1].split(",")]
 		ref = arr[2]

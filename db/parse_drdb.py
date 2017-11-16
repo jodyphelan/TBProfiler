@@ -14,7 +14,7 @@ prefix = sys.argv[2]
 json_db = "%s.json" % prefix
 bedfile = "%s.bed" % prefix
 
-drdb = defaultdict(lambda:defaultdict(list))
+drdb = defaultdict(lambda:defaultdict(set))
 
 positions = set()
 for l in open(infile):
@@ -27,6 +27,7 @@ script_dir = "/".join(os.path.dirname(os.path.realpath(__file__)).split("/")[:-1
 annfile = "%s/ref/MTB-h37rv_asm19595v2-eg18.tab.ann.gz" % script_dir
 tabix = "%s/bin/tabix" % script_dir
 obj_ann = ann.ann(annfile,tabix)
+
 
 annot = obj_ann.pos2ann([("Chromosome",str(x)) for x in sorted(positions)])
 loci = {}

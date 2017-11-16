@@ -35,19 +35,18 @@ def load_csq(self,pos_subset=None):
         var["bcsq"] = csq[0]
         if csq[0]=="non_coding":
             var["csq"] = {"locus_tag":csq[1],"nt_change":"-","aa_change":"-"}
-            results["variants"].append(var)
         elif csq[0]=="stop_lost&inframe_deletion":
             var["csq"] = {"locus_tag":csq[1],"nt_change":"-","aa_change":"-"}
-            results["variants"].append(var)
         elif csq[0]=="inframe_deletion&start_lost":
             var["csq"] = {"locus_tag":csq[1],"nt_change":"-","aa_change":"-"}
-            results["variants"].append(var)
+        elif csq[0]=="frameshift":
+            var["csq"] = {"locus_tag":csq[1],"nt_change":"-","aa_change":"-"}
         else:
             if len(csq)==7:
                 var["csq"] = {"locus_tag":csq[1],"aa_change":csq[5],"nt_change":csq[6]}
             else:
                 var["csq"] = {"locus_tag":csq[1],"nt_change":"-","aa_change":"-"}
-            results["variants"].append(var)
+        results["variants"].append(var)
         results["loci"].append((arr[0],arr[1]))
 
     if len(results["loci"])==0:
@@ -55,9 +54,8 @@ def load_csq(self,pos_subset=None):
     pos_tup = [("Chromosome",x["pos"]) for x in results["variants"]]
     dict_ann = obj_ann.pos2ann(pos_tup)
     for var in results["variants"]:
-
         tann = dict_ann["Chromosome"][var["pos"]]
-        if var["bcsq"]=="intergenic" or var["bcsq"]=="non_coding":
+        if var["bcsq"]=="intergenic" or var["bcsq"]=="non_coding" or var["bcsq"]=="frameshift":
             locus_type = "intergenic" if tann["ncr"]=="inter" else "ncRNA"
             change = "%s%s>%s" % (tann["gene_nt"],var["ref"],var["alt"])
             var["csq"] = {"var_type":locus_type,"locus_tag":tann["rv"],"nt_change":change,"aa_change":"-"}

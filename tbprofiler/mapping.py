@@ -6,6 +6,6 @@ def map(self):
         else:
             cmd = "%(bwa)s mem -R '@RG\\tID:%(prefix)s\\tSM:%(prefix)s\\tPL:%(platform)s' -t %(threads)s %(reffile)s %(fq1)s | %(samtools)s view -b -@ %(threads)s - | %(samtools)s sort -@ %(threads)s -o %(bamfile)s -" % self.params
     elif self.params["platform"] == "minION":
-        cmd = "%(minimap2)s -ax map-ont -t %(threads)s %(reffile)s %(fq1)s  | %(samtools)s view -b - -@ %(threads)s | %(samtools)s sort -o %(bamfile)s - -@ %(threads)s" % self.params
+        cmd = "%(minimap2)s -ax map-ont -t %(threads)s %(reffile)s %(fq1)s  | %(samtools)s view -@ %(threads)s -b -  | %(samtools)s sort -@ %(threads)s -o %(bamfile)s - " % self.params
     else: print "Unknown Platform"; quit()
     run_cmd(cmd,verbose=self.params["verbose"])
