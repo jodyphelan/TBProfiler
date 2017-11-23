@@ -24,7 +24,7 @@ class tbp_seq_obj:
 		self.params["verbose"] = verbose
 		self.params["outfmt"] = outfmt
 		self.params["prefix"] = prefix
-		self.params["dr_vcffile"] = "%s.dr.vcf" % prefix
+		self.params["dr_vcffile"] = "vcf/%s.dr.vcf" % prefix
 		self.params["vcffile"] = "vcf/%s.vcf" % prefix
 		self.params["gvcffile"] = "vcf/%s.g.vcf.gz" % prefix
 		self.params["temp_file"] = "%s.temp_file" % prefix
@@ -33,8 +33,8 @@ class tbp_seq_obj:
 		self.params["platform"] = platform
 		self.params["conf_file"] = conf_file
 		self.params["depthfile"] = "%s.depth" % prefix
-		self.params["txt_results"] = "%s.results.txt" % prefix
-		self.params["json_results"] = "%s.results.json" % prefix
+		self.params["txt_results"] = "results/%s.results.txt" % prefix
+		self.params["json_results"] = "results/%s.results.json" % prefix
 		self.params["threads"] = threads
 
 		tmp = json.load(open(conf_file))

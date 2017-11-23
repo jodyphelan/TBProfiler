@@ -37,10 +37,7 @@ def index_bam(self):
         run_cmd(cmd)
 
 def cleanup(self):
-    if self.params["mapping"]:
-        cmd = "mv %(bamfile)s* %(stor_dir)s/bam/ && mv %(dr_vcffile)s %(stor_dir)s/vcf/ && mv %(json_results)s %(txt_results)s %(stor_dir)s/results/ && rm %(prefix)s.*" % self.params
-    else:
-        cmd = "mv %(dr_vcffile)s %(stor_dir)s/vcf/ && mv %(json_results)s %(txt_results)s %(stor_dir)s/results/ && rm %(prefix)s.*" % self.params
+    cmd = "rm %(prefix)s.*" % self.params
     run_cmd(cmd)
 
 def verify_fq(filename):
