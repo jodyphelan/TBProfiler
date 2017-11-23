@@ -31,7 +31,7 @@ def deletions(self):
             if lt=="Rv0667":
 
                 print "Missing coverage on essential gene rpoB. Stopping pipeline. Check for contamination"
-				quit()
+                quit()
                 return []
             results.append({"drug":lt_drugs[lt],"gene":lt2gene[lt],"locus_tag":lt,"len":len(arr_cov),"good_cov":int_good_cov,"float_gene_present":float_gene_present})
 
