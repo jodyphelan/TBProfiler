@@ -35,7 +35,7 @@ class profiling_results:
 				for d in x["drug"].split(";"):
 					results[s][d].add("large_deletion_%s" % x["gene"] if self.full_results else "R")
 			for d in self.drugs:
-				results[s][d] = ",".join(results[s][d])
+				results[s][d] = ", ".join(results[s][d])
 			linresults[s]["main"] = sorted([x["lin"] for x in temp["lineage"]])[0] if len(temp["lineage"])>0 else "-"
 			linresults[s]["sublin"] = sorted([x["lin"] for x in temp["lineage"]])[-1] if len(temp["lineage"])>0 else "-"
 			dr_drugs = [x["drug"] for x in temp["small_variants_dr"]]
