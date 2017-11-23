@@ -5,7 +5,7 @@ class profiling_results:
 	params = {}
 	drugs = set()
 	samples = []
-	def __init__(self,conf_file,samples_file,prefix,stor_dir):
+	def __init__(self,conf_file,samples_file,prefix,stor_dir,full_results):
 		tmp = json.load(open(conf_file))
 		for x in tmp:
 			self.params[x] = tmp[x]
@@ -18,21 +18,24 @@ class profiling_results:
 			self.samples.append(s.rstrip())
 		self.prefix = prefix
 		self.stor_dir = stor_dir
+		self.full_results = full_results
 
 	def results2tab(self):
 		results = defaultdict(dict)
 		linresults = defaultdict(dict)
 		for s in self.samples:
 			for d in self.drugs:
-				results[s][d] = "-"
+				results[s][d] = set()
 		for s in self.samples:
 			temp = json.load(open("%s/results/%s.results.json" % (self.stor_dir,s)))
 			for x in temp["small_variants_dr"]:
 				for d in x["drug"].split(";"):
-					results[s][d] = "R"
+					results[s][d].add(x["change"] if self.full_results else "R")
 			for x in temp["del"]:
 				for d in x["drug"].split(";"):
-					results[s][d] = "R"
+					results[s][d].add("large_deletion_%s" % x["gene"] if self.full_results else "R")
+			for d in self.drugs:
+				results[s][d] = ", ".join(results[s][d])
 			linresults[s]["main"] = sorted([x["lin"] for x in temp["lineage"]])[0] if len(temp["lineage"])>0 else "-"
 			linresults[s]["sublin"] = sorted([x["lin"] for x in temp["lineage"]])[-1] if len(temp["lineage"])>0 else "-"
 			dr_drugs = [x["drug"] for x in temp["small_variants_dr"]]

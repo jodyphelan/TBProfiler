@@ -13,7 +13,7 @@ def main_profile(args):
 	obj.run_profiler()
 
 def main_collate(args):
-	obj = collate.profiling_results(args.conf,args.samples,args.prefix,args.dir)
+	obj = collate.profiling_results(args.conf,args.samples,args.prefix,args.dir,args.full)
 	obj.results2tab()
 
 def main_version(args):
@@ -60,6 +60,7 @@ if __name__=="__main__":
 	parser_sub.add_argument('prefix',help='Output file name')
 	parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 	parser_sub.add_argument('--conf','-c',default=file_json,help='Configuration file')
+	parser_sub.add_argument('--full',action="store_true",help='Output mutations')
 	parser_sub.set_defaults(func=main_collate)
 
 
