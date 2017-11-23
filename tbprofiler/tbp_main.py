@@ -63,9 +63,9 @@ class tbp_seq_obj:
 			self.map()
 		else:
 			files.index_bam(self)
+		self.deletions()
 		self.small_dr_variants()
 		self.lineage()
-		self.deletions()
 		self.write_results()
 		self.cleanup()
 
