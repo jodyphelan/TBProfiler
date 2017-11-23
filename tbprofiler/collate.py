@@ -78,7 +78,7 @@ DATA
 		dr_cols = {"Sensitive":"#80FF00","Drug-resistant":"#00FFFF","MDR":"#8000FF","XDR":"#FF0000"}
 		o.write("""DATASET_COLORSTRIP
 SEPARATOR TAB
-DATASET_LABEL	Lineage
+DATASET_LABEL	Drug-Resistance
 COLOR	#ff0000
 
 LEGEND_TITLE	Drug resistance
