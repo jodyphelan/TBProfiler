@@ -2,92 +2,92 @@ import json
 from collections import defaultdict
 
 class profiling_results:
-    params = {}
-    drugs = set()
-    samples = []
-    def __init__(self,conf_file,samples_file,prefix,stor_dir):
-        tmp = json.load(open(conf_file))
-        for x in tmp:
-            self.params[x] = tmp[x]
+	params = {}
+	drugs = set()
+	samples = []
+	def __init__(self,conf_file,samples_file,prefix,stor_dir):
+		tmp = json.load(open(conf_file))
+		for x in tmp:
+			self.params[x] = tmp[x]
 
-        for l in open(self.params["dr_bed_file"]):
-            arr = l.rstrip().split()
-            for d in arr[5].split(";"):
-                self.drugs.add(d)
-        for s in open(samples_file):
-            self.samples.append(s.rstrip())
-        self.prefix = prefix
-        self.stor_dir = stor_dir
+		for l in open(self.params["dr_bed_file"]):
+			arr = l.rstrip().split()
+			for d in arr[5].split(";"):
+				self.drugs.add(d)
+		for s in open(samples_file):
+			self.samples.append(s.rstrip())
+		self.prefix = prefix
+		self.stor_dir = stor_dir
 
-    def results2tab(self):
-        results = defaultdict(dict)
-        linresults = defaultdict(dict)
-        for s in self.samples:
-            for d in self.drugs:
-                results[s][d] = "-"
-        for s in self.samples:
-            temp = json.load(open("%s/results/%s.results.json" % (self.stor_dir,s)))
-            for x in temp["small_variants_dr"]:
-                for d in x["drug"].split(";"):
-                    results[s][d] = "R"
-            for x in temp["del"]:
-                for d in x["drug"].split(";"):
-                    results[s][d] = "R"
-            linresults[s]["main"] = sorted([x["lin"] for x in temp["lineage"]])[0] if len(temp["lineage"])>0 else "-"
-            linresults[s]["sublin"] = sorted([x["lin"] for x in temp["lineage"]])[-1] if len(temp["lineage"])>0 else "-"
-            dr_drugs = [x["drug"] for x in temp["small_variants_dr"]]
+	def results2tab(self):
+		results = defaultdict(dict)
+		linresults = defaultdict(dict)
+		for s in self.samples:
+			for d in self.drugs:
+				results[s][d] = "-"
+		for s in self.samples:
+			temp = json.load(open("%s/results/%s.results.json" % (self.stor_dir,s)))
+			for x in temp["small_variants_dr"]:
+				for d in x["drug"].split(";"):
+					results[s][d] = "R"
+			for x in temp["del"]:
+				for d in x["drug"].split(";"):
+					results[s][d] = "R"
+			linresults[s]["main"] = sorted([x["lin"] for x in temp["lineage"]])[0] if len(temp["lineage"])>0 else "-"
+			linresults[s]["sublin"] = sorted([x["lin"] for x in temp["lineage"]])[-1] if len(temp["lineage"])>0 else "-"
+			dr_drugs = [x["drug"] for x in temp["small_variants_dr"]]
 
-            MDR = "R" if ("ISONIAZID" in dr_drugs and "RIFAMPICIN" in dr_drugs) else "-"
-            XDR = "R" if MDR=="R" and ( "AMIKACIN" in dr_drugs or "KANAMYCIN" in dr_drugs or "CAPREOMYCIN" in dr_drugs ) and ( "FLUOROQUINOLONES" in dr_drugs) else "-"
-            drtype = "Sensitive"
-            if XDR=="R":
-                drtype="XDR"
-            elif MDR=="R":
-                drtype="MDR"
-            elif len(dr_drugs)>0:
-                drtype="Drug-resistant"
-            results[s]["XDR"] = XDR
-            results[s]["MDR"] = MDR
-            results[s]["drtype"] = drtype
+			MDR = "R" if ("ISONIAZID" in dr_drugs and "RIFAMPICIN" in dr_drugs) else "-"
+			XDR = "R" if MDR=="R" and ( "AMIKACIN" in dr_drugs or "KANAMYCIN" in dr_drugs or "CAPREOMYCIN" in dr_drugs ) and ( "FLUOROQUINOLONES" in dr_drugs) else "-"
+			drtype = "Sensitive"
+			if XDR=="R":
+				drtype="XDR"
+			elif MDR=="R":
+				drtype="MDR"
+			elif len(dr_drugs)>0:
+				drtype="Drug-resistant"
+			results[s]["XDR"] = XDR
+			results[s]["MDR"] = MDR
+			results[s]["drtype"] = drtype
 
-        o = open(self.prefix+".txt","w")
-        o.write("sample\tmain_lineage\tsub_lineage\tDR_type\tMDR\tXDR\t%s" % "\t".join(self.drugs)+"\n")
-        for s in self.samples:
-            o.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" %(s,linresults[s]["main"],linresults[s]["sublin"],results[s]["drtype"],results[s]["MDR"],results[s]["XDR"],"\t".join([results[s][x] for x in self.drugs])))
-        o.close()
+		o = open(self.prefix+".txt","w")
+		o.write("sample\tmain_lineage\tsub_lineage\tDR_type\tMDR\tXDR\t%s" % "\t".join(self.drugs)+"\n")
+		for s in self.samples:
+			o.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" %(s,linresults[s]["main"],linresults[s]["sublin"],results[s]["drtype"],results[s]["MDR"],results[s]["XDR"],"\t".join([results[s][x] for x in self.drugs])))
+		o.close()
 
-        lineage_cols = {"lineage1":"#FF0000","lineage2":"#FFBF00","lineage3":"#80FF00","lineage4":"#00FF40","lineage5":"#00FFFF","lineage6":"#0040FF","lineage7":"#8000FF","lineageBOV":"#FF00BF"}
-        o = open(self.prefix+".lineage.itol.txt","w")
-        o.write("""DATASET_COLORSTRIP
-    SEPARATOR TAB
-    DATASET_LABEL    Lineage
-    COLOR    #ff0000
+		lineage_cols = {"lineage1":"#FF0000","lineage2":"#FFBF00","lineage3":"#80FF00","lineage4":"#00FF40","lineage5":"#00FFFF","lineage6":"#0040FF","lineage7":"#8000FF","lineageBOV":"#FF00BF"}
+		o = open(self.prefix+".lineage.itol.txt","w")
+		o.write("""DATASET_COLORSTRIP
+SEPARATOR TAB
+DATASET_LABEL	Lineage
+COLOR	#ff0000
 
-    LEGEND_TITLE    Lineage
-    LEGEND_SHAPES    1    1    1    1    1    1    1    1    1
-    LEGEND_COLORS    #FF0000    #FFBF00    #80FF00    #00FF40    #00FFFF    #0040FF    #8000FF    #FF00BF    #000000
-    LEGEND_LABELS    Lineage1    Lineage2    Lineage3    Lineage4    Lineage5    Lineage6    Lineage7    Bovis    Other
+LEGEND_TITLE	Lineage
+LEGEND_SHAPES	1	1	1	1	1	1	1	1	1
+LEGEND_COLORS	#FF0000	#FFBF00	#80FF00	#00FF40	#00FFFF	#0040FF	#8000FF	#FF00BF	#000000
+LEGEND_LABELS	Lineage1	Lineage2	Lineage3	Lineage4	Lineage5	Lineage6	Lineage7	Bovis	Other
 
-    DATA
-    """)
-        for s in self.samples:
-            o.write("%s\t%s\n" % (s,lineage_cols.get(linresults[s]["main"],"#000000")))
-        o.close()
+DATA
+""")
+		for s in self.samples:
+			o.write("%s\t%s\n" % (s,lineage_cols.get(linresults[s]["main"],"#000000")))
+		o.close()
 
-        o = open(self.prefix+".dr.itol.txt","w")
-        dr_cols = {"Sensitive":"#80FF00","Drug-resistant":"#00FFFF","MDR":"#8000FF","XDR":"#FF0000"}
-        o.write("""DATASET_COLORSTRIP
-    SEPARATOR TAB
-    DATASET_LABEL    Lineage
-    COLOR    #ff0000
+		o = open(self.prefix+".dr.itol.txt","w")
+		dr_cols = {"Sensitive":"#80FF00","Drug-resistant":"#00FFFF","MDR":"#8000FF","XDR":"#FF0000"}
+		o.write("""DATASET_COLORSTRIP
+SEPARATOR TAB
+DATASET_LABEL	Lineage
+COLOR	#ff0000
 
-    LEGEND_TITLE    Drug resistance
-    LEGEND_SHAPES    1    1    1    1
-    LEGEND_COLORS    #80FF00    #00FFFF    #8000FF    #FF0000
-    LEGEND_LABELS    Sensitive    Drug-resisant    MDR    XDR
+LEGEND_TITLE	Drug resistance
+LEGEND_SHAPES	1	1	1	1
+LEGEND_COLORS	#80FF00	#00FFFF	#8000FF	#FF0000
+LEGEND_LABELS	Sensitive	Drug-resisant	MDR	XDR
 
-    DATA
-    """)
-        for s in self.samples:
-            o.write("%s\t%s\n" % (s,dr_cols.get(results[s]["drtype"],"#000000")))
-        o.close()
+DATA
+""")
+		for s in self.samples:
+			o.write("%s\t%s\n" % (s,dr_cols.get(results[s]["drtype"],"#000000")))
+		o.close()
