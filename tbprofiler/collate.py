@@ -59,7 +59,7 @@ class profiling_results:
 			o.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" %(s,linresults[s]["main"],linresults[s]["sublin"],results[s]["drtype"],results[s]["MDR"],results[s]["XDR"],"\t".join([results[s][x] for x in self.drugs])))
 		o.close()
 
-		lineage_cols = {"lineage1":"#FF0000","lineage2":"#FFBF00","lineage3":"#80FF00","lineage4":"#00FF40","lineage5":"#00FFFF","lineage6":"#0040FF","lineage7":"#8000FF","lineageBOV":"#FF00BF"}
+		lineage_cols = {"lineage1":"#FF0000","lineage2":"#FFBF00","lineage3":"#80FF00","lineage4":"#00FFFF","lineage5":"#0040FF","lineage6":"#8000FF","lineage7":"#FF00BF","lineageBOV":"#808080"}
 		o = open(self.prefix+".lineage.itol.txt","w")
 		o.write("""DATASET_COLORSTRIP
 SEPARATOR TAB
