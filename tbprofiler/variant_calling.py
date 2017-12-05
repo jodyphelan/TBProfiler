@@ -67,7 +67,7 @@ def htsbox_calls(self,bed_file):
 			max_allele = alleles[depth.index(max_allele_dp)]
 			max_allele_frac = max_allele_dp/sum(depth)
 			if len(max_allele)>1:
-				max_allele = recode_indels([ref,max_allele])[1][0]
+				max_allele = recode_indels([arr[1],max_allele])[1][0]
 			if sum(depth)<min_dp:
 				call = "N"
 			if max_allele_frac<min_frac:
