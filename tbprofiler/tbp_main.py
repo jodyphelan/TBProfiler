@@ -19,22 +19,22 @@ class tbp_seq_obj:
 			self.params["bamfile"] = bam
 			self.params["mapping"] = False
 		else:
-			self.params["bamfile"] = "bam/%s.bam" % (prefix)
+			self.params["bamfile"] = "%s/bam/%s.bam" % (stor_dir,prefix)
 		self.params["stor_dir"] = stor_dir
 		self.params["verbose"] = verbose
 		self.params["outfmt"] = outfmt
 		self.params["prefix"] = prefix
-		self.params["dr_vcffile"] = "vcf/%s.dr.vcf" % prefix
-		self.params["vcffile"] = "vcf/%s.vcf" % prefix
-		self.params["gvcffile"] = "vcf/%s.g.vcf.gz" % prefix
+		self.params["dr_vcffile"] = "%s/vcf/%s.dr.vcf" % (stor_dir,prefix)
+		self.params["vcffile"] = "%s/vcf/%s.vcf" % (stor_dir,prefix)
+		self.params["gvcffile"] = "%s/vcf/%s.g.vcf.gz" % (stor_dir,prefix)
 		self.params["temp_file"] = "%s.temp_file" % prefix
 		self.params["temp_bam"] = "%s.temp.bam" % prefix
 		self.params["temp_pileup"] = "%s.temp.pileup" % prefix
 		self.params["platform"] = platform
 		self.params["conf_file"] = conf_file
 		self.params["depthfile"] = "%s.depth" % prefix
-		self.params["txt_results"] = "results/%s.results.txt" % prefix
-		self.params["json_results"] = "results/%s.results.json" % prefix
+		self.params["txt_results"] = "%s/results/%s.results.txt" % (stor_dir,prefix)
+		self.params["json_results"] = "%s/results/%s.results.json" % (stor_dir,prefix)
 		self.params["threads"] = threads
 
 		tmp = json.load(open(conf_file))
