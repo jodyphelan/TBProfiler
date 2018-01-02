@@ -59,7 +59,7 @@ class profiling_results:
 			o.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" %(s,linresults[s]["main"],linresults[s]["sublin"],results[s]["drtype"],results[s]["MDR"],results[s]["XDR"],"\t".join([results[s][x] for x in self.drugs])))
 		o.close()
 
-		lineage_cols = {"lineage1":"#FF0000","lineage2":"#FFBF00","lineage3":"#80FF00","lineage4":"#00FFFF","lineage5":"#0040FF","lineage6":"#8000FF","lineage7":"#FF00BF","lineageBOV":"#808080"}
+		lineage_cols = {"lineage1":"#104577","lineage2":"#ab2323","lineage3":"#18a68c","lineage4":"#f68e51","lineage5":"#7cb5d2","lineage6":"#fde05e","lineage7":"#bc94b7","lineageBOV":"#f8e0c8","lineageOther":"#000000"}
 		o = open(self.prefix+".lineage.itol.txt","w")
 		o.write("""DATASET_COLORSTRIP
 SEPARATOR TAB
@@ -68,11 +68,11 @@ COLOR	#ff0000
 
 LEGEND_TITLE	Lineage
 LEGEND_SHAPES	1	1	1	1	1	1	1	1	1
-LEGEND_COLORS	#FF0000	#FFBF00	#80FF00	#00FFFF	#0040FF	#8000FF	#FF00BF	#808080	#000000
+LEGEND_COLORS	%(lineage1)s	%(lineage2)s	%(lineage3)s	%(lineage4)s	%(lineage5)s	%(lineage6)s	%(lineage7)s	%(lineageBOV)s	%(lineageOther)s
 LEGEND_LABELS	Lineage1	Lineage2	Lineage3	Lineage4	Lineage5	Lineage6	Lineage7	Bovis	Other
 
 DATA
-""")
+""" % lineage_cols)
 		for s in self.samples:
 			o.write("%s\t%s\n" % (s,lineage_cols.get(linresults[s]["main"],"#000000")))
 		o.close()
