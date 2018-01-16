@@ -71,7 +71,7 @@ class tbp_seq_obj:
 
 	def cleanup(self):
 		if self.params["platform"]=="minION":
-			files.rm_files(["%s%s" % (d,self.params["prefix"]) for d in [".temp.pileup",".temp.bam",".temp_file",".depth"]])
+			files.rm_files(["%s%s" % (self.params["prefix"],d) for d in [".temp.pileup",".temp.bam",".temp_file",".depth"]])
 		else:
 			files.rm_files(["%s%s" % (self.params["prefix"],d) for d in [".temp.pileup",".temp.bam",".depth"]])
 
