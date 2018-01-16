@@ -70,7 +70,10 @@ class tbp_seq_obj:
 		self.cleanup()
 
 	def cleanup(self):
-		files.cleanup(self)
+		if self.params["platform"]=="minION":
+			files.rm_files(["%s%s" % (d,self.params["prefix"]) for d in [".temp.pileup",".temp.bam",".temp_file",".depth"]])
+		else:
+			files.rm_files(["%s%s" % (d,self.params["prefix"]) for d in [".temp.pileup",".temp.bam",".depth"]])
 
 	def init_dirs(self):
 		files.init_storage(self)
