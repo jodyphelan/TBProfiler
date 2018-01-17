@@ -91,12 +91,12 @@ def call_variants(self,bed_file=False,vcf_file=False,caller="bcftools",gvcf=Fals
 				cmd = "set -euf pipefail; %(samtools)s view -b %(bamfile)s | %(lofreq)s indelqual -u 30 - |%(lofreq)s call -f %(reffile)s --call-indels --no-default-filter - | %(bcftools)s norm -f %(reffile)s -  | %(bcftools)s csq -f %(reffile)s -g %(gfffile)s - > %(vcffile)s" %  self.params
 		elif caller=="bcftools":
 			if bed_file:
-				cmd = "set -euf pipefail; %(samtools)s view -bL %(temp_bed)s %(bamfile)s | %(samtools)s mpileup -ugf %(reffile)s - | %(bcftools)s call --threads -mv %(threads)s | %(bcftools)s norm -f %(reffile)s -  | %(bcftools)s csq --phase a -f %(reffile)s -g %(gfffile)s - > %(temp_vcf_file)s" %  self.params
+				cmd = "set -euf pipefail; %(samtools)s view -bL %(temp_bed)s %(bamfile)s | %(samtools)s mpileup -ugf %(reffile)s -t DP,AD - | %(bcftools)s call --threads %(threads)s -mv  | %(bcftools)s norm -f %(reffile)s -  | %(bcftools)s csq --phase a -f %(reffile)s -g %(gfffile)s - > %(temp_vcf_file)s" %  self.params
 			else:
 				if gvcf:
-					cmd = "set -euf pipefail; %(samtools)s view -b %(bamfile)s | %(samtools)s mpileup -ugf %(reffile)s -t DP - | %(bcftools)s call --threads %(threads)s -mg 10 | %(bcftools)s norm -f %(reffile)s -O z -o %(gvcffile)s" %  self.params
+					cmd = "set -euf pipefail; %(samtools)s view -b %(bamfile)s | %(samtools)s mpileup -ugf %(reffile)s -t DP,AD - | %(bcftools)s call --threads %(threads)s -mg 10 | %(bcftools)s norm -f %(reffile)s -O z -o %(gvcffile)s" %  self.params
 				else:
-					cmd = "set -euf pipefail; %(samtools)s view -b %(bamfile)s | %(samtools)s mpileup -ugf %(reffile)s -t DP - | %(bcftools)s call --threads %(threads)s -mv | %(bcftools)s norm -f %(reffile)s -  | %(bcftools)s csq --phase a -f %(reffile)s -g %(gfffile)s - > %(vcffile)s" %  self.params
+					cmd = "set -euf pipefail; %(samtools)s view -b %(bamfile)s | %(samtools)s mpileup -ugf %(reffile)s -t DP,AD - | %(bcftools)s call --threads %(threads)s -mv | %(bcftools)s norm -f %(reffile)s -  | %(bcftools)s csq --phase a -f %(reffile)s -g %(gfffile)s - > %(vcffile)s" %  self.params
 		else:
 			print "\nOnly lofreq or bcftools available to call variants...exiting\n"; quit()
 

@@ -9,7 +9,7 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 file_json = "%s/conf.json" % script_dir
 
 def main_profile(args):
-	obj = tbp_main.tbp_seq_obj(args.conf,args.prefix,fq1=args.read1,fq2=args.read2,bam=args.bam,platform=args.platform,threads=args.threads,verbose=args.verbose,stor_dir=args.dir,db=args.db)
+	obj = tbp_main.tbp_seq_obj(args.conf,args.prefix,fq1=args.read1,fq2=args.read2,bam=args.bam,platform=args.platform,threads=args.threads,verbose=args.verbose,stor_dir=args.dir,db=args.db,caller=args.caller)
 	obj.run_profiler()
 
 def main_collate(args):
@@ -34,6 +34,7 @@ if __name__=="__main__":
 	parser_sub.add_argument('--bam','-a',help='Second read file')
 	parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
 	parser_sub.add_argument('--threads','-t',default=1,help='Threads',type=int)
+	parser_sub.add_argument('--caller','-x',default="lofreq", choices=["lofreq","bcftools"],help="Variant calling tool to use",type=str)
 	parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 	parser_sub.add_argument('--db','-b',help='Full path to mutation database json file to use (default: TBProfiler panel)')
 	parser_sub.add_argument('--format','-f',default="classic",help='Output format [classic,new]')
