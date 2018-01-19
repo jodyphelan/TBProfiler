@@ -16,5 +16,4 @@ def map(self):
 	else:
 		print "Unknown Platform"
 		quit()
-	print cmd
 	run_cmd(cmd,verbose=self.params["verbose"])
