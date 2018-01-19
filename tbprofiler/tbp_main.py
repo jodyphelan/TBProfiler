@@ -10,7 +10,7 @@ import output
 
 class tbp_seq_obj:
 	params = {"fq1":False,"fq2":False,"bamfile":False,"mapping":True}
-	def __init__(self,conf_file,prefix,fq1=False,fq2=False,bam=False,platform="Illumina",threads=1,outfmt="classic",db=False,stor_dir=".",verbose=False,caller="bcftools"):
+	def __init__(self,conf_file,prefix,fq1=False,fq2=False,bam=False,platform="Illumina",threads=1,outfmt="classic",db=False,stor_dir=".",verbose=False,caller="bcftools",mapper="bwa"):
 		if fq1 and files.filecheck(fq1) and files.verify_fq(fq1):
 			self.params["fq1"] = fq1
 		if fq2 and files.filecheck(fq2) and files.verify_fq(fq2):
@@ -37,6 +37,7 @@ class tbp_seq_obj:
 		self.params["json_results"] = "%s/results/%s.results.json" % (stor_dir,prefix)
 		self.params["threads"] = threads
 		self.caller = caller
+		self.mapper = mapper
 		tmp = json.load(open(conf_file))
 		for x in tmp:
 			self.params[x] = tmp[x]

@@ -7,6 +7,7 @@ conf = {}
 conf["annfile"] = "%s/ref/MTB-h37rv_asm19595v2-eg18.tab.ann.gz" % script_dir
 conf["bcftools"] = "%s/bin/bcftools" % script_dir
 conf["bwa"] = "%s/bin/bwa" % script_dir
+conf["bowtie2"] = "%s/bin/bowtie2" % script_dir
 conf["samtools"] = "%s/bin/samtools" % script_dir
 conf["lofreq"] = "%s/bin/lofreq" % script_dir
 conf["htsbox"] = "%s/bin/htsbox" % script_dir
