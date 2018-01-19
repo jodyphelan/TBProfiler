@@ -35,7 +35,7 @@ if __name__=="__main__":
 	parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
 	parser_sub.add_argument('--threads','-t',default=1,help='Threads',type=int)
 	parser_sub.add_argument('--caller','-x',default="lofreq", choices=["lofreq","bcftools"],help="Variant calling tool to use",type=str)
-	parser_sub.add_argument('--mapper','-z',default="bowtie2", choices=["bwa","bowtie2"],help="Mapping tools to use",type=str) 
+	parser_sub.add_argument('--mapper','-z',default="bwa", choices=["bwa","bowtie2"],help="Mapping tools to use",type=str) 
 	parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 	parser_sub.add_argument('--db','-b',help='Full path to mutation database json file to use (default: TBProfiler panel)')
 	parser_sub.add_argument('--format','-f',default="classic",help='Output format [classic,new]')
