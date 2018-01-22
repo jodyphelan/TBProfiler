@@ -1,12 +1,6 @@
-[submodule "htslib"]
-	path = htslib
-	url = https://github.com/samtools/htslib.git
 [submodule "bwa"]
 	path = bwa
 	url = https://github.com/lh3/bwa.git
-[submodule "bcftools"]
-	path = bcftools
-	url = https://github.com/samtools/bcftools.git
 [submodule "lofreq"]
 	path = lofreq
 	url = https://github.com/CSB5/lofreq.git
