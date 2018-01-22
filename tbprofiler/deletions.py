@@ -27,7 +27,7 @@ def deletions(self):
         int_good_cov = len(filter(lambda x: x>10,arr_cov))
         float_gene_present = int_good_cov/len(arr_cov)
 
-        if float_gene_present<0.95:
+        if float_gene_present<0.90:
             if lt=="Rv0667":
                 print "Missing coverage on essential gene rpoB (%s). Stopping pipeline. Check for contamination" % float_gene_present
                 quit()
