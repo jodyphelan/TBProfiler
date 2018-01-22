@@ -16,3 +16,6 @@
 [submodule "minimap2"]
 	path = minimap2
 	url = https://github.com/lh3/minimap2.git
+[submodule "samtools"]
+	path = samtools
+	url = https://github.com/samtools/samtools.git
