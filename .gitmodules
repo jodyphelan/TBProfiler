@@ -13,3 +13,9 @@
 [submodule "samtools"]
 	path = samtools
 	url = https://github.com/samtools/samtools.git
+[submodule "bcftools"]
+	path = bcftools
+	url = https://github.com/samtools/bcftools.git
+[submodule "htslib"]
+	path = htslib
+	url = https://github.com/samtools/htslib.git
