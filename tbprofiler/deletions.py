@@ -24,7 +24,7 @@ def deletions(self):
     results = []
     for lt in lt_cov:
         arr_cov = lt_cov[lt].values()
-        int_good_cov = len(filter(lambda x: x>10,arr_cov))
+        int_good_cov = len(filter(lambda x: x>3,arr_cov))
         float_gene_present = int_good_cov/len(arr_cov)
 
         if float_gene_present<0.90:
