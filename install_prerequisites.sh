@@ -58,6 +58,6 @@ cd lofreq/dist/ \
 
 wget http://pathogenseq.lshtm.ac.uk/downloads/TBProfilerFiles.tgz \
  && tar -xvf TBProfilerFiles.tgz \
- && ./bin/bowtie2-build ref/MTB-h37rv_asm19595v2-eg18.fa ref/MTB-h37rv_asm19595v2-eg18.fa
+ && ./bin/bowtie2-build ref/MTB-h37rv_asm19595v2-eg18.fa ref/MTB-h37rv_asm19595v2-eg18.fa \
  && echo Files OK || echo Files FAIL
 python scripts/create_config.py
