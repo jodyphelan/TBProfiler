@@ -9,7 +9,7 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 file_json = "%s/conf.json" % script_dir
 
 def main_profile(args):
-	obj = tbp_main.tbp_seq_obj(args.conf,args.prefix,fq1=args.read1,fq2=args.read2,bam=args.bam,platform=args.platform,threads=args.threads,verbose=args.verbose,stor_dir=args.dir,db=args.db,caller=args.caller,mapper=args.mapper,min_gene_cov=args.min_gene_cov)
+	obj = tbp_main.tbp_seq_obj(args.conf,args.prefix,fq1=args.read1,fq2=args.read2,bam=args.bam,platform=args.platform,threads=args.threads,verbose=args.verbose,stor_dir=args.dir,db=args.db,caller=args.caller,mapper=args.mapper,min_gene_frac=args.min_gene_frac)
 	obj.run_profiler()
 
 def main_collate(args):
@@ -41,7 +41,7 @@ if __name__=="__main__":
 	parser_sub.add_argument('--format','-f',default="classic",help='Output format [classic,new]')
 	parser_sub.add_argument('--conf','-c',default=file_json,help='Configuration file')
 	parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
-	parser_sub.add_argument('--min_gene_cov',default=0.9,type=float,help='Configuration file')
+	parser_sub.add_argument('--min_gene_frac',default=0.9,type=float,help='Used to infer a deletion if the fraction of a gene covered falls below this value. Also used to see if sample is high quality to continue by checking the fraction for rpoB (where deletion should not occur).')
 	parser_sub.set_defaults(func=main_profile)
 
 	parser_sub = subparsers.add_parser('call_variants', help='Collate results form multiple samples together', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
