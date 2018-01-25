@@ -10,7 +10,7 @@ import output
 
 class tbp_seq_obj:
 	params = {"fq1":False,"fq2":False,"bamfile":False,"mapping":True}
-	def __init__(self,conf_file,prefix,fq1=False,fq2=False,bam=False,platform="Illumina",threads=1,outfmt="classic",db=False,stor_dir=".",verbose=False,caller="bcftools",mapper="bwa"):
+	def __init__(self,conf_file,prefix,fq1=False,fq2=False,bam=False,platform="Illumina",threads=1,outfmt="classic",db=False,stor_dir=".",verbose=False,caller="bcftools",mapper="bwa",min_gene_cov=0.9):
 		if fq1 and files.filecheck(fq1) and files.verify_fq(fq1):
 			self.params["fq1"] = fq1
 		if fq2 and files.filecheck(fq2) and files.verify_fq(fq2):
@@ -38,6 +38,7 @@ class tbp_seq_obj:
 		self.params["threads"] = threads
 		self.caller = caller
 		self.mapper = mapper
+		self.min_gene_cov = min_gene_cov
 		tmp = json.load(open(conf_file))
 		for x in tmp:
 			self.params[x] = tmp[x]
@@ -94,7 +95,7 @@ class tbp_seq_obj:
 		self.lineage = lineage.lineage(self)
 
 	def deletions(self):
-		self.deletions = deletions.deletions(self)
+		self.deletions = deletions.deletions(self,self.min_gene_cov)
 
 	def write_results(self):
 		if self.params["outfmt"] == "classic":

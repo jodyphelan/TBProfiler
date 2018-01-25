@@ -1,7 +1,7 @@
 from __future__ import division
 from files import *
 from collections import defaultdict
-def deletions(self):
+def deletions(self,min_gene_cov=0.9):
 
     lt_bed = defaultdict(dict)
     lt_cov = defaultdict(lambda : defaultdict(int))
@@ -27,7 +27,7 @@ def deletions(self):
         int_good_cov = len(filter(lambda x: x>3,arr_cov))
         float_gene_present = int_good_cov/len(arr_cov)
 
-        if float_gene_present<0.90:
+        if float_gene_present<min_gene_cov:
             if lt=="Rv0667":
                 print "Missing coverage on essential gene rpoB (%s). Stopping pipeline. Check for contamination" % float_gene_present
                 quit()
