@@ -58,7 +58,7 @@ class profiling_results:
 		for s in self.samples:
 			o.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" %(s,linresults[s]["main"],linresults[s]["sublin"],results[s]["drtype"],results[s]["MDR"],results[s]["XDR"],"\t".join([results[s][x] for x in self.drugs])))
 		o.close()
-
+		json.dump(results,open(self.prefix+".json","w"))
 		lineage_cols = {"lineage1":"#104577","lineage2":"#ab2323","lineage3":"#18a68c","lineage4":"#f68e51","lineage5":"#7cb5d2","lineage6":"#fde05e","lineage7":"#bc94b7","lineageBOV":"#f8e0c8","lineageOther":"#000000"}
 		o = open(self.prefix+".lineage.itol.txt","w")
 		o.write("""DATASET_COLORSTRIP
