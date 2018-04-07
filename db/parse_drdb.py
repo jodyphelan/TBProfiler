@@ -3,7 +3,7 @@ import json
 import re
 from collections import defaultdict
 import os.path
-sys.path.insert(0,"../tbprofiler/")
+sys.path.insert(0,"../")
 from tbprofiler import ann
 
 amino_acids = ['Cys', 'Ile', 'Ser', 'Val', 'Gly', 'Gln', 'Pro', 'Lys', 'Stop', 'Thr', 'Phe', 'Ala', 'Met', 'Asp', 'His', 'Leu', 'Arg', 'Trp', 'Glu', 'Asn', 'Tyr']
@@ -33,6 +33,7 @@ annot = obj_ann.pos2ann([("Chromosome",str(x)) for x in sorted(positions)])
 loci = {}
 for l in open(infile):
 	#AMINOGLYCOSIDES 1473247 C	   A	   rrs	 C1402A
+	if l[0]=="#": continue
 	arr = l.rstrip().split()
 	re_obj = re_mut.match(arr[5])
 	ref = re_obj.group(1)
