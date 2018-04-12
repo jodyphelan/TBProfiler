@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
 	liblzma-dev \
 	git \
 	wget \
+	unzip \
 	python
 
 
