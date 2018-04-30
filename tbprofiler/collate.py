@@ -106,10 +106,10 @@ SEPARATOR TAB
 DATASET_LABEL	Drugs
 COLOR	#ff0000
 
-LEGEND_TITLE	Drug resistance
-LEGEND_SHAPES	%s
-LEGEND_COLORS	%s
-LEGEND_LABELS	%s
+SHOW_LABELS	1
+FIELD_SHAPES	%s
+FIELD_COLORS	%s
+FIELD_LABELS	%s
 
 DATA
 """ % (legend_shapes,legend_colours,legend_labels))
