@@ -5,6 +5,7 @@ class profiling_results:
 	params = {}
 	drugs = set()
 	samples = []
+	dr_drugs = {}
 	def __init__(self,conf_file,samples_file,prefix,stor_dir,full_results):
 		tmp = json.load(open(conf_file))
 		for x in tmp:
@@ -39,7 +40,7 @@ class profiling_results:
 			linresults[s]["main"] = sorted([x["lin"] for x in temp["lineage"]])[0] if len(temp["lineage"])>0 else "-"
 			linresults[s]["sublin"] = sorted([x["lin"] for x in temp["lineage"]])[-1] if len(temp["lineage"])>0 else "-"
 			dr_drugs = [x["drug"] for x in temp["small_variants_dr"]]
-
+			self.dr_drugs[s] = dr_drugs
 			MDR = "R" if ("ISONIAZID" in dr_drugs and "RIFAMPICIN" in dr_drugs) else "-"
 			XDR = "R" if MDR=="R" and ( "AMIKACIN" in dr_drugs or "KANAMYCIN" in dr_drugs or "CAPREOMYCIN" in dr_drugs ) and ( "FLUOROQUINOLONES" in dr_drugs) else "-"
 			drtype = "Sensitive"
@@ -93,4 +94,25 @@ DATA
 """)
 		for s in self.samples:
 			o.write("%s\t%s\n" % (s,dr_cols.get(results[s]["drtype"],"#000000")))
+		o.close()
+
+		o = open(self.prefix+".dr.indiv.itol.txt","w")
+		dr_cols = {"Sensitive":"#80FF00","Drug-resistant":"#00FFFF","MDR":"#8000FF","XDR":"#FF0000"}
+		legend_shapes = "\t".join(["2" for x in drugs])
+		legend_colours = "\t".join(["black" for x in drugs])
+		legend_labels = "\t".join(drugs)
+		o.write("""DATASET_BINARY
+SEPARATOR TAB
+DATASET_LABEL	Drugs
+COLOR	#ff0000
+
+LEGEND_TITLE	Drug resistance
+LEGEND_SHAPES	%s
+LEGEND_COLORS	%s
+LEGEND_LABELS	%s
+
+DATA
+""" % (legend_shapes,legend_colours,legend_labels))
+		for s in self.samples:
+			o.write("%s\t%s\n" % (s,"\t".join(["1" if d in self.dr_drugs[s]])))
 		o.close()
