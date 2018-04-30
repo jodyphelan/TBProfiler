@@ -96,6 +96,7 @@ DATA
 			o.write("%s\t%s\n" % (s,dr_cols.get(results[s]["drtype"],"#000000")))
 		o.close()
 
+		self.drugs = ["RIFAMPICIN","ISONIAZID","ETHAMBUTOL","PYRAZINAMIDE","STREPTOMYCIN","FLUOROQUINOLONES","AMINOGLYCOSIDES","KANAMYCIN","AMIKACIN","CAPREOMYCIN","ETHIONAMIDE","PARA-AMINOSALISYLIC_ACID","CLOFAZIMINE","LINEZOLID","BEDAQUILINE"]
 		o = open(self.prefix+".dr.indiv.itol.txt","w")
 		dr_cols = {"Sensitive":"#80FF00","Drug-resistant":"#00FFFF","MDR":"#8000FF","XDR":"#FF0000"}
 		legend_shapes = "\t".join(["2" for x in self.drugs])
