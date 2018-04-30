@@ -114,5 +114,5 @@ LEGEND_LABELS	%s
 DATA
 """ % (legend_shapes,legend_colours,legend_labels))
 		for s in self.samples:
-			o.write("%s\t%s\n" % (s,"\t".join(["1" if d in self.dr_drugs[s] else "0" fir d in self.drugs])))
+			o.write("%s\t%s\n" % (s,"\t".join(["1" if d in self.dr_drugs[s] else "0" for d in self.drugs])))
 		o.close()
