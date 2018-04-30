@@ -98,9 +98,9 @@ DATA
 
 		o = open(self.prefix+".dr.indiv.itol.txt","w")
 		dr_cols = {"Sensitive":"#80FF00","Drug-resistant":"#00FFFF","MDR":"#8000FF","XDR":"#FF0000"}
-		legend_shapes = "\t".join(["2" for x in drugs])
-		legend_colours = "\t".join(["black" for x in drugs])
-		legend_labels = "\t".join(drugs)
+		legend_shapes = "\t".join(["2" for x in self.drugs])
+		legend_colours = "\t".join(["black" for x in self.drugs])
+		legend_labels = "\t".join(self.drugs)
 		o.write("""DATASET_BINARY
 SEPARATOR TAB
 DATASET_LABEL	Drugs
