@@ -49,10 +49,10 @@ def verify_fq(filename):
     else:
         return True
 
-def rm_files(x,verbose=True):
+def rm_files(x,verbose=0):
 	"""
 	Remove a files in a list format
 	"""
 	for f in x:
-		if verbose: print "Removing %s" % f
+		if verbose==2: print "Removing %s" % f
 		os.remove(f)
