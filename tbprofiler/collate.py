@@ -6,7 +6,7 @@ class profiling_results:
 	drugs = set()
 	samples = []
 	dr_drugs = {}
-	def __init__(self,conf_file,samples_file,prefix,stor_dir,full_results):
+	def __init__(self,conf_file,samples_file,prefix,stor_dir,full_results,full_variant_results=False):
 		tmp = json.load(open(conf_file))
 		for x in tmp:
 			self.params[x] = tmp[x]
@@ -20,10 +20,13 @@ class profiling_results:
 		self.prefix = prefix
 		self.stor_dir = stor_dir
 		self.full_results = full_results
-
+		self.full_variant_results = full_variant_results
 	def results2tab(self):
 		results = defaultdict(dict)
 		linresults = defaultdict(dict)
+		dr_variants = defaultdict(lambda:defaultdict(dict))
+		dr_variants_set = set()
+
 		for s in self.samples:
 			for d in self.drugs:
 				results[s][d] = set()
@@ -31,6 +34,8 @@ class profiling_results:
 			temp = json.load(open("%s/results/%s.results.json" % (self.stor_dir,s)))
 			for x in temp["small_variants_dr"]:
 				for d in x["drug"].split(";"):
+					dr_variants[x["gene"]][x["change"]][s] = x["freq"]
+					dr_variants_set.add((x["gene"],x["change"]))
 					results[s][d].add("%s_%s" % (x["gene"],x["change"]) if self.full_results else "R")
 			for x in temp["del"]:
 				for d in x["drug"].split(";"):
@@ -54,6 +59,22 @@ class profiling_results:
 			results[s]["MDR"] = MDR
 			results[s]["drtype"] = drtype
 
+		if self.full_variant_results:
+			all_vars = json.load(open(self.params["dr_json"]))
+			lt2gene = {}
+			for l in open(self.params["dr_bed_file"]):
+				#Chromosome      5240    7267    Rv0005  gyrB    FLUOROQUINOLONES
+				row = l.rstrip().split()
+				lt2gene[row[3]] = row[4] if row[4]!="." else row[3]
+			dr_variants_set = set()
+			for g in all_vars:
+				for c in all_vars[g]:
+					dr_variants_set.add((lt2gene[g],c))
+		VAR = open(self.prefix+".variants.txt","w")
+		VAR.write("sample\t%s\n" % ("\t".join(["%s_%s" % (g,c) for g,c in sorted(dr_variants_set,key=lambda x: x[0])])))
+		for s in self.samples:
+			VAR.write("%s\t%s\n" % (s,"\t".join(["%.3f" % dr_variants[gene][change][s] if gene in dr_variants and change in dr_variants[gene] and s in dr_variants[gene][change] else "0" for gene,change in sorted(dr_variants_set,key=lambda x: x[0])])))
+		VAR.close()
 		o = open(self.prefix+".txt","w")
 		o.write("sample\tmain_lineage\tsub_lineage\tDR_type\tMDR\tXDR\t%s" % "\t".join(self.drugs)+"\n")
 		for s in self.samples:
