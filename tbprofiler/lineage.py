@@ -1,4 +1,5 @@
 from __future__ import division
+import sys
 import math
 import variant_calling
 from collections import defaultdict
@@ -26,9 +27,12 @@ def lineage(self):
 				lin_support[lin_pos_dict[chrom][pos]["lin"]].append((sum([x[2] for x in calls[chrom][pos] if x[0]==lin_pos_dict[chrom][pos]["alt"]]),sum([x[2] for x in calls[chrom][pos] if x[0]!=lin_pos_dict[chrom][pos]["alt"]])))
 			else:
 				lin_support[lin_pos_dict[chrom][pos]["lin"]].append((0,sum([x[2] for x in calls[chrom][pos] if x[0]!=lin_pos_dict[chrom][pos]["alt"]])))
+	if self.params["verbose"]==2:
+		sys.stderr.write("%s\n" % lin_support)
 	lin_frac = defaultdict(float)
 	for l in lin_support:
-		if stdev([x[0]/(x[0]+x[1]) for x in lin_support[l]])>0.1: continue
+		print stdev([x[0]/(x[0]+x[1]) for x in lin_support[l]])
+		if stdev([x[0]/(x[0]+x[1]) for x in lin_support[l]])>0.15: continue
 		lin_pos_reads = sum([x[0] for x in lin_support[l]])
 		lin_neg_reads = sum([x[1] for x in lin_support[l]])
 		lf = lin_pos_reads/(lin_pos_reads+lin_neg_reads)

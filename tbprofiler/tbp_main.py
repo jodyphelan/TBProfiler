@@ -10,7 +10,7 @@ import output
 
 class tbp_seq_obj:
 	params = {"fq1":False,"fq2":False,"bamfile":False,"mapping":True}
-	def __init__(self,conf_file,prefix,fq1=False,fq2=False,bam=False,platform="Illumina",threads=1,outfmt="classic",db=False,stor_dir=".",verbose=False,caller="bcftools",mapper="bwa",min_gene_frac=0.9):
+	def __init__(self,conf_file,prefix,fq1=False,fq2=False,bam=False,platform="Illumina",threads=1,outfmt="classic",db=False,stor_dir=".",verbose=1,caller="bcftools",mapper="bwa",min_gene_frac=0.9):
 		if fq1 and files.filecheck(fq1) and files.verify_fq(fq1):
 			self.params["fq1"] = fq1
 		if fq2 and files.filecheck(fq2) and files.verify_fq(fq2):
