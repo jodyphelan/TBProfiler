@@ -1,4 +1,5 @@
 import json
+import files
 from collections import defaultdict
 
 class profiling_results:
@@ -6,11 +7,15 @@ class profiling_results:
 	drugs = set()
 	samples = []
 	dr_drugs = {}
-	def __init__(self,conf_file,samples_file,prefix,stor_dir,full_results,full_variant_results=False):
+	def __init__(self,conf_file,samples_file,prefix,stor_dir,full_results,full_variant_results=False,db=None):
 		tmp = json.load(open(conf_file))
 		for x in tmp:
 			self.params[x] = tmp[x]
-
+		if db:
+			self.params["dr_json"] = "%s.json" % db
+			self.params["dr_bed_file"] = "%s.bed" % db
+			files.filecheck(self.params["dr_json"])
+			files.filecheck(self.params["dr_bed_file"])
 		for l in open(self.params["dr_bed_file"]):
 			arr = l.rstrip().split()
 			for d in arr[5].split(";"):
@@ -21,6 +26,7 @@ class profiling_results:
 		self.stor_dir = stor_dir
 		self.full_results = full_results
 		self.full_variant_results = full_variant_results
+
 	def results2tab(self):
 		results = defaultdict(dict)
 		linresults = defaultdict(dict)

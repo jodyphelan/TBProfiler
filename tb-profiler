@@ -13,7 +13,7 @@ def main_profile(args):
 	obj.run_profiler()
 
 def main_collate(args):
-	obj = collate.profiling_results(args.conf,args.samples,args.prefix,args.dir,args.full,args.all_variants)
+	obj = collate.profiling_results(args.conf,args.samples,args.prefix,args.dir,args.full,args.all_variants,db=args.db)
 	obj.results2tab()
 
 def main_version(args):
@@ -64,6 +64,7 @@ if __name__=="__main__":
 	parser_sub.add_argument('--conf','-c',default=file_json,help='Configuration file')
 	parser_sub.add_argument('--full',action="store_true",help='Output mutations in main file')
 	parser_sub.add_argument('--all_variants',action="store_true",help='Output all variants in variant matrix')
+	parser_sub.add_argument('--db','-b',help='Full path to mutation database json file to use (default: TBProfiler panel)')
 	parser_sub.set_defaults(func=main_collate)
 
 
