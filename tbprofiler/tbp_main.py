@@ -10,7 +10,7 @@ import output
 
 class tbp_seq_obj:
 	params = {"fq1":False,"fq2":False,"bamfile":False,"mapping":True}
-	def __init__(self,conf_file,prefix,fq1=False,fq2=False,bam=False,platform="Illumina",threads=1,outfmt="classic",db=False,stor_dir=".",verbose=1,caller="bcftools",mapper="bwa",min_gene_frac=0.9):
+	def __init__(self,conf_file,prefix,fq1=False,fq2=False,bam=False,platform="Illumina",threads=1,outfmt="classic",db=False,stor_dir=".",verbose=1,caller="bcftools",mapper="bwa",min_gene_frac=0.9,tbpv=None):
 		if fq1 and files.filecheck(fq1) and files.verify_fq(fq1):
 			self.params["fq1"] = fq1
 		if fq2 and files.filecheck(fq2) and files.verify_fq(fq2):
@@ -34,8 +34,11 @@ class tbp_seq_obj:
 		self.params["conf_file"] = conf_file
 		self.params["depthfile"] = "%s.depth" % prefix
 		self.params["txt_results"] = "%s/results/%s.results.txt" % (stor_dir,prefix)
+		self.params["tex_results"] = "%s/results/%s.results.tex" % (stor_dir,prefix)
+		self.params["pdf_results"] = "%s/results/%s.results.pdf" % (stor_dir,prefix)
 		self.params["json_results"] = "%s/results/%s.results.json" % (stor_dir,prefix)
 		self.params["threads"] = threads
+		self.tbpv = tbpv
 		self.caller = caller
 		self.mapper = mapper
 		self.min_gene_frac = min_gene_frac
@@ -102,6 +105,8 @@ class tbp_seq_obj:
 			output.write_results_2(self)
 		elif self.params["outfmt"] == "new":
 			output.write_results_1(self)
+		elif self.params["outfmt"] == "tex":
+			output.write_tex(self)
 		else:
-			print "Choose either 'new' or 'classic' as outfmt"
+			print "Choose either 'new', 'classic' or 'tex' as outfmt"
 			quit()

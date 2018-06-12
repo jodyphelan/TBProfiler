@@ -31,7 +31,6 @@ def lineage(self):
 		sys.stderr.write("%s\n" % lin_support)
 	lin_frac = defaultdict(float)
 	for l in lin_support:
-		print stdev([x[0]/(x[0]+x[1]) for x in lin_support[l]])
 		if stdev([x[0]/(x[0]+x[1]) for x in lin_support[l]])>0.15: continue
 		lin_pos_reads = sum([x[0] for x in lin_support[l]])
 		lin_neg_reads = sum([x[1] for x in lin_support[l]])
