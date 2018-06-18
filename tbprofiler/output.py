@@ -93,7 +93,7 @@ def write_tex(self):
 
     o = open(self.params["tex_results"],"w")
     tex_strings = {}
-    tex_strings["id"] = self.params["prefix"]
+    tex_strings["id"] = self.params["prefix"].replace("_","\_")
     tex_strings["date"] = time.ctime()
     tex_strings["strain"] = json_results["sublin"]
     tex_strings["drtype"] = json_results["drtype"]
