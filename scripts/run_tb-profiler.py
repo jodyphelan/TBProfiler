@@ -19,6 +19,7 @@ def main(args):
 	O = open(out_script,"w")
 	samples = []
 	for row in csv.DictReader(open(args.sample_file)):
+		pared = True
 		params = {}
 		params["r1"] = "%s/%s" % (args.fastq_dir,row["R2"])
 		filecheck(params["r1"])
@@ -33,7 +34,7 @@ def main(args):
 		params["platform"] = args.platform
 		params["caller"] = args.caller
 		params["verbosity"] = args.verbosity
-		params["tb_profiler"] = args.tb_profiler_dir if args.tb_profiler_dir else "tb-profiler" 
+		params["tb_profiler"] = args.tb_profiler_dir if args.tb_profiler_dir else "tb-profiler"
 		params["read_str"] = "-1 %(r1)s -2 %(r2)s" % params  if paired else "-1 %(r1)s" % params
 		O.write("%(tb_profiler)s --prefix %(prefix)s  %(read_str)s --platform %(platform)s --mapper %(mapper)s --threads %(threads)s --caller %(caller)s --verbose %(verbosity)s")
 	O.close()
