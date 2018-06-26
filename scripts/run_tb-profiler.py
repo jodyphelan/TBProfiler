@@ -19,7 +19,7 @@ def main(args):
 	O = open(out_script,"w")
 	samples = []
 	for row in csv.DictReader(open(args.sample_file)):
-		pared = True
+		paired = True
 		params = {}
 		params["r1"] = "%s/%s" % (args.fastq_dir,row["R2"])
 		filecheck(params["r1"])
