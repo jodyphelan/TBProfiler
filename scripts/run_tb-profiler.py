@@ -42,7 +42,7 @@ def main(args):
 
 parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('sample_file', help='CSV file containig the following columns: ID, R1 and R2 (ID of the sample and the two read names)')
-parser.add_argument('--platform','-m',choices=["illumina","minION"],default="illumina", help='Sequencing platform')
+parser.add_argument('--platform','-m',choices=["Illumina","minION"],default="illumina", help='Sequencing platform')
 parser.add_argument('--fastq_dir','-f',default=".",type=str, help='Directory containing fastqs')
 parser.add_argument('--threads',"-t",type=int,default=1, help='Number of available threads')
 parser.add_argument('--mapper',type=str,choices=["bwa","minimap2","bowtie2"],default="bwa", help='Mapping tool to use')
