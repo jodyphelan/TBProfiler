@@ -15,7 +15,7 @@ def filecheck(filename):
 		return filename
 
 def main(args):
-	out_script = "tb-profiler.run.sh" 
+	out_script = "tb-profiler.run.sh"
 	O = open(out_script,"w")
 	samples = []
 	for row in csv.DictReader(open(args.sample_file)):
@@ -33,7 +33,7 @@ def main(args):
 		params["platform"] = args.platform
 		params["caller"] = args.caller
 		params["verbosity"] = args.verbosity
-		params["tb_profiler"] = "%s/tb-profiler" % (args.tbprofiler_dir)
+		params["tb_profiler"] = args.tb_profiler_dir if args.tb_profiler_dir else "tb-profiler" 
 		params["read_str"] = "-1 %(r1)s -2 %(r2)s" % params  if paired else "-1 %(r1)s" % params
 		O.write("%(tb_profiler)s --prefix %(prefix)s  %(read_str)s --platform %(platform)s --mapper %(mapper)s --threads %(threads)s --caller %(caller)s --verbose %(verbosity)s")
 	O.close()
@@ -46,6 +46,7 @@ parser.add_argument('--fastq_dir','-f',default=".",type=str, help='Directory con
 parser.add_argument('--threads',"-t",type=int,default=1, help='Number of available threads')
 parser.add_argument('--mapper',type=str,choices=["bwa","minimap2","bowtie2"],default="bwa", help='Mapping tool to use')
 parser.add_argument('--caller',type=str,choices=["lofreq","bcftools"],default="lofreq", help='Variant caller to use')
+parser.add_argument('--tb_profiler_dir',type=str,default=None, help='Full path to the tb-profiler script (use if tb-profiler is not in the path)')
 parser.add_argument('--verbosity',type=int,choices=[0,1,2],default=0, help='Variant caller to use')
 
 parser.set_defaults(func=main)
