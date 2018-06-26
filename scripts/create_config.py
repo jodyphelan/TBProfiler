@@ -20,8 +20,8 @@ conf["gfffile"] = "%s/ref/MTB-h37rv_asm19595v2-eg18.gff" % script_dir
 conf["lineage_bed"] = "%s/db/lineages.bed" % script_dir
 
 for x in conf:
-    print conf[x]
+    print(conf[x])
     if not os.path.isfile(conf[x]):
-        print "Can't find %s" % x
+        print("Can't find %s" % x)
         quit()
 json.dump(conf,open(outfile,"w"))

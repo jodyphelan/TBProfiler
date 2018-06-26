@@ -50,7 +50,7 @@ def load_csq(self,pos_subset=None):
         results["loci"].append((arr[0],arr[1]))
 
     if len(results["loci"])==0:
-        print "Warning! No Variants"; 
+        print("Warning! No Variants")
     pos_tup = [("Chromosome",x["pos"]) for x in results["variants"]]
     dict_ann = obj_ann.pos2ann(pos_tup)
     for var in results["variants"]:

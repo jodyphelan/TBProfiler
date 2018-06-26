@@ -19,7 +19,7 @@ def main_collate(args):
 	obj.results2tab()
 
 def main_version(args):
-	print "\nTBProfiler version %s\n\nContact: Jody Phelan (jody.phelan@lshtm.ac.uk)\n" % tbprofiler_version
+	print("\nTBProfiler version %s\n\nContact: Jody Phelan (jody.phelan@lshtm.ac.uk)\n" % tbprofiler_version)
 
 def main_call_variants(args):
 	obj = tbp_main.tbp_seq_obj(args.conf,args.prefix,fq1=args.read1,fq2=args.read2,bam=args.bam,platform=args.platform,threads=args.threads,verbose=args.verbose,stor_dir=args.dir)

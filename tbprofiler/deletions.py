@@ -29,7 +29,7 @@ def deletions(self,min_gene_frac=0.9):
 
         if float_gene_present<min_gene_frac:
             if lt=="Rv0667":
-                print "Missing coverage on essential gene rpoB (%s). Stopping pipeline. Check for contamination" % float_gene_present
+                print("Missing coverage on essential gene rpoB (%s). Stopping pipeline. Check for contamination" % float_gene_present)
                 quit()
                 return []
             results.append({"drug":lt_drugs[lt],"gene":lt2gene[lt],"locus_tag":lt,"len":len(arr_cov),"good_cov":int_good_cov,"float_gene_present":float_gene_present})

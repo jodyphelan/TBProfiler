@@ -98,7 +98,7 @@ def call_variants(self,bed_file=False,vcf_file=False,caller="bcftools",gvcf=Fals
 				else:
 					cmd = "set -euf pipefail; %(samtools)s view -b %(bamfile)s | %(samtools)s mpileup -ugf %(reffile)s -t DP,AD - | %(bcftools)s call --threads %(threads)s -mv | %(bcftools)s norm -f %(reffile)s -  | %(bcftools)s csq --phase a -f %(reffile)s -g %(gfffile)s - > %(vcffile)s" %  self.params
 		else:
-			print "\nOnly lofreq or bcftools available to call variants...exiting\n"; quit()
+			print("\nOnly lofreq or bcftools available to call variants...exiting\n"); quit()
 
 		run_cmd(cmd,verbose=self.params["verbose"])
 	elif self.params["platform"] == "minION":

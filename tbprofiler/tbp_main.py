@@ -51,7 +51,7 @@ class tbp_seq_obj:
 			files.filecheck(self.params["dr_json"])
 			files.filecheck(self.params["dr_bed_file"])
 		if not fq1 and not fq1 and not bam:
-			print "\nNo BAM or fastQ file provided. Please specify using -a or -1 (and -2).\n"
+			print("\nNo BAM or fastQ file provided. Please specify using -a or -1 (and -2).\n")
 			quit()
 
 	def call_genome_variants(self,gvcf=False):
@@ -108,5 +108,5 @@ class tbp_seq_obj:
 		elif self.params["outfmt"] == "tex":
 			output.write_tex(self)
 		else:
-			print "Choose either 'new', 'classic' or 'tex' as outfmt"
+			print("Choose either 'new', 'classic' or 'tex' as outfmt")
 			quit()
