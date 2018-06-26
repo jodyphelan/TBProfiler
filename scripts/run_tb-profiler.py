@@ -36,7 +36,7 @@ def main(args):
 		params["verbosity"] = args.verbosity
 		params["tb_profiler"] = args.tb_profiler_dir if args.tb_profiler_dir else "tb-profiler"
 		params["read_str"] = "-1 %(r1)s -2 %(r2)s" % params  if paired else "-1 %(r1)s" % params
-		O.write("%(tb_profiler)s --prefix %(prefix)s  %(read_str)s --platform %(platform)s --mapper %(mapper)s --threads %(threads)s --caller %(caller)s --verbose %(verbosity)s\n" % params)
+		O.write("%(tb_profiler)s profile --prefix %(prefix)s  %(read_str)s --platform %(platform)s --mapper %(mapper)s --threads %(threads)s --caller %(caller)s --verbose %(verbosity)s\n" % params)
 	O.close()
 
 
