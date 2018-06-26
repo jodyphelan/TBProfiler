@@ -15,7 +15,7 @@ def filecheck(filename):
 		return filename
 
 def main(args):
-	out_script = "%s.run.sh" % args.prefix
+	out_script = "tb-profiler.run.sh" 
 	O = open(out_script,"w")
 	samples = []
 	for row in csv.DictReader(open(args.sample_file)):
