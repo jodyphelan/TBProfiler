@@ -1,7 +1,14 @@
 import json
 import files
 from collections import defaultdict
+import os
+import re
 
+_split = re.compile(r'[\0%s]' % re.escape(''.join(
+    [os.path.sep, os.path.altsep or ''])))
+
+def secure_filename(path):
+    return _split.sub('', path)
 class profiling_results:
 	params = {}
 	drugs = set()
