@@ -9,6 +9,7 @@ _split = re.compile(r'[\0%s]' % re.escape(''.join(
 
 def secure_filename(path):
     return _split.sub('', path)
+
 class profiling_results:
 	params = {}
 	drugs = set()
@@ -45,6 +46,9 @@ class profiling_results:
 				results[s][d] = set()
 		for s in self.samples:
 			temp = json.load(open("%s/results/%s.results.json" % (self.stor_dir,s)))
+			# p = "%s/results\0/%s.results.json" % (self.stor_dir,s)
+			# p = re.sub(r'\0', '', p)
+			# temp = json.load(open(p))
 			for x in temp["small_variants_dr"]:
 				for d in x["drug"].split(";"):
 					dr_variants[x["gene"]][x["change"]][s] = x["freq"]
