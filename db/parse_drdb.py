@@ -7,8 +7,8 @@ sys.path.insert(0,"../")
 from tbprofiler import ann
 
 amino_acids = ['Cys', 'Ile', 'Ser', 'Val', 'Gly', 'Gln', 'Pro', 'Lys', 'Stop', 'Thr', 'Phe', 'Ala', 'Met', 'Asp', 'His', 'Leu', 'Arg', 'Trp', 'Glu', 'Asn', 'Tyr']
-aa_long2short = {"Ala":"A","Arg":"R","Asn":"N","Asp":"D","Cys":"C","Gln":"Q","Glu":"E","Gly":"G","His":"H","Ile":"I","Leu":"L","Lys":"K","Met":"M","Phe":"F","Pro":"P","Ser":"S","Thr":"T","Trp":"W","Tyr":"Y","Val":"V","Stop":"*"}
-re_mut = re.compile("([A-Za-z]+)([\s-]*[0-9]+)([A-Za-z]+)")
+aa_long2short = {"Ala":"A","Arg":"R","Asn":"N","Asp":"D","Cys":"C","Gln":"Q","Glu":"E","Gly":"G","His":"H","Ile":"I","Leu":"L","Lys":"K","Met":"M","Phe":"F","Pro":"P","Ser":"S","Thr":"T","Trp":"W","Tyr":"Y","Val":"V","Stop":"*", "-":"-"}
+re_mut = re.compile("([A-Za-z]+|-)([\s-]*[0-9]+|-)([A-Za-z-]+|-)")
 infile = sys.argv[1]
 prefix = sys.argv[2]
 json_db = "%s.json" % prefix
@@ -22,14 +22,12 @@ for l in open(infile):
 	for p in arr[1].split("/"):
 		if p=="-": continue
 		positions.add(int(p))
-
 script_dir = "/".join(os.path.dirname(os.path.realpath(__file__)).split("/")[:-1])
 annfile = "%s/ref/MTB-h37rv_asm19595v2-eg18.tab.ann.gz" % script_dir
 tabix = "%s/bin/tabix" % script_dir
 obj_ann = ann.ann(annfile,tabix)
-
-
 annot = obj_ann.pos2ann([("Chromosome",str(x)) for x in sorted(positions)])
+
 loci = {}
 for l in open(infile):
 	#AMINOGLYCOSIDES 1473247 C	   A	   rrs	 C1402A
