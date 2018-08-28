@@ -94,6 +94,14 @@ ISONIAZID       2156118 C       T       katG_promoter   C-7T
 
 PYRAZINAMIDE    2288953 CC      C       pncA    CC289C
 
+## ITOL files
+Several files are produced by the `tb-profile collate` function. Among these are several config files that can be used with iTOL (http://itol.embl.de/) to annotate phylogenetic trees. A small tree and config files have been placed in the example_data directory. To use navigate to the iTOL website and upload the `tbprofiler.tree` file using the upload button on the navigation bar. Once this has been uploaded you will be taken to a visualisation of the tree. To add the annotation, click on the '+' button on the lower right hand corner and select the iTOL config files. You should now see a figure similar to the one below. The following annotations are included:
+* Lineage
+* Drug resistance classes (Sensitive, drug-resistant, MDR, XDR)
+* Drug resistance calls for individual drugs, were filled circles represent resistance.
+
+<img src="https://github.com/jodyphelan/jodyphelan.github.io/raw/master/img/itol_example.png">
+
 
 ## Change Log
 #### v0.3
