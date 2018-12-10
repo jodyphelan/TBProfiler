@@ -28,12 +28,12 @@ class tbp_seq_obj:
 		self.params["dr_vcffile"] = "%s/vcf/%s.dr.vcf" % (stor_dir,prefix)
 		self.params["vcffile"] = "%s/vcf/%s.vcf" % (stor_dir,prefix)
 		self.params["gvcffile"] = "%s/vcf/%s.g.vcf.gz" % (stor_dir,prefix)
-		self.params["temp_file"] = "%s.temp_file" % prefix
-		self.params["temp_bam"] = "%s.temp.bam" % prefix
-		self.params["temp_pileup"] = "%s.temp.pileup" % prefix
+		self.params["temp_file"] = "%s/%s.temp_file" % (stor_dir,prefix)
+		self.params["temp_bam"] = "%s/%s.temp.bam" % (stor_dir,prefix)
+		self.params["temp_pileup"] = "%s/%s.temp.pileup" % (stor_dir,prefix)
 		self.params["platform"] = platform
 		self.params["conf_file"] = conf_file
-		self.params["depthfile"] = "%s.depth" % prefix
+		self.params["depthfile"] = "%s/%s.depth" % (stor_dir,prefix)
 		self.params["txt_results"] = "%s/results/%s.results.txt" % (stor_dir,prefix)
 		self.params["tex_results"] = "%s/results/%s.results.tex" % (stor_dir,prefix)
 		self.params["pdf_results"] = "%s/results/%s.results.pdf" % (stor_dir,prefix)
@@ -77,9 +77,9 @@ class tbp_seq_obj:
 
 	def cleanup(self):
 		if self.params["platform"]=="minION":
-			files.rm_files(["%s%s" % (self.params["prefix"],d) for d in [".temp.pileup",".temp.bam",".temp_file",".depth"]])
+			files.rm_files(["%s/%s%s" % (self.params["stor_dir"],self.params["prefix"],d) for d in [".temp.pileup",".temp.bam",".temp_file",".depth"]])
 		else:
-			files.rm_files(["%s%s" % (self.params["prefix"],d) for d in [".temp.pileup",".temp.bam",".depth"]])
+			files.rm_files(["%s/%s%s" % (self.params["stor_dir"],self.params["prefix"],d) for d in [".temp.pileup",".temp.bam",".depth"]])
 
 	def init_dirs(self):
 		files.init_storage(self)
