@@ -85,8 +85,6 @@ class profiling_results:
                             break
                         tmp = tmp[path[i]]
                     tmp[node] = {}
-            print results["lineage"]
-            print(tree)
             linresults[s]["main"] = sorted(tree.keys(),key=lambda x:lin_fracs[x],reverse=True)[0]
             tmp = tree[linresults[s]["main"]]
             n = "NA"
