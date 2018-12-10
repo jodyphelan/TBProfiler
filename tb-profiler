@@ -4,77 +4,126 @@ import sys
 import os.path
 from tbprofiler import tbp_main,collate
 import argparse
+import csv
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 file_json = "%s/conf.json" % script_dir
 
-tbprofiler_version = "0.3.8"
+tbprofiler_version = "0.3.9"
+
+def filecheck(filename):
+    """
+    Check if file is there and quit if it isn't
+    """
+    if not os.path.isfile(filename):
+        print("Can't find %s" % filename)
+        exit(1)
+    else:
+        return filename
+
+def main_batch(args):
+    out_script = "tb-profiler.run.sh"
+    O = open(out_script,"w")
+    samples = []
+    for row in csv.DictReader(open(args.sample_file)):
+        paired = True
+        params = {}
+        params["r1"] = "%s/%s" % (args.fastq_dir,row["R2"])
+        filecheck(params["r1"])
+        params["r2"] = "%s/%s" % (args.fastq_dir,row["R1"])
+        if params["r2"]=="NA":
+            paired = False
+        else:
+            filecheck(params["r2"])
+        params["prefix"] = row["ID"]
+        params["threads"] = args.threads
+        params["mapper"] = args.mapper
+        params["platform"] = args.platform
+        params["caller"] = args.caller
+        params["verbosity"] = args.verbosity
+        params["tb_profiler"] = args.tb_profiler_dir if args.tb_profiler_dir else  sys.argv[0]
+        params["read_str"] = "-1 %(r1)s -2 %(r2)s" % params  if paired else "-1 %(r1)s" % params
+        params["stor_dir"] = args.dir
+        O.write("%(tb_profiler)s profile --prefix %(prefix)s  %(read_str)s --dir %(stor_dir)s --platform %(platform)s --mapper %(mapper)s --threads %(threads)s --caller %(caller)s --verbose %(verbosity)s\n" % params)
+    O.close()
 
 def main_profile(args):
-	obj = tbp_main.tbp_seq_obj(args.conf,args.prefix,fq1=args.read1,fq2=args.read2,bam=args.bam,platform=args.platform,threads=args.threads,verbose=args.verbose,stor_dir=args.dir,db=args.db,caller=args.caller,mapper=args.mapper,min_gene_frac=args.min_gene_frac,outfmt=args.format,tbpv=tbprofiler_version,af=args.af)
-	obj.run_profiler()
+    obj = tbp_main.tbp_seq_obj(args.conf,args.prefix,fq1=args.read1,fq2=args.read2,bam=args.bam,platform=args.platform,threads=args.threads,verbose=args.verbose,stor_dir=args.dir,db=args.db,caller=args.caller,mapper=args.mapper,min_gene_frac=args.min_gene_frac,outfmt=args.format,tbpv=tbprofiler_version,af=args.af)
+    obj.run_profiler()
 
 def main_collate(args):
-	obj = collate.profiling_results(args.conf,args.samples,args.prefix,args.dir,args.full,args.all_variants,db=args.db)
-	obj.results2tab()
+    obj = collate.profiling_results(args.conf,args.samples,args.prefix,args.dir,args.full,args.all_variants,db=args.db)
+    obj.results2tab()
 
 def main_version(args):
-	print("\nTBProfiler version %s\n\nContact: Jody Phelan (jody.phelan@lshtm.ac.uk)\n" % tbprofiler_version)
+    print("\nTBProfiler version %s\n\nContact: Jody Phelan (jody.phelan@lshtm.ac.uk)\n" % tbprofiler_version)
 
 def main_call_variants(args):
-	obj = tbp_main.tbp_seq_obj(args.conf,args.prefix,fq1=args.read1,fq2=args.read2,bam=args.bam,platform=args.platform,threads=args.threads,verbose=args.verbose,stor_dir=args.dir)
-	obj.call_genome_variants(gvcf=args.gvcf)
+    obj = tbp_main.tbp_seq_obj(args.conf,args.prefix,fq1=args.read1,fq2=args.read2,bam=args.bam,platform=args.platform,threads=args.threads,verbose=args.verbose,stor_dir=args.dir)
+    obj.call_genome_variants(gvcf=args.gvcf)
 
 if __name__=="__main__":
-	parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	subparsers = parser.add_subparsers(help="Task to perform")
+    parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    subparsers = parser.add_subparsers(help="Task to perform")
 
-	parser_sub = subparsers.add_parser('profile', help='Run whole pipeline', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	parser_sub.add_argument('--platform','-m',choices=["Illumina","minION"],default="Illumina",help='NGS Platform')
-	parser_sub.add_argument('--read1','-1',help='First read file')
-	parser_sub.add_argument('--read2','-2',help='Second read file')
-	parser_sub.add_argument('--bam','-a',help='Second read file')
-	parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
-	parser_sub.add_argument('--threads','-t',default=1,help='Threads',type=int)
-	parser_sub.add_argument('--caller','-x',default="lofreq", choices=["lofreq","bcftools"],help="Variant calling tool to use",type=str)
-	parser_sub.add_argument('--mapper','-z',default="bwa", choices=["bwa","minimap2","bowtie2"],help="Mapping tools to use",type=str)
-	parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
-	parser_sub.add_argument('--db','-b',help='Full path to mutation database json file to use (default: TBProfiler panel)')
-	parser_sub.add_argument('--format','-f',default="classic",choices=["classic","new","tex"],help='Output format [classic,new,tex]')
-	parser_sub.add_argument('--conf','-c',default=file_json,help='Configuration file')
-	parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
-	parser_sub.add_argument('--min_gene_frac',default=0.9,type=float,help='Used to infer a deletion if the fraction of a gene covered falls below this value. Also used to see if sample is high quality to continue by checking the fraction for rpoB (where deletion should not occur).')
-	parser_sub.add_argument('--af',default=0.9,type=float,help='Allele frequency cutoff for minority variants')
-	parser_sub.set_defaults(func=main_profile)
+    parser_sub = subparsers.add_parser('profile', help='Run whole pipeline', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser_sub.add_argument('--platform','-m',choices=["Illumina","minION"],default="Illumina",help='NGS Platform')
+    parser_sub.add_argument('--read1','-1',help='First read file')
+    parser_sub.add_argument('--read2','-2',help='Second read file')
+    parser_sub.add_argument('--bam','-a',help='Second read file')
+    parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
+    parser_sub.add_argument('--threads','-t',default=1,help='Threads',type=int)
+    parser_sub.add_argument('--caller','-x',default="lofreq", choices=["lofreq","bcftools"],help="Variant calling tool to use",type=str)
+    parser_sub.add_argument('--mapper','-z',default="bwa", choices=["bwa","minimap2","bowtie2"],help="Mapping tools to use",type=str)
+    parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+    parser_sub.add_argument('--db','-b',help='Full path to mutation database json file to use (default: TBProfiler panel)')
+    parser_sub.add_argument('--format','-f',default="classic",choices=["classic","new","tex"],help='Output format [classic,new,tex]')
+    parser_sub.add_argument('--conf','-c',default=file_json,help='Configuration file')
+    parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
+    parser_sub.add_argument('--min_gene_frac',default=0.9,type=float,help='Used to infer a deletion if the fraction of a gene covered falls below this value. Also used to see if sample is high quality to continue by checking the fraction for rpoB (where deletion should not occur).')
+    parser_sub.add_argument('--af',default=0.9,type=float,help='Allele frequency cutoff for minority variants')
+    parser_sub.set_defaults(func=main_profile)
 
-	parser_sub = subparsers.add_parser('call_variants', help='Collate results form multiple samples together', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	parser_sub.add_argument('--platform','-m',choices=["Illumina","minION"],default="Illumina",help='NGS Platform')
-	parser_sub.add_argument('--read1','-1',help='First read file')
-	parser_sub.add_argument('--read2','-2',help='Second read file')
-	parser_sub.add_argument('--bam','-a',help='Second read file')
-	parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
-	parser_sub.add_argument('--gvcf','-g',action="store_true",help='Storage directory')
-	parser_sub.add_argument('--threads','-t',default=1,help='Threads',type=int)
-	parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
-	parser_sub.add_argument('--conf','-c',default=file_json,help='Configuration file')
-	parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
-	parser_sub.set_defaults(func=main_call_variants)
+    parser_sub = subparsers.add_parser('call_variants', help='Collate results form multiple samples together', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser_sub.add_argument('--platform','-m',choices=["Illumina","minION"],default="Illumina",help='NGS Platform')
+    parser_sub.add_argument('--read1','-1',help='First read file')
+    parser_sub.add_argument('--read2','-2',help='Second read file')
+    parser_sub.add_argument('--bam','-a',help='Second read file')
+    parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
+    parser_sub.add_argument('--gvcf','-g',action="store_true",help='Storage directory')
+    parser_sub.add_argument('--threads','-t',default=1,help='Threads',type=int)
+    parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+    parser_sub.add_argument('--conf','-c',default=file_json,help='Configuration file')
+    parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
+    parser_sub.set_defaults(func=main_call_variants)
 
-	parser_sub = subparsers.add_parser('collate', help='Collate results form multiple samples together', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	parser_sub.add_argument('samples',help='File with samples (one per line)')
-	parser_sub.add_argument('prefix',help='Output file name')
-	parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
-	parser_sub.add_argument('--conf','-c',default=file_json,help='Configuration file')
-	parser_sub.add_argument('--full',action="store_true",help='Output mutations in main file')
-	parser_sub.add_argument('--all_variants',action="store_true",help='Output all variants in variant matrix')
-	parser_sub.add_argument('--db','-b',help='Full path to mutation database json file to use (default: TBProfiler panel)')
-	parser_sub.set_defaults(func=main_collate)
-
-
-	parser_sub = subparsers.add_parser('version', help='Output program version and exit', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	parser_sub.set_defaults(func=main_version)
+    parser_sub = subparsers.add_parser('collate', help='Collate results form multiple samples together', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser_sub.add_argument('samples',help='File with samples (one per line)')
+    parser_sub.add_argument('prefix',help='Output file name')
+    parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+    parser_sub.add_argument('--conf','-c',default=file_json,help='Configuration file')
+    parser_sub.add_argument('--full',action="store_true",help='Output mutations in main file')
+    parser_sub.add_argument('--all_variants',action="store_true",help='Output all variants in variant matrix')
+    parser_sub.add_argument('--db','-b',help='Full path to mutation database json file to use (default: TBProfiler panel)')
+    parser_sub.set_defaults(func=main_collate)
 
 
+    parser_sub = subparsers.add_parser('batch', help='Collate results form multiple samples together', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser_sub.add_argument('sample_file', help='CSV file containig the following columns: ID, R1 and R2 (ID of the sample and the two read names)')
+    parser_sub.add_argument('--platform','-m',choices=["Illumina","minION"],default="Illumina", help='Sequencing platform')
+    parser_sub.add_argument('--fastq_dir','-f',default=".",type=str, help='Directory containing fastqs')
+    parser_sub.add_argument('--threads',"-t",type=int,default=1, help='Number of available threads')
+    parser_sub.add_argument('--mapper',type=str,choices=["bwa","minimap2","bowtie2"],default="bwa", help='Mapping tool to use')
+    parser_sub.add_argument('--caller',type=str,choices=["lofreq","bcftools"],default="lofreq", help='Variant caller to use')
+    parser_sub.add_argument('--tb_profiler_dir',type=str,default=None, help='Full path to the tb-profiler script (use if tb-profiler is not in the path)')
+    parser_sub.add_argument('--verbosity',type=int,choices=[0,1,2],default=0, help='Variant caller to use')
+    parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+    parser_sub.set_defaults(func=main_batch)
 
-	args = parser.parse_args()
-	args.func(args)
+    parser_sub = subparsers.add_parser('version', help='Output program version and exit', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser_sub.set_defaults(func=main_version)
+
+
+
+    args = parser.parse_args()
+    args.func(args)
