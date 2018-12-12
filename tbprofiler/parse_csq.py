@@ -52,7 +52,7 @@ def load_csq(self,pos_subset=None):
     if len(results["loci"])==0:
         print("Warning! No Variants")
     pos_tup = [("Chromosome",x["pos"]) for x in results["variants"]]
-    dict_ann = obj_ann.pos2ann(pos_tup)
+    dict_ann = obj_ann.pos2ann(self.params["stor_dir"],pos_tup)
     for var in results["variants"]:
         tann = dict_ann["Chromosome"][var["pos"]]
         if var["bcsq"]=="intergenic" or var["bcsq"]=="non_coding" or var["bcsq"]=="frameshift":

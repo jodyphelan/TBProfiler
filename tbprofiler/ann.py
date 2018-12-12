@@ -11,7 +11,7 @@ class ann:
     def __init__(self,filename,tabix):
         self.annfile = filename
         self.tabix = tabix
-    def pos2ann(self,pos_tuple_list):
+    def pos2ann(self,stor_dir, pos_tuple_list):
         #pos_tuple_list = [("Chromosome",1),("Chromosome",2)]
         if len(pos_tuple_list)<5000:
             p1offset = -1
@@ -23,7 +23,7 @@ class ann:
             stype = "T"
 
         num = r.randint(1,1000000)+r.randint(1,1000000)
-        temp_bed_file = "temp.%s.bed" % (num)
+        temp_bed_file = "%s/temp.%s.bed" % (stor_dir,num)
         OUT = open(temp_bed_file,"w")
         for chrom,pos in pos_tuple_list:
             OUT.write("%s\t%s\t%s\n" % (chrom,int(pos)+p1offset,int(pos)+p2offset))
