@@ -28,9 +28,9 @@ def main_batch(args):
     for row in csv.DictReader(open(args.sample_file)):
         paired = True
         params = {}
-        params["r1"] = "%s/%s" % (args.fastq_dir,row["R2"])
+        params["r1"] = "%s/%s" % (args.fastq_dir,row["R1"])
         filecheck(params["r1"])
-        params["r2"] = "%s/%s" % (args.fastq_dir,row["R1"])
+        params["r2"] = "%s/%s" % (args.fastq_dir,row["R2"])
         if params["r2"]=="NA":
             paired = False
         else:
