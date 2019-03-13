@@ -165,7 +165,7 @@ def main_reformat(args):
 		tbp.write_text(results,conf,text_output)
 
 def main_test(args):
-	pp.run_cmd("tb-profiler profile -1 %s" % (sys.base_prefix+"/share/tbprofiler/tbprofiler.test.fq.gz"))
+	pp.run_cmd("tb-profiler profile -1 %s" % (sys.base_prefix+"/share/tbprofiler/tbprofiler.test.fq.gz"),verbose=2)
 
 if __name__=="__main__":
 	parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)

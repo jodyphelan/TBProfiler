@@ -1,6 +1,6 @@
 {% set name = "tb-profiler" %}
 {% set version = "v2.0_BETA" %}
-{% set sha256 = "133f09f940ff5a55ddc0d9a5cc442527939af4c3f920a0e99804228e519cdd33" %}
+{% set sha256 = "41708e6fdd2edeb9f87346a4c4ec876bfdebf64b6f06ec3087e9a66f485998eb" %}
 
 package:
   name: {{name}}
