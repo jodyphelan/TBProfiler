@@ -1,5 +1,7 @@
-# TBProfiler2
+# TBProfiler
 [![Anaconda-Server Badge](https://anaconda.org/jodyphelan/tb-profiler/badges/installer/conda.svg)](https://conda.anaconda.org/jodyphelan) [![Anaconda-Server Badge](https://anaconda.org/jodyphelan/tb-profiler/badges/license.svg)](https://anaconda.org/jodyphelan/tb-profiler) [![Anaconda-Server Badge](https://anaconda.org/jodyphelan/tb-profiler/badges/latest_release_date.svg)](https://anaconda.org/jodyphelan/tb-profiler)
+
+**This repository is not production ready at the moment, we'll try get it ready ASAP**
 
 This repository contains a complete rewrite of the [web version of TBProfiler](http://tbdr.lshtm.ac.uk), described [here](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-015-0164-0). It allows the use of profiling through a command line interface and contains some additional functionality such as the ability to process minION data.
 
@@ -22,12 +24,12 @@ conda config --add channels conda-forge
 ##### Manually
 It is possible to install manually. The following pre-requisites will be needed at runtime: *trimmomatic, bwa, minimap2, bowtie2, samtools, bcftools and parallel*.
 
-You should also install the pathogen-profiler library found [here](https://github.com/jodyphelan/TBProfiler2.git).
+You should also install the pathogen-profiler library found [here](https://github.com/jodyphelan/TBProfiler.git).
 
 To install tbprofiler run the following code:
 ```
-git clone git@github.com:jodyphelan/TBProfiler2.git
-cd TBProfiler2
+git clone git@github.com:jodyphelan/TBProfiler.git
+cd TBProfiler
 python setup.py install
 ```
 You should then be able to run using ```tb-profiler```
@@ -64,7 +66,7 @@ tb-profiler collate
 This will automatically create a number of colled result files from all the individual result files in the *result* directory. If you would like to generate this file for a subset of the runs you can provide a list with the run sames using the `--samples` flag. The prefix for the output files is *tbprofiler* by default but this can be changed with the `--prefix` flag.
 
 # Mutation database
-TBProfiler2 ships with a default database which has been described here !ADD REF!. The development of the mutation library is hosted on the [tbdb repository](https://github.com/jodyphelan/tbdb). Please visity this repo if you would like to get involved in the database or would like to modify and create your own.
+TBProfiler ships with a default database which has been described here !ADD REF!. The development of the mutation library is hosted on the [tbdb repository](https://github.com/jodyphelan/tbdb). Please visity this repo if you would like to get involved in the database or would like to modify and create your own.
 
 If you would like to use an altered database you can load the config file produced by `parse_db.py` as such:
 
@@ -90,7 +92,7 @@ Several files are produced by the `tb-profile collate` function. Among these are
 <img src="https://github.com/jodyphelan/jodyphelan.github.io/raw/master/img/itol_example.png">
 
 ## Issues
-Please raise them using the [Issues](https://github.com/jodyphelan/TBProfiler2/issues) page.
+Please raise them using the [Issues](https://github.com/jodyphelan/TBProfiler/issues) page.
 
 ## FAQ
 
