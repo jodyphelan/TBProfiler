@@ -1,13 +1,13 @@
 {% set name = "tb-profiler" %}
-{% set version = "0.1" %}
-{% set sha256 = "704fd29bb6e87a6cd66302826db195f9e57097a04d8aa8a74f9c8c96d93e8ab2" %}
+{% set version = "v2.0_BETA" %}
+{% set sha256 = "133f09f940ff5a55ddc0d9a5cc442527939af4c3f920a0e99804228e519cdd33" %}
 
 package:
   name: {{name}}
   version: {{version}}
 
 source:
-  url: https://github.com/jodyphelan/TBProfiler2/archive/v{{version}}.tar.gz
+  url: https://github.com/jodyphelan/TBProfiler/archive/{{version}}.tar.gz
   sha256: '{{sha256}}'
 
 build:
@@ -31,7 +31,7 @@ test:
     - tb-profiler test
 
 about:
-  home: https://github.com/jodyphelan/TBProfiler2
+  home: https://github.com/jodyphelan/TBProfiler
   license: GPL3
   license_file: LICENSE
   summary: Microbial assembly pipeline for Illumina paired-end reads
