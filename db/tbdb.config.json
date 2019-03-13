@@ -1,1 +1,1 @@
-{"gff": "PLACEHOLDER/tbdb.gff", "ref": "PLACEHOLDER/tbdb.fasta", "ann": "PLACEHOLDER/tbdb.ann.txt", "barcode": "PLACEHOLDER/tbdb.barcode.bed", "bed": "PLACEHOLDER/tbdb.bed", "json_db": "PLACEHOLDER/tbdb.dr.json"}
+{"gff": "/home/jody/github/tbdb/tbdb.gff", "ref": "/home/jody/github/tbdb/tbdb.fasta", "ann": "/home/jody/github/tbdb/tbdb.ann.txt", "barcode": "/home/jody/github/tbdb/tbdb.barcode.bed", "bed": "/home/jody/github/tbdb/tbdb.bed", "json_db": "/home/jody/github/tbdb/tbdb.dr.json"}
