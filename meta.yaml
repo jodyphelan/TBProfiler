@@ -1,6 +1,6 @@
 {% set name = "tb-profiler" %}
 {% set version = "v2.0_BETA" %}
-{% set sha256 = "806dd99d4c1ea820db86f851c99a5503d9b2e57284777f13c1d73c616fb3c730" %}
+{% set sha256 = "e234bd0dd388f43f9cd889ec2a95b6f59ee3bf9d751849115b4bf525245e85b0" %}
 
 package:
   name: {{name}}
@@ -34,4 +34,4 @@ about:
   home: https://github.com/jodyphelan/TBProfiler
   license: GPL3
   license_file: LICENSE
-  summary: Microbial assembly pipeline for Illumina paired-end reads
+  summary: TBProfiler tools for Mtb NGS data

@@ -109,16 +109,15 @@ def main_update_tbdb(args):
 	pp.run_cmd("python parse_db.py")
 	pp.run_cmd("tb-profiler load_library tbdb.config.json")
 	os.chdir("../")
+	pp.log("Sucessfully updated TBDB")
 def main_load_library(args):
-	conf = json.load(open(pp.filecheck(args.conf)))
+	lib_prefix = args.prefix.split("/")[-1]
+	files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json"}
 	new_conf = {}
-	for key in conf:
-		pp.run_cmd("cp %s %s" % (conf[key],sys.base_prefix+"/share/tbprofiler/"))
-		new_conf[key] = sys.base_prefix+"/share/tbprofiler/"+conf[key].split("/")[-1]
-	json.dump(new_conf,open(sys.base_prefix+"/share/tbprofiler/"+args.conf.split("/")[-1],"w"))
-
-	#pp.run_cmd("cp %s %s" % (args.conf,sys.base_prefix+"/share/tbprofiler/"+args.conf.split("/")[-1]))
-
+	for key in files:
+		new_conf[key] = sys.base_prefix+"/share/tbprofiler/"+lib_prefix+files[key]
+		pp.run_cmd("cp %s %s" % (args.prefix+files[key],new_conf[key]))
+	json.dump(new_conf,open(sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".config.json","w"))
 	pp.log("Sucessfully imported library")
 
 def main_lineage(args):
@@ -213,7 +212,7 @@ if __name__=="__main__":
 	parser_sub.set_defaults(func=main_reformat)
 
 	parser_sub = subparsers.add_parser('load_library', help='Load new library', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	parser_sub.add_argument('conf',type=str,help='DB config file')
+	parser_sub.add_argument('prefix',type=str,help='DB config file')
 	parser_sub.set_defaults(func=main_load_library)
 
 	parser_sub = subparsers.add_parser('update_tbdb', help='Load new library', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
