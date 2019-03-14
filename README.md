@@ -67,7 +67,7 @@ tb-profiler collate
 This will automatically create a number of colled result files from all the individual result files in the *result* directory. If you would like to generate this file for a subset of the runs you can provide a list with the run sames using the `--samples` flag. The prefix for the output files is *tbprofiler* by default but this can be changed with the `--prefix` flag.
 
 # Mutation database
-TBProfiler ships with a default database which has been described here !ADD REF!. The development of the mutation library is hosted on the [tbdb repository](https://github.com/jodyphelan/tbdb). Please visity this repo if you would like to get involved in the database or would like to modify and create your own.
+TBProfiler ships with a default database. The development of the mutation library is hosted on the [tbdb repository](https://github.com/jodyphelan/tbdb). Please visity this repo if you would like to get involved in the database or would like to modify and create your own.
 
 If you would like to use an altered database you can load the config file produced by `parse_db.py` as such:
 

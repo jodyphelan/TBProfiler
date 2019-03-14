@@ -58,12 +58,18 @@ def reformat_mutations(x,vartype,gene,gene_info):
 			else:
 	 			return "c.%s_%sins%s" % (gene_start,gene_end,pp.revcom(alt[1:]))
 	if "non_coding" in vartype:
-		re_obj = re.search("([\-0-9]+)([A-Z]+)>([A-Z]+)",x)
+		re_obj = re.search("([0-9]+)([A-Z]+)>([A-Z]+)",x)
 		if re_obj:
 			gene_pos = int(re_obj.group(1))
 			ref = re_obj.group(2)
 			alt = re_obj.group(3)
 			return "r.%s%s>%s" % (gene_pos,ref.lower(),alt.lower())
+		re_obj = re.search("(\-[0-9]+)([A-Z]+)>([A-Z]+)",x)
+		if re_obj:
+			gene_pos = int(re_obj.group(1))
+			ref = re_obj.group(2)
+			alt = re_obj.group(3)
+			return "r.%s%s>%s" % (gene_pos,ref,alt)
 	if "synonymous" in vartype:
 		re_obj = re.search("([\-0-9]+)([A-Z])>([A-Z])",x)
 		if re_obj:
