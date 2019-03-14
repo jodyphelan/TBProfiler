@@ -1,13 +1,13 @@
 {% set name = "tb-profiler" %}
-{% set version = "v2.0_BETA" %}
-{% set sha256 = "e234bd0dd388f43f9cd889ec2a95b6f59ee3bf9d751849115b4bf525245e85b0" %}
+{% set version = "2.0_BETA" %}
+{% set sha256 = "fd170348f1fce09917202584eade80274c6c4bc74d0f125bc2a21f109b211775" %}
 
 package:
   name: {{name}}
   version: {{version}}
 
 source:
-  url: https://github.com/jodyphelan/TBProfiler/archive/{{version}}.tar.gz
+  url: https://github.com/jodyphelan/TBProfiler/archive/v{{version}}.tar.gz
   sha256: '{{sha256}}'
 
 build:
