@@ -51,7 +51,7 @@ def main_profile(args):
 		for key in files:
 			new_conf[key] = sys.base_prefix+"/share/tbprofiler/tbdb"+files[key]
 		json.dump(new_conf,open(sys.base_prefix+"/share/tbprofiler/tbdb"+".config.json","w"))
-		
+
 	for x in ["bam","vcf","results"]:
 		if pp.nofolder(args.dir+"/"+x):
 			os.mkdir(args.dir+"/"+x)
@@ -116,7 +116,7 @@ def main_update_tbdb(args):
 	os.chdir("tbdb")
 	pp.run_cmd("git pull")
 	pp.run_cmd("python parse_db.py")
-	pp.run_cmd("tb-profiler load_library tbdb.config.json")
+	pp.run_cmd("tb-profiler load_library tbdb")
 	os.chdir("../")
 	pp.log("Sucessfully updated TBDB")
 def main_load_library(args):
