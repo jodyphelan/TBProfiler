@@ -11,7 +11,7 @@ setuptools.setup(
 	# install_requires=['numpy','pyvcf','tqdm','ete3','biopython','colour','matplotlib','pysam'],
 	scripts= [
 		'tb-profiler',
-		'scripts/tbprofiler_sensitivity.py',
+		'scripts/tbprofiler_performance.py',
 		'scripts/tbprofiler_variant_matrix.py',
 		'scripts/tbprofiler_library_summary.py',
 		'scripts/tbprofiler_get_mutation.py',
