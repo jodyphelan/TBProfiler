@@ -44,14 +44,14 @@ def main_profile(args):
 		args.webserver_root = "/srv/www/htdocs/"
 		args.dir = "/srv/www/htdocs/input"
 
-	conf = json.load(open(pp.filecheck(sys.base_prefix+"/share/tbprofiler/%s.config.json" % args.db)))
 	if pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.config.json"):
 		files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json"}
 		new_conf = {}
 		for key in files:
 			new_conf[key] = sys.base_prefix+"/share/tbprofiler/tbdb"+files[key]
-		json.dump(new_conf,open(sys.base_prefix+"/share/tbprofiler/tbdb"+".config.json","w"))
+		json.dump(new_conf,open(sys.base_prefix+"/share/tbprofiler/tbdb.config.json","w"))
 
+	conf = json.load(open(pp.filecheck(sys.base_prefix+"/share/tbprofiler/%s.config.json" % args.db)))
 	for x in ["bam","vcf","results"]:
 		if pp.nofolder(args.dir+"/"+x):
 			os.mkdir(args.dir+"/"+x)
