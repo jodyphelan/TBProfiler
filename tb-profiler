@@ -73,7 +73,6 @@ def main_profile(args):
 			args.read2 = fastqs[1]
 
 	results = pp.profiler(conf_file=conf_file,prefix=args.dir+"/"+args.prefix,r1=args.read1,r2=args.read2,bam_file=args.bam,call_method=args.call_method,min_depth=args.min_depth,threads=args.threads,platform=args.platform,mapper=args.mapper,run_delly=args.delly)
-	print(results["variants"])
 	results = tbp.reformat(results,conf)
 	results["id"] = args.prefix
 	results["tbprofiler_version"] = tbp._VERSION

@@ -11,16 +11,17 @@ The pipeline aligns reads to the H37Rv reference using bowtie2, BWA or minimap2 
 
 
 ##### Conda
-This is the easiest way to install:
-```
-conda install -c jodyphelan pathogen-profiler
-conda install -c jodyphelan tb-profiler
-```
-Some dependancies are installed from the bioconda channel so if you dont have it added already do so using:
+Using conda is the easiest way to install. Some dependancies are installed from the bioconda channel so if you dont have it added already do so using:
 ```
 conda config --add channels defaults
 conda config --add channels bioconda
 conda config --add channels conda-forge
+```
+
+Then install the core packages:
+```
+conda install -c jodyphelan pathogen-profiler
+conda install -c jodyphelan tb-profiler
 ```
 ##### Manually
 It is possible to install manually. The following pre-requisites will be needed at runtime: *trimmomatic, bwa, minimap2, bowtie2, samtools, bcftools and parallel*.
