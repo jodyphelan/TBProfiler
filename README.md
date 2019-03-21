@@ -11,7 +11,7 @@ The pipeline aligns reads to the H37Rv reference using bowtie2, BWA or minimap2 
 
 
 ##### Conda
-You can install tb-profile and all of its dependancies from the bioconda channel. If you haven't already added the **bioconda** channel you can using:
+You can install tb-profile and all of its dependancies from the bioconda channel. If you haven't already added the **bioconda** channel do this by entering the following commands:
 ```
 conda config --add channels defaults
 conda config --add channels bioconda
