@@ -1,5 +1,5 @@
 # TBProfiler
-[![Anaconda-Server Badge](https://anaconda.org/jodyphelan/tb-profiler/badges/installer/conda.svg)](https://conda.anaconda.org/jodyphelan) [![Anaconda-Server Badge](https://anaconda.org/jodyphelan/tb-profiler/badges/license.svg)](https://anaconda.org/jodyphelan/tb-profiler) [![Anaconda-Server Badge](https://anaconda.org/jodyphelan/tb-profiler/badges/latest_release_date.svg)](https://anaconda.org/jodyphelan/tb-profiler)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/tb-profiler/badges/installer/conda.svg)](https://conda.anaconda.org/bioconda) [![Anaconda-Server Badge](https://anaconda.org/bioconda/tb-profiler/badges/license.svg)](https://anaconda.org/bioconda/tb-profiler) [![Anaconda-Server Badge](https://anaconda.org/bioconda/tb-profiler/badges/latest_release_date.svg)](https://anaconda.org/bioconda/tb-profiler)
 
 **This repository is not production ready at the moment, we'll try get it ready ASAP**
 
@@ -11,22 +11,14 @@ The pipeline aligns reads to the H37Rv reference using bowtie2, BWA or minimap2 
 
 
 ##### Conda
-Using conda is the easiest way to install. Some dependancies are installed from the bioconda channel so if you dont have it added already do so using:
+You can install tb-profile and all of its dependancies from the bioconda channel:
 ```
-conda config --add channels defaults
-conda config --add channels bioconda
-conda config --add channels conda-forge
-```
-
-Then install the core packages:
-```
-conda install -c jodyphelan pathogen-profiler
-conda install -c jodyphelan tb-profiler
+conda install -c bioconda tb-profiler
 ```
 ##### Manually
-It is possible to install manually. The following pre-requisites will be needed at runtime: *trimmomatic, bwa, minimap2, bowtie2, samtools, bcftools and parallel*.
+It is possible to install manually. The following pre-requisites will be needed at runtime: *trimmomatic, bwa, minimap2, bowtie2, samtools, bcftools, tqdm and parallel*.
 
-You should also install the pathogen-profiler library found [here](https://github.com/jodyphelan/TBProfiler.git).
+You should also install the pathogen-profiler library found [here](https://github.com/jodyphelan/pathogen-profiler).
 
 To install tbprofiler run the following code:
 ```
