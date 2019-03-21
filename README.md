@@ -16,9 +16,9 @@ You can install tb-profile and all of its dependancies from the bioconda channel
 conda install -c bioconda tb-profiler
 ```
 ##### Manually
-It is possible to install manually. The following pre-requisites will be needed at runtime: *trimmomatic, bwa, minimap2, bowtie2, samtools, bcftools and parallel*.
+It is possible to install manually. The following pre-requisites will be needed at runtime: *trimmomatic, bwa, minimap2, bowtie2, samtools, bcftools, tqdm and parallel*.
 
-You should also install the pathogen-profiler library found [here](https://github.com/jodyphelan/TBProfiler.git).
+You should also install the pathogen-profiler library found [here](https://github.com/jodyphelan/pathogen-profiler).
 
 To install tbprofiler run the following code:
 ```
