@@ -1,5 +1,5 @@
 # TBProfiler
-[![Anaconda-Server Badge](https://anaconda.org/jodyphelan/tb-profiler/badges/installer/conda.svg)](https://conda.anaconda.org/jodyphelan) [![Anaconda-Server Badge](https://anaconda.org/jodyphelan/tb-profiler/badges/license.svg)](https://anaconda.org/jodyphelan/tb-profiler) [![Anaconda-Server Badge](https://anaconda.org/jodyphelan/tb-profiler/badges/latest_release_date.svg)](https://anaconda.org/jodyphelan/tb-profiler)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/tb-profiler/badges/installer/conda.svg)](https://conda.anaconda.org/bioconda) [![Anaconda-Server Badge](https://anaconda.org/bioconda/tb-profiler/badges/license.svg)](https://anaconda.org/bioconda/tb-profiler) [![Anaconda-Server Badge](https://anaconda.org/bioconda/tb-profiler/badges/latest_release_date.svg)](https://anaconda.org/bioconda/tb-profiler)
 
 **This repository is not production ready at the moment, we'll try get it ready ASAP**
 
