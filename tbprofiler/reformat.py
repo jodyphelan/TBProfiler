@@ -121,13 +121,37 @@ def barcode2lineage(results):
 					break
 				tmp = tmp[path[i]]
 			tmp[node] = {}
-	results["main_lin"] = sorted(tree.keys(),key=lambda x:lin_fracs[x],reverse=True)[0]
-	tmp = tree[results["main_lin"]]
-	n = "NA"
-	while len(tmp.keys())>0:
-		n = sorted(tmp.keys(),key=lambda x:lin_fracs[x])[0]
-		tmp = tmp[n]
-	results["sublin"] = n
+
+	terminal_nodes = []
+	def traverse(x,n):
+		if x[n]=={}:
+			terminal_nodes.append(n)
+			return n
+		return [traverse(x[n],k) for k in x[n]]
+
+	traverse({"root":tree},"root")
+	lineage_freq = {}
+	sublineage_freq = {}
+	for l in terminal_nodes:
+		if l=="lineageBOV_AFRI":continue
+		for tmp in results["lineage"]:
+			if tmp["lin"]==l: break
+		sublineage_freq[l] = tmp["frac"]
+	for l in tree:
+		if l=="lineageBOV_AFRI":continue
+		for tmp in results["lineage"]:
+			if tmp["lin"]==l: break
+		lineage_freq[l] = tmp["frac"]
+	results["main_lin"] = ";".join(lineage_freq)
+	results["sublin"] = ";".join(sublineage_freq)
+
+	# results["main_lin"] = sorted(tree.keys(),key=lambda x:lin_fracs[x],reverse=True)[0]
+	# tmp = tree[results["main_lin"]]
+	# n = "NA"
+	# while len(tmp.keys())>0:
+	# 	n = sorted(tmp.keys(),key=lambda x:lin_fracs[x])[0]
+	# 	tmp = tmp[n]
+	# results["sublin"] = n
 	return results
 
 def reformat_annotations(results,conf):

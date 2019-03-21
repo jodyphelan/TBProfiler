@@ -1,6 +1,6 @@
 {% set name = "tb-profiler" %}
-{% set version = "2.0_BETA" %}
-{% set sha256 = "a76bd100ec114e72801a49b9391dfdd9a7d4b6c5648d5acbf6e0f4bd78b0df5d" %}
+{% set version = "2.0" %}
+{% set sha256 = "78604f428bed0542cb03ad4c84db437175748bdb48053c4ee07910e3e85a6d72" %}
 
 package:
   name: {{name}}
@@ -13,7 +13,7 @@ source:
 build:
   script: python -m pip install --no-deps --ignore-installed .
   noarch: python
-  number: 0
+  number: 1
 
 requirements:
   host:
