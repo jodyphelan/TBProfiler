@@ -4,7 +4,7 @@ import setuptools
 setuptools.setup(
 
 	name="tbprofiler",
-	version="0.1dev",
+	version="2.0.1",
 	packages=["tbprofiler",],
 	license="MIT",
 	long_description="TBProfiler command line tool",
@@ -17,6 +17,8 @@ setuptools.setup(
 		'scripts/tbprofiler_get_mutation.py',
 		'scripts/tbprofiler_utils.py',
 		'scripts/tbprofiler_get_dr_freq.py',
+		'scripts/tbprofiler_get_library_freq.py',
+		'scripts/tbprofiler_get_heteroresistant_calls.py',
 		],
 	data_files=[('share/tbprofiler',["db/tbdb.ann.txt","db/tbdb.barcode.bed","db/tbdb.bed","db/tbdb.dr.json","db/tbdb.fasta","db/tbdb.gff","example_data/tbprofiler.test.fq.gz"])]
 )

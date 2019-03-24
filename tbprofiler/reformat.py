@@ -134,14 +134,16 @@ def barcode2lineage(results):
 	sublineage_freq = {}
 	for l in terminal_nodes:
 		if l=="lineageBOV_AFRI":continue
+		tmp = None
 		for tmp in results["lineage"]:
 			if tmp["lin"]==l: break
-		sublineage_freq[l] = tmp["frac"]
+		sublineage_freq[l] = tmp["frac"] if tmp else None
 	for l in tree:
 		if l=="lineageBOV_AFRI":continue
+		tmp = None
 		for tmp in results["lineage"]:
 			if tmp["lin"]==l: break
-		lineage_freq[l] = tmp["frac"]
+		lineage_freq[l] = tmp["frac"] if tmp else None
 	results["main_lin"] = ";".join(lineage_freq)
 	results["sublin"] = ";".join(sublineage_freq)
 

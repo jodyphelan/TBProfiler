@@ -34,7 +34,7 @@ def load_library(library_file):
     return results
 
 def main(args):
-    library_file = "%s.json" % args.prefix
+    library_file = "%s.dr.json" % args.prefix
     bed_file = "%s.bed" % args.prefix
     rv2gene = load_genes(bed_file)
     results = load_library(library_file)
@@ -45,8 +45,8 @@ def main(args):
             print("%s\t%s\t%s\t%s\t%s" % (drug,locus,rv2gene[locus],len(results[drug][locus]["snps"]),len(results[drug][locus]["indels"])))
 
 def compare(args):
-    library_file1 = "%s.json" % args.prefix1
-    library_file2 = "%s.json" % args.prefix2
+    library_file1 = "%s.dr.json" % args.prefix1
+    library_file2 = "%s.dr.json" % args.prefix2
     lib1 = load_library(library_file1)
     lib2 = load_library(library_file2)
     new_drugs = {library_file1:set(),library_file2:set()}
@@ -111,5 +111,9 @@ parser_sub.add_argument('prefix1',help='NGS Platform')
 parser_sub.add_argument('prefix2',help='NGS Platform')
 parser_sub.add_argument('--drugs',default=None,help='NGS Platform')
 parser_sub.set_defaults(func=compare)
+
 args = parser.parse_args()
-args.func(args)
+if vars(args)=={}:
+	parser.print_help(sys.stderr)
+else:
+	args.func(args)
