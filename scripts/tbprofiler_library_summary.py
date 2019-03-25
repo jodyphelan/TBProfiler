@@ -38,28 +38,18 @@ def load_library(library_file):
 def main(args):
 	library_file = "%s.dr.json" % args.prefix
 	bed_file = "%s.bed" % args.prefix
-	samples = [x.replace(".results.json","") for x in os.listdir(args.ngs) if x[-13:]==".results.json"]
-	variants = defaultdict(list)
-	for s in tqdm(samples):
-		temp = json.load(open("results/%s.results.json" % (s)))
-		for var in temp["dr_variants"]:
-			variants[var["locus_tag"]].add(var["_internal_change"])
+
 	rv2gene = load_genes(bed_file)
 	lib = load_library(library_file) #'Rv0682': {'indels': [], 'snps': ['86R>86P', '86R>86W', '9R>9H', '84G>84V', '43K>43R', '43K>43T', '51K>51N', '88K>88R', '88K>88Q', '88K>88M', '88K>88T', '40T>40I', '41T>41S', '52V>52G', '87V>87L', '93V>93M']
 	print("Drug\tLocus_tag\tGene\tSNPs\tINDELs")
 	drugs = [x.rstrip().lower() for x in open(args.drugs).readlines()] if args.drugs else list(lib.keys())
 	if args.ngs:
-		variants = defaultdict(lambda:defaultdict(int))
-		data = json.load(open(args.ngs))
-		for s in data:
-			for d in drugs:
-				if data[s][d]=="-": continue
-				muts = [x.strip() for x in data[s][d].split(",")]
-				for m in muts:
-					re_obj = re.search("([a-zA-Z0-9]+)_(.*)",m)
-					gene = re_obj.group(1)
-					var = re_obj.group(2)
-					variants[gene][var]+=1
+		samples = [x.replace(".results.json","") for x in os.listdir(args.ngs) if x[-13:]==".results.json"]
+		variants = defaultdict(list)
+		for s in tqdm(samples):
+			temp = json.load(open("%s/%s.results.json" % (args.ngs,s)))
+			for var in temp["dr_variants"]:
+				variants[var["locus_tag"]].add(var["_internal_change"])
 	for drug in drugs:
 		for locus in sorted(lib[drug]):
 			if args.ngs:
