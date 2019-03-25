@@ -60,6 +60,7 @@ def calculate(args):
 			region_len = end-start+1
 			nummiss = 0
 			for i in range(start,end):
+				print((s,i))
 				if ("Chromosome",i) in res["missing_pos"]:
 					nummiss+=1
 			miss_prop = nummiss/region_len
