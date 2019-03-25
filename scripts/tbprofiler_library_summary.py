@@ -40,9 +40,26 @@ def main(args):
 	lib = load_library(library_file) #'Rv0682': {'indels': [], 'snps': ['86R>86P', '86R>86W', '9R>9H', '84G>84V', '43K>43R', '43K>43T', '51K>51N', '88K>88R', '88K>88Q', '88K>88M', '88K>88T', '40T>40I', '41T>41S', '52V>52G', '87V>87L', '93V>93M']
 	print("Drug\tLocus_tag\tGene\tSNPs\tINDELs")
 	drugs = [x.rstrip().lower() for x in open(args.drugs).readlines()] if args.drugs else list(lib.keys())
+	if args.ngs:
+		variants = defaultdict(lambda:defaultdict(int))
+		data = json.load(open(args.json))
+		for s in tqdm(data):
+			for d in drugs:
+				if data[s][d]=="-": continue
+				muts = [x.strip() for x in data[s][d].split(",")]
+				for m in muts:
+					re_obj = re.search("([a-zA-Z0-9]+)_(.*)",m)
+					gene = re_obj.group(1)
+					var = re_obj.group(2)
+					variants[gene][var]+=1
 	for drug in drugs:
 		for locus in sorted(lib[drug]):
-			print("%s\t%s\t%s\t%s\t%s" % (drug,locus,rv2gene[locus],len(lib[drug][locus]["snps"]),len(lib[drug][locus]["indels"])))
+			if args.ngs:
+				num_snps_ngs = sum([1 if v in variants[locus] for v in lib[drug][locus]["snps"]])
+				num_indels_ngs = sum([1 if v in variants[locus] for v in lib[drug][locus]["indels"]])
+				print("%s\t%s\t%s\t%s (%s)\t%s (%s)" % (drug,locus,rv2gene[locus],len(lib[drug][locus]["snps"]),num_snps_ngs,len(lib[drug][locus]["indels"]),num_indels_ngs))
+			else:
+				print("%s\t%s\t%s\t%s\t%s" % (drug,locus,rv2gene[locus],len(lib[drug][locus]["snps"]),len(lib[drug][locus]["indels"])))
 
 def compare(args):
 	library_file1 = "%s.dr.json" % args.prefix1
@@ -104,6 +121,7 @@ subparsers = parser.add_subparsers(help="Task to perform")
 parser_sub = subparsers.add_parser('mutations', help='Run whole pipeline', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_sub.add_argument('prefix',help='NGS Platform')
 parser_sub.add_argument('--drugs',default=None,help='NGS Platform')
+parser_sub.add_argument('--ngs',default=None,help='NGS Platform')
 parser_sub.set_defaults(func=main)
 
 parser_sub = subparsers.add_parser('compare', help='Run whole pipeline', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
