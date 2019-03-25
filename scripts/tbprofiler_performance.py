@@ -181,8 +181,8 @@ def calculate(args):
 		total = counts[d]["tp"]+counts[d]["fp"]+counts[d]["tn"]+counts[d]["fn"]
 		suc = counts[d]["tn"]+counts[d]["fp"]
 		res = counts[d]["tp"]+counts[d]["fn"]
-		print("%s\t%s\t%s\t%s\t%s\t%s" % (d.capitalize(),total,suc,res,sensitivity,specificity)
-		
+		print("%s\t%s\t%s\t%s\t%s\t%s" % (d.capitalize(),total,suc,res,sensitivity,specificity))
+
 def print_numbers(args):
 	counts = json.load(open("counts.json"))
 	drugs = [x.rstrip().lower() for x in open(args.drugs).readlines()] if args.drugs else list(counts.keys())
