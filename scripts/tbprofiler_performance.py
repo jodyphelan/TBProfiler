@@ -60,11 +60,13 @@ def calculate(args):
 				for tmp in drug_loci[locus][0].split(","):
 					na_drugs.add(tmp)
 		resistant_drugs = [d["drug"].lower() for d in res["dr_variants"]]
-		print(dst["ERR2512436"])
+		if s=="ERR2512436":
+			print(dst["ERR2512436"])
 		for d in drugs:
 			if d in na_drugs:
 				dst[s][d]="NA"
-		print(dst["ERR2512436"])
+		if s=="ERR2512436":
+			print(dst["ERR2512436"])
 
 		for d in drugs:
 			if dst[s][d]=="0" and d not in resistant_drugs:
