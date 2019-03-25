@@ -27,7 +27,7 @@ def load_library(library_file):
 	results = defaultdict(lambda: defaultdict(lambda: {"indels":[],"snps":[]}))
 	for locus in lib:
 		for var in lib[locus]:
-			for drug in lib[locus][var]:
+			for drug in lib[locus][var]["drugs"]:
 				if mutation_type(var)=="indel":
 					results[drug][locus]["indels"].append(var)
 				else:
@@ -38,7 +38,7 @@ def main(args):
 	library_file = "%s.dr.json" % args.prefix
 	bed_file = "%s.bed" % args.prefix
 	rv2gene = load_genes(bed_file)
-	lib = load_library(library_file)
+	lib = load_library(library_file) #'Rv0682': {'indels': [], 'snps': ['86R>86P', '86R>86W', '9R>9H', '84G>84V', '43K>43R', '43K>43T', '51K>51N', '88K>88R', '88K>88Q', '88K>88M', '88K>88T', '40T>40I', '41T>41S', '52V>52G', '87V>87L', '93V>93M']
 	print("Drug\tLocus_tag\tGene\tSNPs\tINDELs")
 	drugs = [x.rstrip() for x in open(args.drugs).readlines()] if args.drugs else list(lib.keys())
 	for drug in drugs:
