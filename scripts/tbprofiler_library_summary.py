@@ -55,7 +55,7 @@ def main(args):
 	for drug in drugs:
 		for locus in sorted(lib[drug]):
 			if args.ngs:
-				num_snps_ngs = sum([1 if v in variants[locus] for v in lib[drug][locus]["snps"]])
+				num_snps_ngs = sum([1 if v in variants[locus] else 0 for v in lib[drug][locus]["snps"]])
 				num_indels_ngs = sum([1 if v in variants[locus] else 0 for v in lib[drug][locus]["indels"]])
 				print("%s\t%s\t%s\t%s (%s)\t%s (%s)" % (drug,locus,rv2gene[locus],len(lib[drug][locus]["snps"]),num_snps_ngs,len(lib[drug][locus]["indels"]),num_indels_ngs))
 			else:
