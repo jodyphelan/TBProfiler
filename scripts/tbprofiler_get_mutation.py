@@ -9,15 +9,15 @@ def main(args):#locus_tag,mutation,resultdir=".",sample_file=None):
 		samples = [x.rstrip() for x in open(args.sample_file).readlines()]
 	else:
 		samples = [x.replace(".results.json","") for x in os.listdir("%s/"%args.dir) if x[-13:]==".results.json"]
-	positives = []
+	positives = set()
 	for s in tqdm(samples):
 		tmp = json.load(open("%s/%s.results.json" % (args.dir,s)))
 		for var in tmp["dr_variants"]:
 			if var["gene"]==args.gene and var["change"]==args.mutation:
-				positives.append(s)
+				positives.add(s)
 		for var in tmp["other_variants"]:
 			if var["gene"]==args.gene and var["change"]==args.mutation:
-				positives.append(s)
+				positives.add(s)
 
 	if args.txt:
 		O = open("%s_%s.samples.txt" % (args.gene,args.mutation.replace(">","_")),"w")
