@@ -38,6 +38,12 @@ def load_library(library_file):
 def main(args):
 	library_file = "%s.dr.json" % args.prefix
 	bed_file = "%s.bed" % args.prefix
+	samples = [x.replace(".results.json","") for x in os.listdir(args.ngs) if x[-13:]==".results.json"]
+	variants = defaultdict(list)
+	for s in tqdm(samples):
+		temp = json.load(open("results/%s.results.json" % (s)))
+		for var in temp["dr_variants"]:
+			variants[var["locus_tag"]].add(var["_internal_change"])
 	rv2gene = load_genes(bed_file)
 	lib = load_library(library_file) #'Rv0682': {'indels': [], 'snps': ['86R>86P', '86R>86W', '9R>9H', '84G>84V', '43K>43R', '43K>43T', '51K>51N', '88K>88R', '88K>88Q', '88K>88M', '88K>88T', '40T>40I', '41T>41S', '52V>52G', '87V>87L', '93V>93M']
 	print("Drug\tLocus_tag\tGene\tSNPs\tINDELs")
@@ -59,8 +65,8 @@ def main(args):
 			if args.ngs:
 				# print(variants[gene])
 				# print(lib[drug][locus]["snps"])
-				num_snps_ngs = sum([1 if tbp.reformat_mutations(v) in variants[gene] else 0 for v in lib[drug][locus]["snps"]])
-				num_indels_ngs = sum([1 if tbp.reformat_mutations(v) in variants[gene] else 0 for v in lib[drug][locus]["indels"]])
+				num_snps_ngs = sum([1 if v in variants[locus] else 0 for v in lib[drug][locus]["snps"]])
+				num_indels_ngs = sum([1 if v in variants[locus] else 0 for v in lib[drug][locus]["indels"]])
 				print("%s\t%s\t%s\t%s (%s)\t%s (%s)" % (drug,locus,rv2gene[locus],len(lib[drug][locus]["snps"]),num_snps_ngs,len(lib[drug][locus]["indels"]),num_indels_ngs))
 			else:
 				print("%s\t%s\t%s\t%s\t%s" % (drug,locus,rv2gene[locus],len(lib[drug][locus]["snps"]),len(lib[drug][locus]["indels"])))
