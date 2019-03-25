@@ -39,6 +39,7 @@ def calculate(args):
 
 	dst = json.load(open(dst_file))
 	drug_loci = pp.load_bed(args.bed,[2,3,6],4) # {'Rv0667': ('rifampicin',)}
+	print(drug_loci)
 	FAIL = open("samples_not_found.txt","w")
 	samples = [x.rstrip() for x in open(sample_file).readlines()]
 	ext = ".results.json"
