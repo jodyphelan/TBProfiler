@@ -44,8 +44,10 @@ DATA
 		lineages = {}
 		for l in open(args.lineage):
 			row = l.rstrip().split()
-			print(row)
-			lineages[row[0]] = row[1]
+			if len(row)==2:
+				lineages[row[0]] = row[1]
+			else:
+				lineages[row[0]] = "NA"
 		for s in positives:
 			sys.stdout.write("%s\t%s\n" % (s,lineages[s]))
 	if not args.lineage and not args.txt and not args.itol:
