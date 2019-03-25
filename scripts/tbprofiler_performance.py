@@ -38,7 +38,7 @@ def calculate(args):
 	dst_file = args.dst
 
 	dst = json.load(open(dst_file))
-	drug_loci = pp.load_bed(args.bed,[2,3,6],4) # {'Rv0668': ('763326', '767320', 'rifampicin')}
+	drug_loci = pp.load_bed(args.bed,[6],4) # {'Rv0668': ('rifampicin')}
 	print(drug_loci)
 	FAIL = open("samples_not_found.txt","w")
 	samples = [x.rstrip() for x in open(sample_file).readlines()]
@@ -54,18 +54,13 @@ def calculate(args):
 			FAIL.write("%s\n" % s)
 			continue
 		res = json.load(open(res_file))
-		if len(res["missing_pos"])>1:
-			for locus in drug_loci:
-				start = int(drug_loci[locus][0])
-				end = int(drug_loci[locus][1])
-				region_len = end-start+1
-				nummiss = 0
-				for i in range(start,end):
-					if ("Chromosome",i) in res["missing_pos"]:
-						nummiss+=1
-				miss_prop = nummiss/region_len
-		# 	if s=="ERR2512436":
-		# 		print("%s\t%s" % (locus,miss_prop))
+		na_drugs = set
+		for locus in drug_loci:
+			if res["missing_regions"]>args.miss:
+				for tmp in drug_loci[locus][0].split(","):
+					na_drugs.append(tmp)
+		if s=="ERR2512436":
+			print(na_drugs)	
 		resistant_drugs = [d["drug"].lower() for d in res["dr_variants"]]
 		for d in drugs:
 			if dst[s][d]=="0" and d not in resistant_drugs:
