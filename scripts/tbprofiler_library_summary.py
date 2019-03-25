@@ -41,8 +41,6 @@ def main(args):
 	lib = load_library(library_file)
 	print("Drug\tLocus_tag\tGene\tSNPs\tINDELs")
 	drugs = [x.rstrip() for x in open(args.drugs).readlines()] if args.drugs else list(lib.keys())
-	print(drugs)
-	print(lib)
 	for drug in drugs:
 		print(drug)
 		for locus in lib[drug]:
