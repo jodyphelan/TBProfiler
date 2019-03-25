@@ -61,8 +61,9 @@ def calculate(args):
 					na_drugs.add(tmp)
 		resistant_drugs = [d["drug"].lower() for d in res["dr_variants"]]
 		print(dst["ERR2512436"])
-		if d in na_drugs:
-			dst[s][d]="NA"
+		for d in drugs:
+			if d in na_drugs:
+				dst[s][d]="NA"
 		print(dst["ERR2512436"])
 
 		for d in drugs:
