@@ -60,9 +60,9 @@ def calculate(args):
 				for tmp in drug_loci[locus][0].split(","):
 					na_drugs.add(tmp)
 		resistant_drugs = [d["drug"].lower() for d in res["dr_variants"]]
+		if d in na_drugs:
+			dst[s][d]="NA"
 		for d in drugs:
-			if d in na_drugs:
-				continue
 			if dst[s][d]=="0" and d not in resistant_drugs:
 				results[d]["tn"].append(s)
 				counts[d]["tn"]+=1
