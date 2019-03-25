@@ -19,6 +19,7 @@ def load_genes(bed):
 	for l in open(bed):
 		row = l.rstrip().split()
 		res[row[3]] = row[4]
+		res[row[4]] = row[4]
 	return res
 
 def load_library(library_file):
