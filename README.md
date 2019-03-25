@@ -1,7 +1,6 @@
 # TBProfiler
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/tb-profiler/badges/installer/conda.svg)](https://conda.anaconda.org/bioconda) [![Anaconda-Server Badge](https://anaconda.org/bioconda/tb-profiler/badges/license.svg)](https://anaconda.org/bioconda/tb-profiler) [![Anaconda-Server Badge](https://anaconda.org/bioconda/tb-profiler/badges/latest_release_date.svg)](https://anaconda.org/bioconda/tb-profiler)
 
-**This repository is not production ready at the moment, we'll try get it ready ASAP**
 
 This repository contains a complete rewrite of the [web version of TBProfiler](http://tbdr.lshtm.ac.uk), described [here](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-015-0164-0). It allows the use of profiling through a command line interface and contains some additional functionality such as the ability to process minION data.
 
