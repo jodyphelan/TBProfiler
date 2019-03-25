@@ -41,7 +41,7 @@ def main(args):
 	print("Drug\tLocus_tag\tGene\tSNPs\tINDELs")
 	drugs = [x.rstrip().lower() for x in open(args.drugs).readlines()] if args.drugs else list(lib.keys())
 	for drug in drugs:
-		for locus in lib[drug]:
+		for locus in sorted(lib[drug]):
 			print("%s\t%s\t%s\t%s\t%s" % (drug,locus,rv2gene[locus],len(lib[drug][locus]["snps"]),len(lib[drug][locus]["indels"])))
 
 def compare(args):
