@@ -42,7 +42,7 @@ def main(args):
 	drugs = [x.rstrip().lower() for x in open(args.drugs).readlines()] if args.drugs else list(lib.keys())
 	if args.ngs:
 		variants = defaultdict(lambda:defaultdict(int))
-		data = json.load(open(args.json))
+		data = json.load(open(args.ngs))
 		for s in tqdm(data):
 			for d in drugs:
 				if data[s][d]=="-": continue
