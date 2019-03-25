@@ -43,6 +43,7 @@ def main(args):
 	print(drugs)
 	print(lib)
 	for drug in drugs:
+		print(drug)
 		for locus in lib[drug]:
 			print("%s\t%s\t%s\t%s\t%s" % (drug,locus,rv2gene[locus],len(lib[drug][locus]["snps"]),len(lib[drug][locus]["indels"])))
 
