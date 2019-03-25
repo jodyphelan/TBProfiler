@@ -41,6 +41,7 @@ def main(args):
 	print("Drug\tLocus_tag\tGene\tSNPs\tINDELs")
 	drugs = [x.rstrip() for x in open(args.drugs).readlines()] if args.drugs else list(results.keys())
 	print(drugs)
+	print(results)
 	for drug in drugs:
 		for locus in results[drug]:
 			print("%s\t%s\t%s\t%s\t%s" % (drug,locus,rv2gene[locus],len(results[drug][locus]["snps"]),len(results[drug][locus]["indels"])))
