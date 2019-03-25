@@ -44,7 +44,7 @@ def main(args):
 	drugs = [x.rstrip().lower() for x in open(args.drugs).readlines()] if args.drugs else list(lib.keys())
 	if args.ngs:
 		samples = [x.replace(".results.json","") for x in os.listdir(args.ngs) if x[-13:]==".results.json"]
-		variants = defaultdict(list)
+		variants = defaultdict(set)
 		for s in samples:
 			temp = json.load(open("%s/%s.results.json" % (args.ngs,s)))
 			for var in temp["dr_variants"]:
