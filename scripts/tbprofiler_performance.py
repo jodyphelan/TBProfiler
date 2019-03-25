@@ -38,7 +38,8 @@ def calculate(args):
 	dst_file = args.dst
 
 	dst = json.load(open(dst_file))
-
+	drug_loci = pp.load_bed(args.bed,[6],4)
+	print(drug_loci)
 	FAIL = open("samples_not_found.txt","w")
 	samples = [x.rstrip() for x in open(sample_file).readlines()]
 	ext = ".results.json"
@@ -53,6 +54,7 @@ def calculate(args):
 			FAIL.write("%s\n" % s)
 			continue
 		res = json.load(open(res_file))
+
 		resistant_drugs = [d["drug"].lower() for d in res["dr_variants"]]
 		for d in drugs:
 			if dst[s][d]=="0" and d not in resistant_drugs:
@@ -243,7 +245,9 @@ subparsers = parser.add_subparsers(help="Task to perform")
 parser_sub = subparsers.add_parser('calculate', help='Run whole pipeline', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_sub.add_argument('samples',help='NGS Platform')
 parser_sub.add_argument('dst',help='NGS Platform')
+parser_sub.add_argument('bed',help='NGS Platform')
 parser_sub.add_argument('--dir','-d',default="results/",type=str,help='NGS Platform')
+parser_sub.add_argument('--miss','-m',default=0.1,type=float,help='Fraction of gene missing to call gDST as missing')
 parser_sub.set_defaults(func=calculate)
 
 parser_sub = subparsers.add_parser('print', help='Run whole pipeline', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
