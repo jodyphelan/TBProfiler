@@ -59,10 +59,11 @@ def calculate(args):
 			if res["missing_regions"][locus]>args.miss:
 				for tmp in drug_loci[locus][0].split(","):
 					na_drugs.add(tmp)
-		if s=="ERR2512436":
-			print(na_drugs)
 		resistant_drugs = [d["drug"].lower() for d in res["dr_variants"]]
 		for d in drugs:
+			if d in na_drugs:
+				if s=="ERR2512436":
+					print(na_drugs)
 			if dst[s][d]=="0" and d not in resistant_drugs:
 				results[d]["tn"].append(s)
 				counts[d]["tn"]+=1
