@@ -54,7 +54,7 @@ def calculate(args):
 			FAIL.write("%s\n" % s)
 			continue
 		res = json.load(open(res_file))
-		na_drugs = set
+		na_drugs = set()
 		for locus in drug_loci:
 			if res["missing_regions"][locus]>args.miss:
 				for tmp in drug_loci[locus][0].split(","):
