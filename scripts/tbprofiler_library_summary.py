@@ -91,8 +91,8 @@ def compare(args):
 			for d in lib2_set_indels.difference(lib1_set_indels):
 				new_mutations["indels"][library_file2].add((locus,d))
 			print("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (args.prefix1,args.prefix2,drug,locus,len(lib1_set.difference(lib2_set)),len(lib1_set.intersection(lib2_set)),len(lib2_set.difference(lib1_set)),len(lib1_set_indels.difference(lib2_set_indels)),len(lib1_set_indels.intersection(lib2_set_indels)),len(lib2_set_indels.difference(lib1_set_indels))))
-			if locus=="Rv0667":
-				print(lib2_set.difference(lib1_set))
+			if locus=="Rv2043c":
+				print(lib2_set_indels.difference(lib1_set_indels))
 	print("drugs\t%s\t%s" % (len(new_drugs[library_file1]),len(new_drugs[library_file2])))
 	print("loci\t%s\t%s" % (list(lib1_loci.difference(lib2_loci)),list(lib2_loci.difference(lib1_loci))))
 	print("snps\t%s\t%s" % (len(new_mutations["snps"][library_file1]),len(new_mutations["snps"][library_file2])))

@@ -69,7 +69,7 @@ def reformat_mutations(x,vartype,gene,gene_info):
 			gene_pos = int(re_obj.group(1))
 			ref = re_obj.group(2)
 			alt = re_obj.group(3)
-			return "r.%s%s>%s" % (gene_pos,ref,alt)
+			return "c.-%s%s>%s" % (gene_pos,ref,alt)
 	if "synonymous" in vartype:
 		re_obj = re.search("([\-0-9]+)([A-Z])>([A-Z])",x)
 		if re_obj:
