@@ -43,7 +43,7 @@ def main(args):
 	if args.ngs:
 		variants = defaultdict(lambda:defaultdict(int))
 		data = json.load(open(args.ngs))
-		for s in tqdm(data):
+		for s in data:
 			for d in drugs:
 				if data[s][d]=="-": continue
 				muts = [x.strip() for x in data[s][d].split(",")]
