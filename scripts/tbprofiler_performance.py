@@ -260,7 +260,7 @@ parser_sub.add_argument('dst',help='NGS Platform')
 parser_sub.add_argument('bed',help='NGS Platform')
 parser_sub.add_argument('--dir','-d',default="results/",type=str,help='NGS Platform')
 parser_sub.add_argument('--miss','-m',default=0.1,type=float,help='Fraction of gene missing to call gDST as missing')
-parser_sub.add_argument('--drugs','-d',default=None,type=str,help='NGS Platform')
+parser_sub.add_argument('--drugs',default=None,type=str,help='NGS Platform')
 parser_sub.set_defaults(func=calculate)
 
 parser_sub = subparsers.add_parser('print', help='Run whole pipeline', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
