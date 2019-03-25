@@ -262,4 +262,7 @@ parser_sub.add_argument('--itol',action="store_true",help='NGS Platform')
 parser_sub.set_defaults(func=analyse)
 
 args = parser.parse_args()
-args.func(args)
+if vars(args)=={}:
+	parser.print_help(sys.stderr)
+else:
+	args.func(args)
