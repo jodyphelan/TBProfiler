@@ -52,7 +52,7 @@ def compare(args):
 	lib2 = load_library(library_file2)
 	new_drugs = {library_file1:set(),library_file2:set()}
 	new_mutations = {"snps":{library_file1:set(),library_file2:set()},"indels":{library_file1:set(),library_file2:set()}}
-	drugs = [x.rstrip() for x in open(args.drugs).readlines()] if args.drugs else list(set(list(lib1.keys())).union(set(list(lib2.keys()))))
+	drugs = [x.rstrip().lower() for x in open(args.drugs).readlines()] if args.drugs else list(set(list(lib1.keys())).union(set(list(lib2.keys()))))
 	lib1_loci = set()
 	lib2_loci = set()
 	for drug in drugs:
