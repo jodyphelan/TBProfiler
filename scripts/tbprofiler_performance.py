@@ -56,11 +56,11 @@ def calculate(args):
 		res = json.load(open(res_file))
 		na_drugs = set
 		for locus in drug_loci:
-			if res["missing_regions"]>args.miss:
+			if res["missing_regions"][locus]>args.miss:
 				for tmp in drug_loci[locus][0].split(","):
 					na_drugs.append(tmp)
 		if s=="ERR2512436":
-			print(na_drugs)	
+			print(na_drugs)
 		resistant_drugs = [d["drug"].lower() for d in res["dr_variants"]]
 		for d in drugs:
 			if dst[s][d]=="0" and d not in resistant_drugs:
