@@ -37,14 +37,14 @@ def main(args):
 	library_file = "%s.dr.json" % args.prefix
 	bed_file = "%s.bed" % args.prefix
 	rv2gene = load_genes(bed_file)
-	results = load_library(library_file)
+	lib = load_library(library_file)
 	print("Drug\tLocus_tag\tGene\tSNPs\tINDELs")
-	drugs = [x.rstrip() for x in open(args.drugs).readlines()] if args.drugs else list(results.keys())
+	drugs = [x.rstrip() for x in open(args.drugs).readlines()] if args.drugs else list(lib.keys())
 	print(drugs)
-	print(results)
+	print(lib)
 	for drug in drugs:
-		for locus in results[drug]:
-			print("%s\t%s\t%s\t%s\t%s" % (drug,locus,rv2gene[locus],len(results[drug][locus]["snps"]),len(results[drug][locus]["indels"])))
+		for locus in lib[drug]:
+			print("%s\t%s\t%s\t%s\t%s" % (drug,locus,rv2gene[locus],len(lib[drug][locus]["snps"]),len(lib[drug][locus]["indels"])))
 
 def compare(args):
 	library_file1 = "%s.dr.json" % args.prefix1
