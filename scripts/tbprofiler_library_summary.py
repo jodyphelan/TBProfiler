@@ -45,7 +45,7 @@ def main(args):
 	if args.ngs:
 		samples = [x.replace(".results.json","") for x in os.listdir(args.ngs) if x[-13:]==".results.json"]
 		variants = defaultdict(list)
-		for s in tqdm(samples):
+		for s in samples:
 			temp = json.load(open("%s/%s.results.json" % (args.ngs,s)))
 			for var in temp["dr_variants"]:
 				variants[var["locus_tag"]].add(var["_internal_change"])
