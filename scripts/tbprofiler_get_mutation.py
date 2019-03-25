@@ -44,6 +44,7 @@ DATA
 		lineages = {}
 		for l in open(args.lineage):
 			row = l.rstrip().split()
+			print(row)
 			lineages[row[0]] = row[1]
 		for s in positives:
 			sys.stdout.write("%s\t%s\n" % (s,lineages[s]))
