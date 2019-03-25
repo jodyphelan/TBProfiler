@@ -60,14 +60,12 @@ def reformat_mutations(x,vartype,gene,gene_info):
 	if "non_coding" in vartype:
 		re_obj = re.match("([0-9]+)([A-Z]+)>([A-Z]+)",x)
 		if re_obj:
-			print("kpohkgopj")
 			gene_pos = int(re_obj.group(1))
 			ref = re_obj.group(2)
 			alt = re_obj.group(3)
 			return "r.%s%s>%s" % (gene_pos,ref.lower(),alt.lower())
 		re_obj = re.match("(\-[0-9]+)([A-Z]+)>([A-Z]+)",x)
 		if re_obj:
-			print("asdjaosidhas")
 			gene_pos = int(re_obj.group(1))
 			ref = re_obj.group(2)
 			alt = re_obj.group(3)
