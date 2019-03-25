@@ -39,7 +39,6 @@ def calculate(args):
 
 	dst = json.load(open(dst_file))
 	drug_loci = pp.load_bed(args.bed,[6],4) # {'Rv0668': ('rifampicin')}
-	print(drug_loci)
 	FAIL = open("samples_not_found.txt","w")
 	samples = [x.rstrip() for x in open(sample_file).readlines()]
 	ext = ".results.json"
@@ -60,13 +59,9 @@ def calculate(args):
 				for tmp in drug_loci[locus][0].split(","):
 					na_drugs.add(tmp)
 		resistant_drugs = [d["drug"].lower() for d in res["dr_variants"]]
-		if s=="ERR2512436":
-			print(dst["ERR2512436"])
 		for d in drugs:
 			if d in na_drugs:
 				dst[s][d]="NA"
-		if s=="ERR2512436":
-			print(dst["ERR2512436"])
 
 		for d in drugs:
 			if dst[s][d]=="0" and d not in resistant_drugs:
