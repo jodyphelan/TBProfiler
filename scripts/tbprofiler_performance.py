@@ -54,17 +54,17 @@ def calculate(args):
 			FAIL.write("%s\n" % s)
 			continue
 		res = json.load(open(res_file))
-		for locus in drug_loci:
-			start = int(drug_loci[locus][0])
-			end = int(drug_loci[locus][1])
-			region_len = end-start+1
-			nummiss = 0
-			for i in range(start,end):
-				if ("Chromosome",i) in res["missing_pos"]:
-					nummiss+=1
-			miss_prop = nummiss/region_len
-			if s=="ERR2512436":
-				print("%s\t%s" % (locus,miss_prop))
+		# for locus in drug_loci:
+		# 	start = int(drug_loci[locus][0])
+		# 	end = int(drug_loci[locus][1])
+		# 	region_len = end-start+1
+		# 	nummiss = 0
+		# 	for i in range(start,end):
+		# 		if ("Chromosome",i) in res["missing_pos"]:
+		# 			nummiss+=1
+		# 	miss_prop = nummiss/region_len
+		# 	if s=="ERR2512436":
+		# 		print("%s\t%s" % (locus,miss_prop))
 		resistant_drugs = [d["drug"].lower() for d in res["dr_variants"]]
 		for d in drugs:
 			if dst[s][d]=="0" and d not in resistant_drugs:
