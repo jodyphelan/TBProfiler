@@ -1,6 +1,6 @@
 {% set name = "tb-profiler" %}
-{% set version = "2.0" %}
-{% set sha256 = "78604f428bed0542cb03ad4c84db437175748bdb48053c4ee07910e3e85a6d72" %}
+{% set version = "2.1" %}
+{% set sha256 = "e7729dec294e2ce06f455fbeff3c96cf6a4da55bfd221e1982f004cec2fe9aee" %}
 
 package:
   name: {{name}}
@@ -13,7 +13,7 @@ source:
 build:
   script: python -m pip install --no-deps --ignore-installed .
   noarch: python
-  number: 1
+  number: 0
 
 requirements:
   host:
@@ -28,7 +28,6 @@ test:
     - tbprofiler
   commands:
     - tb-profiler -h
-    - tb-profiler test
 
 about:
   home: https://github.com/jodyphelan/TBProfiler
