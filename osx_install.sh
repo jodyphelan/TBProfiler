@@ -13,6 +13,7 @@ make all
 cp ./src/delly ${CONDA_PREFIX}/bin/delly_0.8.1
 echo '#!/bin/sh' > ${CONDA_PREFIX}/bin/delly
 echo export DYLD_FALLBACK_LIBRARY_PATH=${CONDA_PREFIX}/lib  >> ${CONDA_PREFIX}/bin/delly
+echo ${CONDA_PREFIX}/bin/delly_0.8.1 '$@' >> ${CONDA_PREFIX}/bin/delly
 chmod 755 ${CONDA_PREFIX}/bin/delly
 
 
