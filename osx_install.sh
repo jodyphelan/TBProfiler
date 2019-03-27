@@ -1,11 +1,4 @@
 #!/usr/bin/env sh
-cd $CONDA_PREFIX
-mkdir -p ./etc/conda/activate.d
-mkdir -p ./etc/conda/deactivate.d
-echo '#!/bin/sh' > ./etc/conda/activate.d/env_vars.sh
-echo '#!/bin/sh' > ./etc/conda/deactivate.d/env_vars.sh
-echo export DYLD_FALLBACK_LIBRARY_PATH=${CONDA_PREFIX}/lib  >> ./etc/conda/activate.d/env_vars.sh
-echo unset DYLD_FALLBACK_LIBRARY_PATH >> ./etc/conda/deactivate.d/env_vars.sh
 export CPP_INCLUDE_PATH=${CONDA_PREFIX}/include
 export CXX_INCLUDE_PATH=${CONDA_PREFIX}/include
 export CPLUS_INCLUDE_PATH=${CONDA_PREFIX}/include
@@ -17,7 +10,11 @@ wget https://github.com/dellytools/delly/archive/v0.8.1.tar.gz
 tar -xvf v0.8.1.tar.gz
 cd delly-0.8.1
 make all
-cp ./src/delly ${CONDA_PREFIX}/bin/
+cp ./src/delly ${CONDA_PREFIX}/bin/delly_0.8.1
+echo '#!/bin/sh' > ${CONDA_PREFIX}/bin/delly
+echo export DYLD_FALLBACK_LIBRARY_PATH=${CONDA_PREFIX}/lib  >> ${CONDA_PREFIX}/bin/delly
+chmod 755 ${CONDA_PREFIX}/bin/delly
+
 
 cd /tmp/
 wget https://github.com/jodyphelan/pathogen-profiler/archive/v1.1.tar.gz
