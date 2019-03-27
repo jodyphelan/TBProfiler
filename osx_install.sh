@@ -31,4 +31,4 @@ python setup.py install
 cd /tmp/
 mkdir ${CONDA_PREFIX}/share/tbprofiler
 tb-profiler update_tbdb
-rm -r v0.8.1.tar.gz delly-0.8.1 tbdb TBProfiler-2.1 v2.1.tar.gz v1.1.tar.gz pathogen-profiler-1.1
+rm -fr v0.8.1.tar.gz delly-0.8.1 tbdb TBProfiler-2.1 v2.1.tar.gz v1.1.tar.gz pathogen-profiler-1.1

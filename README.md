@@ -8,11 +8,16 @@ The pipeline aligns reads to the H37Rv reference using bowtie2, BWA or minimap2 
 
 ## Installation
 
-
+### Linux
 ##### Conda
 You can install tb-profile and all of its dependancies from the bioconda channel:
 ```
 conda install -c bioconda tb-profiler
+```
+### OSX
+Delly is currently not available on conda for osx so you will have to install using the command below. This still installs all other dependancies from bioconda so make sure you have conda installed and the bioconda channel activated.
+```
+bash <(curl -Ss https://raw.githubusercontent.com/jodyphelan/TBProfiler/master/osx_install.sh)
 ```
 ##### Manually
 It is possible to install manually. The following pre-requisites will be needed at runtime: *trimmomatic, bwa, minimap2, bowtie2, samtools, bcftools, tqdm and parallel*.
