@@ -6,7 +6,10 @@ import json
 import tbprofiler as tbp
 import os
 import csv
-
+try:
+	sys.base_prefix
+except:
+	sys.base_prefix = getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', sys.prefix))
 def main_reprofile(args):
 	if pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.config.json"):
 		files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json"}
