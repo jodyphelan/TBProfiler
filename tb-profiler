@@ -98,8 +98,7 @@ def main_profile(args):
 	pp.run_cmd("mv %(dir)s/%(prefix)s.results* %(dir)s/results/" % vars(args))
 	pp.run_cmd("mv %(dir)s/%(prefix)s.targets.gbcf %(dir)s/%(prefix)s.targets.csq.bcf* %(dir)s/vcf/" % vars(args))
 	pp.run_cmd("rm %(dir)s/%(prefix)s.targets.bcf %(dir)s/%(prefix)s.targets.missing.bcf %(dir)s/%(prefix)s.targets.del_pos.bed %(dir)s/%(prefix)s.*.csi" % vars(args))
-	if args.delly:
-		pp.run_cmd("rm %(dir)s/%(prefix)s.targets.delly.bcf" % vars(args))
+	pp.run_cmd("rm %(dir)s/%(prefix)s.targets.delly.bcf" % vars(args))
 	if args.webserver:
 		html_output = args.webserver_root+"/output/"+args.prefix+".html"
 		tbp.write_html(results,conf,html_output,extra_columns,["isoniazid","rifampicin","ethambutol","pyrazinamide","streptomycin","ethionamide","fluoroquinolones","amikacin","capreomycin","kanamycin"])
@@ -193,7 +192,7 @@ if __name__=="__main__":
 	parser_sub.add_argument('--min_depth',default=10,type=int,help='Minimum depth required to call variant. Bases with depth below this cutoff will be marked as missing')
 	parser_sub.add_argument('--threads','-t',default=1,help='Threads to use',type=int)
 	parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
-	parser_sub.add_argument('--call_method',default='low',choices=['low','high','optimise'],type=str,help='Level of quality stringency required. High will enable BAQ and set min baseQ to 13. Low will diable BAQ and set min baseQ to 0. Optimise will look at the coverage and decide whether to set low or high. Low stringency setting will greatly decrease the number of missing calls for low coverage isolates')
+	parser_sub.add_argument('--call_method',default='low',choices=['low','high','optimise'],type=str,help='Level of quality stringency used by BCFtools to call variants. High will enable BAQ and set min baseQ to 13. Low will diable BAQ and set min baseQ to 0. Optimise will look at the coverage and decide whether to set low or high. Low stringency setting will greatly decrease the number of missing calls for low coverage isolates')
 	parser_sub.add_argument('--txt',action="store_true",help="Add text output")
 	parser_sub.add_argument('--pdf',action="store_true",help="Add PDF output. This requires pdflatex to be installed")
 	parser_sub.add_argument('--html',action="store_true",help="Add HTML output")
