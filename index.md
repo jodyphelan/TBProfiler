@@ -1,7 +1,6 @@
 # TBProfiler
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/tb-profiler/badges/installer/conda.svg)](https://conda.anaconda.org/bioconda) [![Anaconda-Server Badge](https://anaconda.org/bioconda/tb-profiler/badges/license.svg)](https://anaconda.org/bioconda/tb-profiler) [![Anaconda-Server Badge](https://anaconda.org/bioconda/tb-profiler/badges/latest_release_date.svg)](https://anaconda.org/bioconda/tb-profiler)
 
-**This repository is not production ready at the moment, we'll try get it ready ASAP**
 
 This repository contains a complete rewrite of the [web version of TBProfiler](http://tbdr.lshtm.ac.uk), described [here](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-015-0164-0). It allows the use of profiling through a command line interface and contains some additional functionality such as the ability to process minION data.
 
@@ -9,11 +8,16 @@ The pipeline aligns reads to the H37Rv reference using bowtie2, BWA or minimap2 
 
 ## Installation
 
-
+### Linux
 ##### Conda
 You can install tb-profile and all of its dependancies from the bioconda channel:
 ```
 conda install -c bioconda tb-profiler
+```
+### OSX
+Delly is currently not available on conda for osx so you will have to install using the command below. This still installs all other dependancies from bioconda so make sure you have conda installed and the bioconda channel activated.
+```
+bash <(curl -Ss https://raw.githubusercontent.com/jodyphelan/TBProfiler/master/osx_install.sh)
 ```
 ##### Manually
 It is possible to install manually. The following pre-requisites will be needed at runtime: *trimmomatic, bwa, minimap2, bowtie2, samtools, bcftools, tqdm and parallel*.
