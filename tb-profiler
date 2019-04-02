@@ -84,6 +84,7 @@ def main_profile(args):
 	json.dump(results,open(outfile,"w"))
 	tex_output = args.dir+"/"+args.prefix+".results.tex"
 	text_output = args.dir+"/"+args.prefix+".results.txt"
+	csv_output = args.dir+"/"+args.prefix+".results.csv"
 	html_output = args.dir+"/"+args.prefix+".results.html"
 	extra_columns = [x.lower() for x in args.add_columns.split(",")] if args.add_columns else []
 	if args.pdf:
@@ -92,6 +93,8 @@ def main_profile(args):
 		pp.rm_files([tex_output, args.dir+"/"+args.prefix+".results.aux",args.dir+"/"+args.prefix+".results.log"])
 	if args.txt:
 		tbp.write_text(results,conf,text_output,extra_columns)
+	if args.csv:
+		tbp.write_csv(results,conf,text_output,extra_columns)
 
 	if not args.bam:
 		pp.run_cmd("mv %(dir)s/%(prefix)s.bam* %(dir)s/bam/" % vars(args))
