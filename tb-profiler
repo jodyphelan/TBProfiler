@@ -94,7 +94,7 @@ def main_profile(args):
 	if args.txt:
 		tbp.write_text(results,conf,text_output,extra_columns)
 	if args.csv:
-		tbp.write_csv(results,conf,text_output,extra_columns)
+		tbp.write_csv(results,conf,csv_output,extra_columns)
 
 	if not args.bam:
 		pp.run_cmd("mv %(dir)s/%(prefix)s.bam* %(dir)s/bam/" % vars(args))
