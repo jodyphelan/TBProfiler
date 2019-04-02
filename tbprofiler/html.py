@@ -14,7 +14,7 @@ def load_html(html_strings):
 	return r"""
 <p>
 <p>
-<a href="input/results/%(id)s.results.csv">Download results <img src="/img/download_icon.jpeg"></img></a>
+<a href="input/results/%(id)s.results.csv">Download results <img src="/img/download_icon.jpeg" height="50px" width="50px"></img></a>
 <div><b>Summary</b></div>
 <div><b>ID:</b> %(id)s</div>
 <div><b>Date:</b> %(date)s</div>
