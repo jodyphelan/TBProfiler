@@ -103,7 +103,7 @@ def main_profile(args):
 		html_output = args.webserver_root+"/output/"+args.prefix+".html"
 		tbp.write_html(results,conf,html_output,extra_columns,["isoniazid","rifampicin","ethambutol","pyrazinamide","streptomycin","ethionamide","fluoroquinolones","amikacin","capreomycin","kanamycin"])
 		pp.run_cmd("rm %(dir)s/bam/%(prefix)s*" % vars(args))
-		pp.run_cmd("rm %(dir)s/results/%(prefix)s*" % vars(args))
+#		pp.run_cmd("rm %(dir)s/results/%(prefix)s*" % vars(args))
 		pp.run_cmd("rm %(dir)s/vcf/%(prefix)s*" % vars(args))
 	pp.log("Profiling finished sucessfully!")
 	if args.meta:
