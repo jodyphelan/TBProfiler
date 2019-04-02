@@ -165,6 +165,7 @@ def main_reformat(args):
 	conf = json.load(open(conf_file))
 	args.prefix = results["id"]
 	tex_output = args.prefix+".results.tex"
+	csv_output = args.prefix+".results.csv"
 	text_output = args.prefix+".results.txt"
 	if args.pdf:
 		tbp.write_tex(results,conf,tex_output)
@@ -172,6 +173,8 @@ def main_reformat(args):
 		pp.rm_files([tex_output, args.prefix+".results.aux",args.prefix+".results.log"])
 	if args.txt:
 		tbp.write_text(results,conf,text_output)
+	if args.csv:
+		tbp.write_csv(results,conf,csv_output)
 
 def main_test(args):
 	pp.run_cmd("tb-profiler profile -1 %s" % (sys.base_prefix+"/share/tbprofiler/tbprofiler.test.fq.gz"),verbose=2)
@@ -194,6 +197,7 @@ if __name__=="__main__":
 	parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 	parser_sub.add_argument('--call_method',default='low',choices=['low','high','optimise'],type=str,help='Level of quality stringency used by BCFtools to call variants. High will enable BAQ and set min baseQ to 13. Low will diable BAQ and set min baseQ to 0. Optimise will look at the coverage and decide whether to set low or high. Low stringency setting will greatly decrease the number of missing calls for low coverage isolates')
 	parser_sub.add_argument('--txt',action="store_true",help="Add text output")
+	parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
 	parser_sub.add_argument('--pdf',action="store_true",help="Add PDF output. This requires pdflatex to be installed")
 	parser_sub.add_argument('--html',action="store_true",help="Add HTML output")
 	parser_sub.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and pdf results")
@@ -216,6 +220,7 @@ if __name__=="__main__":
 	parser_sub = subparsers.add_parser('reformat', help='Reformat json results into text or pdf', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 	parser_sub.add_argument('json',default="tbprofiler",help='Sample prefix')
 	parser_sub.add_argument('--txt',action="store_true",help="Add text output")
+	parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
 	parser_sub.add_argument('--pdf',action="store_true",help="Add PDF output. This requires pdflatex to be installed")
 	parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
 	parser_sub.set_defaults(func=main_reformat)
