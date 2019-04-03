@@ -74,6 +74,12 @@ def main_profile(args):
 		args.read1 = fastqs[0]
 		if len(fastqs)>1:
 			args.read2 = fastqs[1]
+		if pp.filetype(args.read1)=="ASCII":
+			pp.run_cmd("mv %s %s" % (args.read1,args.read1.replace(".gz","")))
+			pp.run_cmd("gzip %s" % (args.read1.replace(".gz","")))
+		if pp.filetype(args.read2)=="ASCII":
+			pp.run_cmd("mv %s %s" % (args.read2,args.read2.replace(".gz","")))
+			pp.run_cmd("gzip %s" % (args.read2.replace(".gz","")))
 
 	results = pp.profiler(conf_file=conf_file,prefix=args.dir+"/"+args.prefix,r1=args.read1,r2=args.read2,bam_file=args.bam,call_method=args.call_method,min_depth=args.min_depth,threads=args.threads,platform=args.platform,mapper=args.mapper,run_delly=True)
 	results = tbp.reformat(results,conf)
