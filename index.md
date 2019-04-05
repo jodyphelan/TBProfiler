@@ -1,5 +1,5 @@
 # TBProfiler
-[![Anaconda-Server Badge](https://anaconda.org/bioconda/tb-profiler/badges/installer/conda.svg)](https://conda.anaconda.org/bioconda) [![Anaconda-Server Badge](https://anaconda.org/bioconda/tb-profiler/badges/license.svg)](https://anaconda.org/bioconda/tb-profiler) [![Anaconda-Server Badge](https://anaconda.org/bioconda/tb-profiler/badges/latest_release_date.svg)](https://anaconda.org/bioconda/tb-profiler)
+[![Anaconda-Server Badge](ttps://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](https://bioconda.github.io/recipes/tb-profiler/README.html) [![Anaconda-Server Badge](https://img.shields.io/github/license/jodyphelan/TBProfiler.svg)](https://anaconda.org/bioconda/tb-profiler) [![Anaconda-Server Badge](https://img.shields.io/github/last-commit/jodyphelan/TBProfiler.svg)](https://github.com/jodyphelan/TBProfiler)
 
 
 This repository contains a complete rewrite of the [web version of TBProfiler](http://tbdr.lshtm.ac.uk), described [here](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-015-0164-0). It allows the use of profiling through a command line interface and contains some additional functionality such as the ability to process minION data.
@@ -8,16 +8,23 @@ The pipeline aligns reads to the H37Rv reference using bowtie2, BWA or minimap2 
 
 ## Installation
 
-### Linux
 ##### Conda
-You can install tb-profile and all of its dependancies from the bioconda channel:
+Conda can function as a package manages are is available [here](https://docs.conda.io/en/latest/miniconda.html).
+If you have conda make sure the bioconda  and conda-forge channels are added:
+```
+conda config --add channels defaults
+conda config --add channels bioconda
+conda config --add channels conda-forge
+```
+Then you can install tb-profiler and all of its dependancies from the bioconda channel:
 ```
 conda install -c bioconda tb-profiler
 ```
-### OSX
-Delly is currently not available on conda for osx so you will have to install using the command below. This still installs all other dependancies from bioconda so make sure you have conda installed and the bioconda channel activated.
+
+####### Troubleshooting
+Conda may install a broken version of samtools for some users (I think it is limited to osx users). If the pipeline fails on a step which runs samtools try this to install the latest version:
 ```
-bash <(curl -Ss https://raw.githubusercontent.com/jodyphelan/TBProfiler/master/osx_install.sh)
+conda install -c bioconda samtools=1.9=h8ee4bcc_1 openssl=1.0
 ```
 ##### Manually
 It is possible to install manually. The following pre-requisites will be needed at runtime: *trimmomatic, bwa, minimap2, bowtie2, samtools, bcftools, tqdm and parallel*.
