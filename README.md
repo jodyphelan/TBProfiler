@@ -21,7 +21,7 @@ Then you can install tb-profiler and all of its dependancies from the bioconda c
 conda install -c bioconda tb-profiler
 ```
 
-####### Troubleshooting
+###### Troubleshooting
 Conda may install a broken version of samtools for some users (I think it is limited to osx users). If the pipeline fails on a step which runs samtools try this to install the latest version:
 ```
 conda install -c bioconda samtools=1.9=h8ee4bcc_1 openssl=1.0
