@@ -1,5 +1,5 @@
 # TBProfiler
-[![Anaconda-Server Badge](ttps://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](https://bioconda.github.io/recipes/tb-profiler/README.html) [![Anaconda-Server Badge](https://img.shields.io/github/license/jodyphelan/TBProfiler.svg)](https://anaconda.org/bioconda/tb-profiler) [![Anaconda-Server Badge](https://img.shields.io/github/last-commit/jodyphelan/TBProfiler.svg)](https://github.com/jodyphelan/TBProfiler)
+[![Anaconda-Server Badge](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](https://bioconda.github.io/recipes/tb-profiler/README.html) [![Anaconda-Server Badge](https://img.shields.io/github/license/jodyphelan/TBProfiler.svg)](https://anaconda.org/bioconda/tb-profiler) [![Anaconda-Server Badge](https://img.shields.io/github/last-commit/jodyphelan/TBProfiler.svg)](https://github.com/jodyphelan/TBProfiler)
 
 
 This repository contains a complete rewrite of the [web version of TBProfiler](http://tbdr.lshtm.ac.uk), described [here](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-015-0164-0). It allows the use of profiling through a command line interface and contains some additional functionality such as the ability to process minION data.
@@ -21,7 +21,7 @@ Then you can install tb-profiler and all of its dependancies from the bioconda c
 conda install -c bioconda tb-profiler
 ```
 
-####### Troubleshooting
+###### Troubleshooting
 Conda may install a broken version of samtools for some users (I think it is limited to osx users). If the pipeline fails on a step which runs samtools try this to install the latest version:
 ```
 conda install -c bioconda samtools=1.9=h8ee4bcc_1 openssl=1.0
