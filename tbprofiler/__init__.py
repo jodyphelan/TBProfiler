@@ -6,4 +6,4 @@ from .collate import *
 from .phylogeny import *
 import os
 _ROOT = os.path.abspath(os.path.dirname(__file__))
-_VERSION = "2.1.1"
+_VERSION = "2.1.2"

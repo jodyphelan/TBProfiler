@@ -17,14 +17,13 @@ conda config --add channels bioconda
 conda config --add channels conda-forge
 ```
 Then you can install tb-profiler and all of its dependancies from the bioconda channel:
+###### Linux:
 ```
 conda install -c bioconda tb-profiler
 ```
-
-###### Troubleshooting
-Conda may install a broken version of samtools for some users (I think it is limited to osx users). If the pipeline fails on a step which runs samtools try this to install the latest version:
+###### OSX:
 ```
-conda install -c bioconda samtools=1.9=h8ee4bcc_1 openssl=1.0
+conda install -c bioconda tb-profiler samtools=1.9=h7c4ea83_11 ncurses=6.1=h0a44026_1002
 ```
 ##### Manually
 It is possible to install manually. The following pre-requisites will be needed at runtime: *trimmomatic, bwa, minimap2, bowtie2, samtools, bcftools, tqdm and parallel*.
