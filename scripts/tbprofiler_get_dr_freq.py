@@ -15,7 +15,7 @@ def main(args):
 	if args.meta:
 		meta = json.load(open(args.meta))
 		samples2meta = {s:meta[s][args.meta_col] for s in meta}
-		meta_cats = {c:0 for x in samples2meta}
+		meta_cats = {x:0 for x in samples2meta}
 		meta_cats["NA"] = 0
 	variants = defaultdict(lambda:defaultdict(int))
 	data = json.load(open(sys.argv[1]))
