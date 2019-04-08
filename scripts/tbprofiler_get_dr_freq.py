@@ -20,7 +20,7 @@ def main(args):
 	variants = defaultdict(lambda:defaultdict(int))
 	data = json.load(open(sys.argv[1]))
 	for s in data:
-		if args.meta and s not in meta_samples: continue
+#		if args.meta and s not in meta_samples: continue
 		for d in drugs:
 			if data[s][d]=="-": continue
 			muts = [x.strip() for x in data[s][d].split(",")]
