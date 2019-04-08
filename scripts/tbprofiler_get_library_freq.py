@@ -30,9 +30,9 @@ def main(args):
 	for row in IN:
 		tmp = row
 		if row["Gene"] in variants and row["Mutation"] in variants[row["Gene"]]:
-			tmp["NGS"] = "Yes"
+			tmp["NGS"] = "Yes" if args.binary else variants[row["Gene"]][row["Mutation"]]
 		else:
-			tmp["NGS"] = "No"
+			tmp["NGS"] = "No" if args.binary else 0
 		outwriter.writerow(tmp)
 	OUT.close()
 
@@ -41,6 +41,7 @@ parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_cla
 parser.add_argument('csv',help='NGS Platform')
 parser.add_argument('json',help='NGS Platform')
 parser.add_argument('out',help='NGS Platform')
+parser.add_argumane('--binary',action="store_true")
 parser.set_defaults(func=main)
 
 args = parser.parse_args()
