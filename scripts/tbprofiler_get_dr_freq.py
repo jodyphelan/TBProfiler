@@ -15,9 +15,8 @@ def main(args):
 	if args.meta:
 		meta = json.load(open(args.meta))
 		samples2meta = {s:meta[s][args.meta_col] for s in meta}
-		meta_cats = {x:0 for x in samples2meta.values()}
-		meta_cats["NA"] = 0
-	variants = defaultdict(lambda:defaultdict(int))
+		meta_cats = set(samples2meta.values())
+	variants = defaultdict(lambda:defaultdict(list))
 	data = json.load(open(sys.argv[1]))
 	for s in data:
 #		if args.meta and s not in meta_samples: continue
@@ -25,26 +24,23 @@ def main(args):
 			if data[s][d]=="-": continue
 			muts = [x.strip() for x in data[s][d].split(",")]
 			for m in muts:
-				variants[d][m]+=1
-				if args.meta:
-					if s in samples2meta:
-						meta_cats[samples2meta[s]]+=1
-					else:
-						meta_cats["NA"]+=1
+				variants[d][m].append(s)
+
 	sys.stdout.write("Drug\tGene\tMutation\tFrequency")
 	if args.meta:
-		sys.stdout.write("\t%s" % "\t".join(list(meta_cats.keys())))
+		sys.stdout.write("\t%s" % "\t".join(list(meta_cats)))
 	sys.stdout.write("\n")
 	for d in drugs:
 		for m in variants[d]:
 			re_obj = re.search("([a-zA-Z0-9]+)_(.*)",m)
 			gene = re_obj.group(1)
 			var = re_obj.group(2)
-			sys.stdout.write("%s\t%s\t%s\t%s" % (d.capitalize(),gene,var,variants[d][m]))
+			sys.stdout.write("%s\t%s\t%s\t%s" % (d.capitalize(),gene,var,len(variants[d][m])))
 			if args.meta:
 				for cat in meta_cats:
-					num = meta_cats[cat]
-					tot_num = len([x for x in samples2meta if samples2meta[x]==cat])
+					tmp_samples = [x for x in samples2meta if samples2meta[x]==cat]
+					num = set(tmp_samples).intersection(set(variants[d][m]))
+					tot_num = len(tmp_samples)
 					pct = num/tot_num*100
 					sys.stdout.write("\t%s/%s (%.2f)" % (num,tot_num,pct))
 			sys.stdout.write("\n")
