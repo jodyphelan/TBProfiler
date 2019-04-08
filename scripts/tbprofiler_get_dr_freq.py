@@ -28,7 +28,7 @@ def main(args):
 				variants[d][m]+=1
 				if args.meta:
 					if s in samples2meta:
-						meta_cats[meta2samples[s]]+=1
+						meta_cats[samples2meta[s]]+=1
 					else:
 						meta_cats["NA"]+=1
 
