@@ -41,7 +41,7 @@ parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_cla
 parser.add_argument('csv',help='NGS Platform')
 parser.add_argument('json',help='NGS Platform')
 parser.add_argument('out',help='NGS Platform')
-parser.add_argumane('--binary',action="store_true")
+parser.add_argument('--binary',action="store_true")
 parser.set_defaults(func=main)
 
 args = parser.parse_args()
