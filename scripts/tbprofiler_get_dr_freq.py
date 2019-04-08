@@ -9,11 +9,11 @@ def main(args):
 	drugs = [
 	'isoniazid', 'rifampicin', 'ethambutol', 'pyrazinamide', 'streptomycin',
 	'fluoroquinolones', 'amikacin', 'capreomycin', 'kanamycin',
-	 'cycloserine',  'ethionamide', 'clofazimine', 'para-aminosalicylic_acid',
-	 'delamanid', 'bedaquiline', 'linezolid', ]
+	'cycloserine',  'ethionamide', 'clofazimine', 'para-aminosalicylic_acid',
+	'delamanid', 'bedaquiline', 'linezolid', ]
 
-	 variants = defaultdict(lambda:defaultdict(int))
-	 data = json.load(open(sys.argv[1]))
+	variants = defaultdict(lambda:defaultdict(int))
+	data = json.load(open(sys.argv[1]))
 	for s in data:
 		for d in drugs:
 			if data[s][d]=="-": continue
