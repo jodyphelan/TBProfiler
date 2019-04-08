@@ -34,7 +34,7 @@ def main(args):
 			sys.stdout.write("%s\t%s\t%s\t%s" % (d.capitalize(),gene,var,len(variants[d][m])))
 			if args.meta:
 				for cat in ["NA","0","1"]:
-					meta2samples = {s:meta[s][d] for s in meta}
+					samples2meta = {s:meta[s][d] for s in meta}
 					tmp_samples = [x for x in samples2meta if samples2meta[x]==cat]
 					num = len(set(tmp_samples).intersection(set(variants[d][m])))
 					tot_num = len(tmp_samples)
@@ -45,7 +45,6 @@ def main(args):
 parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('json',help='NGS Platform')
 parser.add_argument('--meta',type=str)
-parser.add_argument('--meta-col',type=str)
 parser.set_defaults(func=main)
 
 args = parser.parse_args()
