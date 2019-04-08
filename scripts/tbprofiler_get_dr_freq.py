@@ -11,10 +11,14 @@ def main(args):
 	'fluoroquinolones', 'amikacin', 'capreomycin', 'kanamycin',
 	'cycloserine',  'ethionamide', 'clofazimine', 'para-aminosalicylic_acid',
 	'delamanid', 'bedaquiline', 'linezolid', ]
-
+	if args.meta:
+		meta = json.load(open(args.meta))
+		col,val = args.meta_col.split(",")
+		meta_samples = [s for s in meta if mets[s][col]==val]
 	variants = defaultdict(lambda:defaultdict(int))
 	data = json.load(open(sys.argv[1]))
 	for s in data:
+		if args.meta and s not in meta_samples: continue
 		for d in drugs:
 			if data[s][d]=="-": continue
 			muts = [x.strip() for x in data[s][d].split(",")]
@@ -30,6 +34,8 @@ def main(args):
 
 parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('json',help='NGS Platform')
+parser.add_argument('--meta',type=str)
+parser.add_argument('--meta-col',type=str)
 parser.set_defaults(func=main)
 
 args = parser.parse_args()
