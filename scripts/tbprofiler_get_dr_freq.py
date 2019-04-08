@@ -33,13 +33,14 @@ def main(args):
 			var = re_obj.group(2)
 			sys.stdout.write("%s\t%s\t%s\t%s" % (d.capitalize(),gene,var,len(variants[d][m])))
 			if args.meta:
-				for cat in ["NA","0","1"]:
-					samples2meta = {s:meta[s][d] for s in meta}
-					tmp_samples = [x for x in samples2meta if samples2meta[x]==cat]
-					num = len(set(tmp_samples).intersection(set(variants[d][m])))
-					tot_num = len(tmp_samples)
-					pct = num/tot_num*100
-					sys.stdout.write("\t%s/%s (%.2f)" % (num,tot_num,pct))
+				if d in list(meta.values())[0]:
+					for cat in ["NA","0","1"]:
+						samples2meta = {s:meta[s][d] for s in meta}
+						tmp_samples = [x for x in samples2meta if samples2meta[x]==cat]
+						num = len(set(tmp_samples).intersection(set(variants[d][m])))
+						tot_num = len(tmp_samples)
+						pct = num/tot_num*100
+						sys.stdout.write("\t%s/%s (%.2f)" % (num,tot_num,pct))
 			sys.stdout.write("\n")
 
 parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
