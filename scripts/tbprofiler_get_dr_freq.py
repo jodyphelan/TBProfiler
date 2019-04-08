@@ -39,7 +39,7 @@ def main(args):
 			if args.meta:
 				for cat in meta_cats:
 					tmp_samples = [x for x in samples2meta if samples2meta[x]==cat]
-					num = set(tmp_samples).intersection(set(variants[d][m]))
+					num = len(set(tmp_samples).intersection(set(variants[d][m])))
 					tot_num = len(tmp_samples)
 					pct = num/tot_num*100
 					sys.stdout.write("\t%s/%s (%.2f)" % (num,tot_num,pct))
