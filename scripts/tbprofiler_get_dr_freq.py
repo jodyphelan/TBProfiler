@@ -31,7 +31,10 @@ def main(args):
 						meta_cats[samples2meta[s]]+=1
 					else:
 						meta_cats["NA"]+=1
-
+	sys.stdout.write("Drug\tGene\tMutation\tFrequency")
+	if args.meta:
+		sys.write("\t%s" % "\t".join(list(meta_cats.keys())))
+	sys.stdout.write("\n")
 	for d in drugs:
 		for m in variants[d]:
 			re_obj = re.search("([a-zA-Z0-9]+)_(.*)",m)
