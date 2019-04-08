@@ -14,8 +14,7 @@ def main(args):
 	'delamanid', 'bedaquiline', 'linezolid', ]
 	if args.meta:
 		meta = json.load(open(args.meta))
-		samples2meta = {s:meta[s][args.meta_col] for s in meta}
-		meta_cats = set(samples2meta.values())
+
 	variants = defaultdict(lambda:defaultdict(list))
 	data = json.load(open(sys.argv[1]))
 	for s in data:
@@ -26,10 +25,7 @@ def main(args):
 			for m in muts:
 				variants[d][m].append(s)
 
-	sys.stdout.write("Drug\tGene\tMutation\tFrequency")
-	if args.meta:
-		sys.stdout.write("\t%s" % "\t".join(list(sorted(meta_cats))))
-	sys.stdout.write("\n")
+	sys.stdout.write("Drug\tGene\tMutation\tFrequency%s\n" % ("\tNA\t0\t1" if args.meta else ""))
 	for d in drugs:
 		for m in variants[d]:
 			re_obj = re.search("([a-zA-Z0-9]+)_(.*)",m)
@@ -37,7 +33,8 @@ def main(args):
 			var = re_obj.group(2)
 			sys.stdout.write("%s\t%s\t%s\t%s" % (d.capitalize(),gene,var,len(variants[d][m])))
 			if args.meta:
-				for cat in sorted(meta_cats):
+				for cat in ["NA","0","1"]:
+					meta2samples = {s:meta[s][d] for s in meta}
 					tmp_samples = [x for x in samples2meta if samples2meta[x]==cat]
 					num = len(set(tmp_samples).intersection(set(variants[d][m])))
 					tot_num = len(tmp_samples)
