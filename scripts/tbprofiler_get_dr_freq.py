@@ -33,7 +33,7 @@ def main(args):
 						meta_cats["NA"]+=1
 	sys.stdout.write("Drug\tGene\tMutation\tFrequency")
 	if args.meta:
-		sys.write("\t%s" % "\t".join(list(meta_cats.keys())))
+		sys.stdout.write("\t%s" % "\t".join(list(meta_cats.keys())))
 	sys.stdout.write("\n")
 	for d in drugs:
 		for m in variants[d]:
