@@ -37,7 +37,7 @@ def main(args):
 			var = re_obj.group(2)
 			sys.stdout.write("%s\t%s\t%s\t%s" % (d.capitalize(),gene,var,len(variants[d][m])))
 			if args.meta:
-				for cat in meta_cats:
+				for cat in sorted(meta_cats):
 					tmp_samples = [x for x in samples2meta if samples2meta[x]==cat]
 					num = len(set(tmp_samples).intersection(set(variants[d][m])))
 					tot_num = len(tmp_samples)
