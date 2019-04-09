@@ -207,7 +207,7 @@ def print_numbers(args):
 		total = counts[d]["tp"]+counts[d]["fp"]+counts[d]["tn"]+counts[d]["fn"]
 		suc = counts[d]["tn"]+counts[d]["fp"]
 		res = counts[d]["tp"]+counts[d]["fn"]
-		print("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (d.capitalize(),total,suc,res,sensitivity,specificity,accuracy,ppv,npv))
+		print("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (d.capitalize(),total,suc,res,sensitivity,specificity,accuracy,ppv,npv))
 
 def analyse(args):
 	drug_loci = pp.load_bed(args.bed,[6],4)
