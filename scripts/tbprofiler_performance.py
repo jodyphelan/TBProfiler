@@ -195,18 +195,19 @@ def calculate(args):
 def print_numbers(args):
 	counts = json.load(open("counts.json"))
 	drugs = [x.rstrip().lower() for x in open(args.drugs).readlines()] if args.drugs else list(counts.keys())
-	print("Drug\tNum\tSusceptible\tResistant\tSensitivity\tSpecificity")
+	print("Drug\tNum\tSusceptible\tResistant\tSensitivity\tSpecificity\tAccuracy\tPPV\tNPV")
 	for d in drugs:
 		if d not in counts: continue
 		if counts[d]["tp"]+counts[d]["fn"]==0 or counts[d]["tn"]+counts[d]["fp"]==0: continue
 		sensitivity = counts[d]["tp"]/(counts[d]["tp"]+counts[d]["fn"])
 		specificity = counts[d]["tn"]/(counts[d]["tn"]+counts[d]["fp"])
+		accuracy = (counts[d]["tp"]+counts[d]["tn"])/(counts[d]["tn"]+counts[d]["tp"]+counts[d]["fn"]+counts[d]["fp"])
 		ppv = counts[d]["tp"]/(counts[d]["tp"]+counts[d]["fp"]) if (counts[d]["tp"]+counts[d]["fp"]) > 0 else 0.0
 		npv = counts[d]["tn"]/(counts[d]["tn"]+counts[d]["fn"]) if (counts[d]["tn"]+counts[d]["fn"]) > 0 else 0.0
 		total = counts[d]["tp"]+counts[d]["fp"]+counts[d]["tn"]+counts[d]["fn"]
 		suc = counts[d]["tn"]+counts[d]["fp"]
 		res = counts[d]["tp"]+counts[d]["fn"]
-		print("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (d.capitalize(),total,suc,res,sensitivity,specificity,ppv,npv))
+		print("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (d.capitalize(),total,suc,res,sensitivity,specificity,accuracy,ppv,npv))
 
 def analyse(args):
 	drug_loci = pp.load_bed(args.bed,[6],4)
