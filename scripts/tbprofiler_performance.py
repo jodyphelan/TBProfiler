@@ -201,10 +201,12 @@ def print_numbers(args):
 		if counts[d]["tp"]+counts[d]["fn"]==0 or counts[d]["tn"]+counts[d]["fp"]==0: continue
 		sensitivity = counts[d]["tp"]/(counts[d]["tp"]+counts[d]["fn"])
 		specificity = counts[d]["tn"]/(counts[d]["tn"]+counts[d]["fp"])
+		ppv = counts[d]["tp"]/(counts[d]["tp"]+counts[d]["fp"])
+		npv = counts[d]["tn"]/(counts[d]["tn"]+counts[d]["fn"])
 		total = counts[d]["tp"]+counts[d]["fp"]+counts[d]["tn"]+counts[d]["fn"]
 		suc = counts[d]["tn"]+counts[d]["fp"]
 		res = counts[d]["tp"]+counts[d]["fn"]
-		print("%s\t%s\t%s\t%s\t%s\t%s" % (d.capitalize(),total,suc,res,sensitivity,specificity))
+		print("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (d.capitalize(),total,suc,res,sensitivity,specificity,ppv,npv))
 
 def analyse(args):
 	drug_loci = pp.load_bed(args.bed,[6],4)
