@@ -17,7 +17,6 @@ def collate_results(prefix,conf_file,sample_file=None,full_results=True,full_var
 		samples = [x.replace(".results.json","") for x in os.listdir("results/") if x[-13:]==".results.json"]
 
 	results = defaultdict(dict)
-	linresults = defaultdict(dict)
 	dr_variants = defaultdict(lambda:defaultdict(dict))
 	dr_variants_set = set()
 	dr_drugs = {}

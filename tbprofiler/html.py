@@ -5,7 +5,7 @@ def dict_list2html(l,columns = None, mappings = {}):
     rows = []
     header = "<tr>%s</tr>" % "".join(["<td>%s</td>" % mappings[x] if x in mappings else "<td>%s</td>" % x.title() for x in headings])
     for row in l:
-        r = "<tr>%s</tr>" % "".join(["<td>%s</td>" % "%.3f" % row[x] if type(row[x])==float else "<td>%s</td>" % str(row[x]).replace("_", " ") for x in headings])
+        r = "<tr>%s</tr>" % "".join(["<td>%s</td>" % "%.3f" % row[x] if isinstance(row[x],float) else "<td>%s</td>" % str(row[x]).replace("_", " ") for x in headings])
         rows.append(r)
     str_rows = "\n".join(rows)
     return "<table cellpadding=0 cellspacing=0 width=100%%>\n%s\n%s\n</table>" % (header,str_rows)

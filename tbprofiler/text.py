@@ -12,7 +12,7 @@ def dict_list2text(l,columns = None, mappings = {}):
 	rows = []
 	header = "\t".join([mappings[x].title() if x in mappings else x.title() for x in headings])
 	for row in l:
-		r = "\t".join(["%.3f" % row[x] if type(row[x])==float else str(row[x]).replace("_", " ") for x in headings])
+		r = "\t".join(["%.3f" % row[x] if isinstance(row[x],float) else str(row[x]).replace("_", " ") for x in headings])
 		rows.append(r)
 	str_rows = "\n".join(rows)
 	return  "%s\n%s\n" % (header,str_rows)
@@ -22,7 +22,7 @@ def dict_list2csv(l,columns = None, mappings = {}):
 	rows = []
 	header = ",".join([mappings[x].title() if x in mappings else x.title() for x in headings])
 	for row in l:
-		r = ",".join(["%.3f" % row[x] if type(row[x])==float else "\"%s\"" % str(row[x]).replace("_", " ") for x in headings])
+		r = ",".join(["%.3f" % row[x] if isinstance(row[x],float) else "\"%s\"" % str(row[x]).replace("_", " ") for x in headings])
 		rows.append(r)
 	str_rows = "\n".join(rows)
 	return  "%s\n%s\n" % (header,str_rows)

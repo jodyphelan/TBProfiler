@@ -4,7 +4,6 @@ import sys
 from collections import defaultdict
 import re
 import argparse
-from collections import defaultdict
 
 def main(args):
 	drugs = [
