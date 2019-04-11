@@ -239,7 +239,8 @@ def analyse(args):
 			fp[(var["gene"],var["locus_tag"],var["change"])]+=1
 	for key in sorted(fn,key=lambda x:fn[x]):
 		gene,rv,var = key
-		gene = rv if gene=="."
+		if gene==".":
+			gene = rv
 		print("False_Negative\t%s\t%s\t%s" % (gene,var,fn[key]))
 	for key in sorted(fp,key=lambda x:fp[x]):
 		gene,rv,var = key

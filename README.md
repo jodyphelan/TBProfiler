@@ -74,7 +74,6 @@ This will automatically create a number of colled result files from all the indi
 TBProfiler ships with a default database. The development of the mutation library is hosted on the [tbdb repository](https://github.com/jodyphelan/tbdb). Please visity this repo if you would like to get involved in the database or would like to modify and create your own.
 
 If you would like to use an altered database you can load the config file produced by `parse_db.py` as such:
-
 ```
 tb-profiler load_library [config.json]
 ```
@@ -89,10 +88,9 @@ The pipeline searches for small variants and big deletions associated with drug 
 
 ## ITOL files
 Several files are produced by the `tb-profile collate` function. Among these are several config files that can be used with [iTOL](http://itol.embl.de/) to annotate phylogenetic trees. A small tree and config files have been placed in the *example_data* directory. To use navigate to the iTOL website and upload the *tbprofiler.tree* file using the upload button on the navigation bar. Once this has been uploaded you will be taken to a visualisation of the tree. To add the annotation, click on the '+' button on the lower right hand corner and select the iTOL config files. You should now see a figure similar to the one below. The following annotations are included:
-
-  -  Lineage
-  -  Drug resistance classes (Sensitive, drug-resistant, MDR, XDR)
-  -  Drug resistance calls for individual drugs, were filled circles represent resistance.
+- Lineage
+- Drug resistance classes (Sensitive, drug-resistant, MDR, XDR)
+- Drug resistance calls for individual drugs, were filled circles represent resistance.
 
 <img src="https://github.com/jodyphelan/jodyphelan.github.io/raw/master/img/itol_example.png">
 
@@ -104,5 +102,5 @@ Please raise them using the [Issues](https://github.com/jodyphelan/TBProfiler/is
 Will populate this once we get some frequently asked questions!
 
 ## Future plans
-  - Add in capability to perform basic phylogenetic functions
-  - Add in levels of resistance to mutations
+- Add in capability to perform basic phylogenetic functions
+- Add in levels of resistance to mutations

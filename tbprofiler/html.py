@@ -39,7 +39,9 @@ def load_html(html_strings):
 </p>
 """ % html_strings
 
-def write_html(json_results,conf,outfile,columns = [],drug_order = None):
+def write_html(json_results,conf,outfile,columns = None,drug_order = None):
+	if not columns:
+		columns=[]
 	drugs = set()
 	for l in open(conf["bed"]):
 		arr = l.rstrip().split()

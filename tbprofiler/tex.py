@@ -83,7 +83,9 @@ drug resistance from whole-genome sequences. \textit{Genome Medicine}
 
 \end{document} """ % tex_strings
 
-def write_tex(json_results,conf,outfile,columns = []):
+def write_tex(json_results,conf,outfile,columns = None):
+	if not columns:
+		columns=[]
 	drugs = set()
 	for l in open(conf["bed"]):
 		arr = l.rstrip().split()

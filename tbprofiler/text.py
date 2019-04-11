@@ -102,7 +102,9 @@ Version,%(version)s
 %(pipeline)s""" % text_strings
 
 
-def write_text(json_results,conf,outfile,columns = []):
+def write_text(json_results,conf,outfile,columns = None):
+	if not columns:
+		columns=[]
 	drugs = set()
 	for l in open(conf["bed"]):
 		arr = l.rstrip().split()
@@ -152,8 +154,9 @@ def write_text(json_results,conf,outfile,columns = []):
 
 
 
-def write_csv(json_results,conf,outfile,columns = []):
-	pp.log("Writing CSV file to %s" %outfile)
+def write_csv(json_results,conf,outfile,columns = None):
+	if not columns:
+		columns=[]
 	drugs = set()
 	for l in open(conf["bed"]):
 		arr = l.rstrip().split()
