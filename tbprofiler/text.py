@@ -7,20 +7,20 @@ def lineagejson2text(x):
 		textlines.append("%(lin)s\t%(family)s\t%(spoligotype)s\t%(rd)s\t%(frac)s" % l)
 	return "\n".join(textlines)
 
-def dict_list2text(l,columns = None, mappings = {}):
+def dict_list2text(l,columns = None, mappings = None):
 	headings = list(l[0].keys()) if not columns else columns
 	rows = []
-	header = "\t".join([mappings[x].title() if x in mappings else x.title() for x in headings])
+	header = "\t".join([mappings[x].title() if (mappings!=None and x in mappings) else x.title() for x in headings])
 	for row in l:
 		r = "\t".join(["%.3f" % row[x] if isinstance(row[x],float) else str(row[x]).replace("_", " ") for x in headings])
 		rows.append(r)
 	str_rows = "\n".join(rows)
 	return  "%s\n%s\n" % (header,str_rows)
 
-def dict_list2csv(l,columns = None, mappings = {}):
+def dict_list2csv(l,columns = None, mappings = None):
 	headings = list(l[0].keys()) if not columns else columns
 	rows = []
-	header = ",".join([mappings[x].title() if x in mappings else x.title() for x in headings])
+	header = ",".join([mappings[x].title() if (mappings!=None and x in mappings) else x.title() for x in headings])
 	for row in l:
 		r = ",".join(["%.3f" % row[x] if isinstance(row[x],float) else "\"%s\"" % str(row[x]).replace("_", " ") for x in headings])
 		rows.append(r)

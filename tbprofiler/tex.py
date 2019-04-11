@@ -1,10 +1,10 @@
 import pathogenprofiler as pp
 import time
 
-def dict_list2tex(l,columns = None, mappings = {}):
+def dict_list2tex(l,columns = None, mappings = None):
     headings = list(l[0].keys()) if not columns else columns
     rows = []
-    header = " & ".join([mappings[x].title() if x in mappings else x.title() for x in headings])+"\\tabularnewline"
+    header = " & ".join([mappings[x].title() if (mappings!=None and x in mappings) else x.title() for x in headings])+"\\tabularnewline"
     for row in l:
         r = " & ".join(["%.3f" % row[x] if isinstance(row[x],float) else str(row[x]).replace("_", " ") for x in headings])
         rows.append(r)

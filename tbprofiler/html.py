@@ -1,9 +1,9 @@
 import pathogenprofiler as pp
 import time
-def dict_list2html(l,columns = None, mappings = {}):
+def dict_list2html(l,columns = None, mappings = None):
     headings = list(l[0].keys()) if not columns else columns
     rows = []
-    header = "<tr>%s</tr>" % "".join(["<td>%s</td>" % mappings[x] if x in mappings else "<td>%s</td>" % x.title() for x in headings])
+    header = "<tr>%s</tr>" % "".join(["<td>%s</td>" % mappings[x] if (mappings!=None and x in mappings) else "<td>%s</td>" % x.title() for x in headings])
     for row in l:
         r = "<tr>%s</tr>" % "".join(["<td>%s</td>" % "%.3f" % row[x] if isinstance(row[x],float) else "<td>%s</td>" % str(row[x]).replace("_", " ") for x in headings])
         rows.append(r)

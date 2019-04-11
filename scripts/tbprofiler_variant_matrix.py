@@ -1,9 +1,7 @@
 #! /usr/bin/env python
 from __future__ import division
 import pathogenprofiler as pp
-import sys
 import json
-import csv
 import argparse
 from collections import defaultdict
 import math
