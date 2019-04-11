@@ -1,7 +1,6 @@
 # TBProfiler
 [![Anaconda-Server Badge](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](https://bioconda.github.io/recipes/tb-profiler/README.html) [![Anaconda-Server Badge](https://img.shields.io/github/license/jodyphelan/TBProfiler.svg)](https://anaconda.org/bioconda/tb-profiler) [![Anaconda-Server Badge](https://img.shields.io/github/last-commit/jodyphelan/TBProfiler.svg)](https://github.com/jodyphelan/TBProfiler)
 
-
 This repository contains a complete rewrite of the [web version of TBProfiler](http://tbdr.lshtm.ac.uk), described [here](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-015-0164-0). It allows the use of profiling through a command line interface and contains some additional functionality such as the ability to process minION data.
 
 The pipeline aligns reads to the H37Rv reference using bowtie2, BWA or minimap2 and then calls variants using SAMtools. These variants are then compared to a drug-resistance database. We also predict the number of reads supporting drug resistance variants as an insight into hetero-resistance (not applicable for minION data)
@@ -17,11 +16,11 @@ conda config --add channels bioconda
 conda config --add channels conda-forge
 ```
 Then you can install tb-profiler and all of its dependancies from the bioconda channel:
-###### Linux:
+###### Linux
 ```
 conda install -c bioconda tb-profiler
 ```
-###### OSX:
+###### OSX
 ```
 conda install -c bioconda tb-profiler samtools=1.9=h7c4ea83_11 ncurses=6.1=h0a44026_1002
 ```
@@ -35,6 +34,8 @@ To install tbprofiler run the following code:
 git clone git@github.com:jodyphelan/TBProfiler.git
 cd TBProfiler
 python setup.py install
+mkdir `python -c "import sys; print(getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', sys.prefix)));"`
+tb-profiler update_tbdb
 ```
 You should then be able to run using ```tb-profiler```
 
@@ -42,7 +43,7 @@ You should then be able to run using ```tb-profiler```
 
 The first argument indicates the analysis type to perform. At the moment we currently only support the calling of small variants.
 
-###### Quick start example
+##### Quick start example
 
 Run whole pipeline:
 ```
@@ -50,7 +51,7 @@ tb-profiler profile -1 /path/to/reads_1.fastq.gz -2 /path/to/reads_2.fastq.gz -p
 ```
 The prefix is usefull when you need to run more that one sample. This will store BAM, VCF and result files in respective directories. Results are output in json and text format.
 
-###### Example run:
+###### Example run
 ```
 mkdir test_run; cd test_run
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR166/009/ERR1664619/ERR1664619_1.fastq.gz
@@ -59,7 +60,7 @@ tb-profiler profile -1 ERR1664619_1.fastq.gz -2 ERR1664619_2.fastq.gz -t 4 -p ER
 cat results/ERR1664619.results.json
 ```
 
-###### Running with an existing BAM file:
+###### Running with an existing BAM file
 
 By using the -a option you can specify to use an existing BAM file instead of fastq files.**Warning!!!**: The BAM files must have been created using the ensembl version of the genome which can be downloaded [here](ftp://ftp.ensemblgenomes.org/pub/release-32/bacteria//fasta/bacteria_0_collection/mycobacterium_tuberculosis_h37rv/dna/Mycobacterium_tuberculosis_h37rv.ASM19595v2.dna.toplevel.fa.gz).
 
@@ -81,17 +82,17 @@ tb-profiler load_library [config.json]
 #### Non-H37Rv databases
 It is possible run TBProfiler on another reference genome. Although there is currently no helper tool to create the databases for other references automatically, checkout the [tbdb repository](https://github.com/jodyphelan/tbdb) to find out more about what you need.
 
-# Under the hood
+## Under the hood
 The pipeline searches for small variants and big deletions associated with drug resistance. It will also report the lineage.
 
 <img src="https://jodyphelan.github.io/img/TBProfiler.png">
 
-# ITOL files
+## ITOL files
 Several files are produced by the `tb-profile collate` function. Among these are several config files that can be used with [iTOL](http://itol.embl.de/) to annotate phylogenetic trees. A small tree and config files have been placed in the *example_data* directory. To use navigate to the iTOL website and upload the *tbprofiler.tree* file using the upload button on the navigation bar. Once this has been uploaded you will be taken to a visualisation of the tree. To add the annotation, click on the '+' button on the lower right hand corner and select the iTOL config files. You should now see a figure similar to the one below. The following annotations are included:
 
-    Lineage
-    Drug resistance classes (Sensitive, drug-resistant, MDR, XDR)
-    Drug resistance calls for individual drugs, were filled circles represent resistance.
+  -  Lineage
+  -  Drug resistance classes (Sensitive, drug-resistant, MDR, XDR)
+  -  Drug resistance calls for individual drugs, were filled circles represent resistance.
 
 <img src="https://github.com/jodyphelan/jodyphelan.github.io/raw/master/img/itol_example.png">
 
@@ -103,6 +104,5 @@ Please raise them using the [Issues](https://github.com/jodyphelan/TBProfiler/is
 Will populate this once we get some frequently asked questions!
 
 ## Future plans
-
-- Add in capability to perform basic phylogenetic functions
-- Add in levels of resistance to mutations
+  - Add in capability to perform basic phylogenetic functions
+  - Add in levels of resistance to mutations
