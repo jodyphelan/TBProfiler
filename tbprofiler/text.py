@@ -1,5 +1,4 @@
 import time
-import pathogenprofiler as pp
 
 def lineagejson2text(x):
 	textlines = []

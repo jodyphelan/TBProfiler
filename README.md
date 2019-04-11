@@ -43,7 +43,7 @@ You should then be able to run using ```tb-profiler```
 
 The first argument indicates the analysis type to perform. At the moment we currently only support the calling of small variants.
 
-##### Quick start example
+### Quick start example
 
 Run whole pipeline:
 ```
@@ -70,15 +70,15 @@ tb-profiler collate
 ```
 This will automatically create a number of colled result files from all the individual result files in the *result* directory. If you would like to generate this file for a subset of the runs you can provide a list with the run sames using the `--samples` flag. The prefix for the output files is *tbprofiler* by default but this can be changed with the `--prefix` flag.
 
-# Mutation database
+## Mutation database
 TBProfiler ships with a default database. The development of the mutation library is hosted on the [tbdb repository](https://github.com/jodyphelan/tbdb). Please visity this repo if you would like to get involved in the database or would like to modify and create your own.
 
 If you would like to use an altered database you can load the config file produced by `parse_db.py` as such:
-```
+```bash
 tb-profiler load_library [config.json]
 ```
 
-#### Non-H37Rv databases
+### Non-H37Rv databases
 It is possible run TBProfiler on another reference genome. Although there is currently no helper tool to create the databases for other references automatically, checkout the [tbdb repository](https://github.com/jodyphelan/tbdb) to find out more about what you need.
 
 ## Under the hood
@@ -88,9 +88,9 @@ The pipeline searches for small variants and big deletions associated with drug 
 
 ## ITOL files
 Several files are produced by the `tb-profile collate` function. Among these are several config files that can be used with [iTOL](http://itol.embl.de/) to annotate phylogenetic trees. A small tree and config files have been placed in the *example_data* directory. To use navigate to the iTOL website and upload the *tbprofiler.tree* file using the upload button on the navigation bar. Once this has been uploaded you will be taken to a visualisation of the tree. To add the annotation, click on the '+' button on the lower right hand corner and select the iTOL config files. You should now see a figure similar to the one below. The following annotations are included:
-- Lineage
-- Drug resistance classes (Sensitive, drug-resistant, MDR, XDR)
-- Drug resistance calls for individual drugs, were filled circles represent resistance.
+ - Lineage
+ - Drug resistance classes (Sensitive, drug-resistant, MDR, XDR)
+ - Drug resistance calls for individual drugs, were filled circles represent resistance.
 
 <img src="https://github.com/jodyphelan/jodyphelan.github.io/raw/master/img/itol_example.png">
 
@@ -102,5 +102,5 @@ Please raise them using the [Issues](https://github.com/jodyphelan/TBProfiler/is
 Will populate this once we get some frequently asked questions!
 
 ## Future plans
-- Add in capability to perform basic phylogenetic functions
-- Add in levels of resistance to mutations
+ - Add in capability to perform basic phylogenetic functions
+ - Add in levels of resistance to mutations
