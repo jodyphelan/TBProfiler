@@ -3,7 +3,6 @@ from __future__ import division
 import pathogenprofiler as pp
 import sys
 import json
-import csv
 import argparse
 from collections import defaultdict
 from tqdm import tqdm
@@ -240,6 +239,7 @@ def analyse(args):
 			fp[(var["gene"],var["locus_tag"],var["change"])]+=1
 	for key in sorted(fn,key=lambda x:fn[x]):
 		gene,rv,var = key
+		gene = rv if gene=="."
 		print("False_Negative\t%s\t%s\t%s" % (gene,var,fn[key]))
 	for key in sorted(fp,key=lambda x:fp[x]):
 		gene,rv,var = key

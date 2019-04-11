@@ -4,7 +4,6 @@ import argparse
 import json
 from collections import defaultdict
 import re
-import json
 import os
 indel_re = re.compile("([0-9]+)([A-Z]+)>([A-Z]+)")
 
