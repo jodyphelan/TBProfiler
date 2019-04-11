@@ -74,7 +74,7 @@ This will automatically create a number of colled result files from all the indi
 TBProfiler ships with a default database. The development of the mutation library is hosted on the [tbdb repository](https://github.com/jodyphelan/tbdb). Please visity this repo if you would like to get involved in the database or would like to modify and create your own.
 
 If you would like to use an altered database you can load the config file produced by `parse_db.py` as such:
-```bash
+```
 tb-profiler load_library [config.json]
 ```
 
