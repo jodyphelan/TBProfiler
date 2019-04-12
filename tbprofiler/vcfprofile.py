@@ -11,7 +11,7 @@ def profile_vcf(filename,conf):
 	pp.run_cmd("bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT\\t.[\\t0,100]\\n' %(filename)s > %(tmptxt)s" % params)
 	pp.run_cmd("bgzip %(tmptxt)s" % params)
 	pp.run_cmd("tabix -s 1 -b 2 -p vcf %(tmptxt)s.gz" % params)
-	pp.run_cmd("bcftools annotate -a %(tmptxt)s.gz -c CHROM,POS,REF,ALT,-,FMT/AD -h %(tmphdr)s %(filename)s -Oz -o %(tmpvcf)s" % params)
+	pp.run_cmd("bcftools view -a %(filename)s | bcftools annotate -a %(tmptxt)s.gz -c CHROM,POS,REF,ALT,-,FMT/AD -h %(tmphdr)s -Oz -o %(tmpvcf)s" % params)
 	pp.run_cmd("bcftools view -T %(bed)s %(tmpvcf)s | bcftools csq -f %(ref)s -g %(gff)s  -Oz -o %(tmpcsq)s -p a" % params)
 	csq_bcf_obj = pp.bcf(params["tmpcsq"])
 	csq = csq_bcf_obj.load_csq(ann_file=conf["ann"])
