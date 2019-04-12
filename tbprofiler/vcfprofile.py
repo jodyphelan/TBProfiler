@@ -7,11 +7,18 @@ def profile_vcf(filename,conf):
 	params["filename"] = filename
 	params["tmphdr"] = pp.get_random_file()
 	params["tmptxt"] = pp.get_random_file()
-	open(params["tmphdr"],"w").write("##FORMAT=<ID=AD,Number=R,Type=Integer,Description=\"Allelic depths\">\n")
-	pp.run_cmd("bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT\\t.[\\t0,100]\\n' %(filename)s > %(tmptxt)s" % params)
-	pp.run_cmd("bgzip %(tmptxt)s" % params)
-	pp.run_cmd("tabix -s 1 -b 2 -p vcf %(tmptxt)s.gz" % params)
-	pp.run_cmd("bcftools view -a %(filename)s | bcftools annotate -a %(tmptxt)s.gz -c CHROM,POS,REF,ALT,-,FMT/AD -h %(tmphdr)s -Oz -o %(tmpvcf)s" % params)
+	l=""
+	for l in pp.cmd_out("bcftools view %(filename)s -h | grep \"^##FORMAT=<ID=AD\"" % params):
+		pass
+	AD_found = False if l=="" else True
+	if AD_found==False:
+		open(params["tmphdr"],"w").write("##FORMAT=<ID=AD,Number=R,Type=Integer,Description=\"Allelic depths\">\n")
+		pp.run_cmd("bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT\\t.[\\t0,100]\\n' %(filename)s > %(tmptxt)s" % params)
+		pp.run_cmd("bgzip %(tmptxt)s" % params)
+		pp.run_cmd("tabix -s 1 -b 2 -p vcf %(tmptxt)s.gz" % params)
+		pp.run_cmd("bcftools view -a %(filename)s | bcftools annotate -a %(tmptxt)s.gz -c CHROM,POS,REF,ALT,-,FMT/AD -h %(tmphdr)s -Oz -o %(tmpvcf)s" % params)
+	else:
+		pp.run_cmd("bcftools view -a %(filename)s -Oz -o %(tmpvcf)s" % params)
 	pp.run_cmd("bcftools view -T %(bed)s %(tmpvcf)s | bcftools csq -f %(ref)s -g %(gff)s  -Oz -o %(tmpcsq)s -p a" % params)
 	csq_bcf_obj = pp.bcf(params["tmpcsq"])
 	csq = csq_bcf_obj.load_csq(ann_file=conf["ann"])
@@ -31,5 +38,8 @@ def profile_vcf(filename,conf):
 	bed_regions = pp.load_bed(conf["bed"],[4],4)
 	missing_regions = {gene:"NA" for gene in bed_regions}
 	results["missing_regions"] = missing_regions
-	pp.run_cmd("rm %(tmpcsq)s %(tmphdr)s %(tmptxt)s*" % params)
+	if AD_found:
+		pp.run_cmd("rm %(tmpcsq)s" % params)
+	else:
+		pp.run_cmd("rm %(tmpcsq)s %(tmphdr)s %(tmptxt)s*" % params)
 	return results
