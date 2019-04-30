@@ -99,6 +99,8 @@ def main_profile(args):
 		tbp.write_text(results,conf,text_output,extra_columns)
 	if args.csv:
 		tbp.write_csv(results,conf,csv_output,extra_columns)
+	if args.html:
+		tbp.write_html(results,conf,html_output,extra_columns,["isoniazid","rifampicin","ethambutol","pyrazinamide","streptomycin","ethionamide","fluoroquinolones","amikacin","capreomycin","kanamycin"])
 
 	if not args.bam:
 		pp.run_cmd("mv %(dir)s/%(prefix)s.bam* %(dir)s/bam/" % vars(args))
@@ -135,6 +137,7 @@ def main_load_library(args):
 		new_conf[key] = sys.base_prefix+"/share/tbprofiler/"+lib_prefix+files[key]
 		pp.run_cmd("cp %s %s" % (args.prefix+files[key],new_conf[key]))
 	json.dump(new_conf,open(sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".config.json","w"))
+	pp.run_cmd("samtools faidx %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
 	pp.log("Sucessfully imported library")
 
 def main_lineage(args):
