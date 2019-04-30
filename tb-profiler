@@ -125,7 +125,7 @@ def main_update_tbdb(args):
 		pp.run_cmd("git clone https://github.com/jodyphelan/tbdb.git")
 	os.chdir("tbdb")
 	pp.run_cmd("git pull")
-	pp.run_cmd("python parse_db.py")
+	pp.run_cmd("python parse_db.py --seqname %s" % args.seqname)
 	pp.run_cmd("tb-profiler load_library tbdb")
 	os.chdir("../")
 	pp.log("Sucessfully updated TBDB")
@@ -291,11 +291,12 @@ if __name__=="__main__":
 	parser_sub.set_defaults(func=main_load_library)
 
 	parser_sub = subparsers.add_parser('update_tbdb', help='Pull the latest tbdb library and load', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+	parser_sub.add_argument('--seqname',default='Chromosome',help='Mutation panel name')
 	parser_sub.set_defaults(func=main_update_tbdb)
 
 
 	parser_sub = subparsers.add_parser('lineage', help='Profile only lineage', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	parser_sub.add_argument('--bam','-a',help='BAM file. Make sure it has been generated using the H37Rv genome (GCA_000195955.2)')
+	parser_sub.add_argument('--bam','-a',required=True, help='BAM file. Make sure it has been generated using the H37Rv genome (GCA_000195955.2)')
 	parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
 	parser_sub.add_argument('--outfmt',default='json',choices=["json","txt"],type=str,help="Output format")
 	parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
