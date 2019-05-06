@@ -1,5 +1,6 @@
 import pathogenprofiler as pp
 import time
+from .reformat import *
 
 def dict_list2tex(l,columns = None, mappings = None):
     headings = list(l[0].keys()) if not columns else columns
@@ -84,49 +85,16 @@ drug resistance from whole-genome sequences. \textit{Genome Medicine}
 \end{document} """ % tex_strings
 
 def write_tex(json_results,conf,outfile,columns = None):
-	if not columns:
-		columns=[]
-	drugs = set()
-	for l in open(conf["bed"]):
-		arr = l.rstrip().split()
-		for d in arr[5].split(","):
-			drugs.add(d)
-	drug_table = []
-	results = {}
-	annotation = {}
-	for key in columns:
-		if key not in json_results["dr_variants"][0]: pp.log("%s not found in variant annotation, is this a valid column in the database CSV file? Exiting!" % key,True)
-	for x in json_results["dr_variants"]:
-		d = x["drug"]
-		if d not in results: results[d] = list()
-		results[d].append("\\textit{%s} %s (%.2f)" % (x["gene"],x["change"],x["freq"]))
-		if d not in annotation: annotation[d] = {key:[] for key in columns}
-		for key in columns:
-			annotation[d][key].append(x[key])
-	for d in drugs:
-		if d in results:
-			results[d] = ", ".join(results[d]) if len(results[d])>0 else ""
-			r = "R" if len(results[d])>0 else ""
-			for key in columns:
-				annotation[d][key] = ", ".join(annotation[d][key]) if len(annotation[d][key])>0 else ""
-		else:
-			results[d] = ""
-			r = ""
-		dictline = {"Drug":d,"Genotypic Resistance":r,"Mutations":results[d]}
-		for key in columns:
-			dictline[key] = annotation[d][key] if d in annotation else ""
-		drug_table.append(dictline)
-	pipeline_tbl = [{"Analysis":"Mapping","Program":json_results["pipeline"]["mapper"]},{"Analysis":"Variant Calling","Program":json_results["pipeline"]["variant_caller"]}]
-
+	json_results = get_summary(json_results,conf,columns = columns)
 	tex_strings = {}
 	tex_strings["id"] = json_results["id"].replace("_","\_")
 	tex_strings["date"] = time.ctime()
 	tex_strings["strain"] = json_results["sublin"].replace("_","\_")
 	tex_strings["drtype"] = json_results["drtype"]
-	tex_strings["dr_report"] = dict_list2tex(drug_table,["Drug","Genotypic Resistance","Mutations"]+columns)
+	tex_strings["dr_report"] = dict_list2tex(json_results["drug_table"],["Drug","Genotypic Resistance","Mutations"]+columns)
 	tex_strings["lineage_report"] = dict_list2tex(json_results["lineage"],["lin","frac","family","spoligotype","rd"],{"lin":"Lineage","frac":"Estimated fraction"})
 	tex_strings["other_var_report"] = dict_list2tex(json_results["other_variants"],["genome_pos","locus_tag","change","freq"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
-	tex_strings["pipeline"] = dict_list2tex(pipeline_tbl,["Analysis","Program"])
+	tex_strings["pipeline"] = dict_list2tex(json_results["pipline_table"],["Analysis","Program"])
 	tex_strings["version"] = json_results["tbprofiler_version"]
 	o = open(outfile,"w")
 	o.write(load_tex(tex_strings))

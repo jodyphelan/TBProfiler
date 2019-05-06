@@ -79,7 +79,7 @@ def main_profile(args):
 			pp.run_cmd("mv %s %s" % (args.read2,args.read2.replace(".gz","")))
 			pp.run_cmd("gzip %s" % (args.read2.replace(".gz","")))
 
-	results = pp.profiler(conf_file=conf_file,prefix=args.dir+"/"+args.prefix,r1=args.read1,r2=args.read2,bam_file=args.bam,call_method=args.call_method,min_depth=args.min_depth,threads=args.threads,platform=args.platform,mapper=args.mapper,run_delly=True)
+	results = pp.profiler(conf_file=conf_file,prefix=args.dir+"/"+args.prefix,r1=args.read1,r2=args.read2,bam_file=args.bam,call_method=args.call_method,min_depth=args.min_depth,threads=args.threads,platform=args.platform,mapper=args.mapper,run_delly=True,af=args.af)
 	results = tbp.reformat(results,conf)
 	results["id"] = args.prefix
 	results["tbprofiler_version"] = tbp._VERSION
@@ -96,7 +96,7 @@ def main_profile(args):
 		pp.run_cmd("pdflatex %s"%tex_output,verbose=1)
 		pp.rm_files([tex_output, args.dir+"/"+args.prefix+".results.aux",args.dir+"/"+args.prefix+".results.log"])
 	if args.txt:
-		tbp.write_text(results,conf,text_output,extra_columns)
+		tbp.write_text(results,conf,text_output,extra_columns,reporting_af=args.reporting_af)
 	if args.csv:
 		tbp.write_csv(results,conf,csv_output,extra_columns)
 	if args.html:
@@ -241,6 +241,8 @@ if __name__=="__main__":
 	parser_sub.add_argument('--mapper',default="bwa", choices=["bwa","minimap2","bowtie2"],help="Mapping tool to use. If you are using minION data it will default to minimap2",type=str)
 	parser_sub.add_argument('--caller',default="BCFtools", choices=["BCFtools"],help="Variant calling tool to use. Currently only BCFtools supported",type=str)
 	parser_sub.add_argument('--min_depth',default=10,type=int,help='Minimum depth required to call variant. Bases with depth below this cutoff will be marked as missing')
+	parser_sub.add_argument('--af',default=0.1,type=float,help='Minimum allele frequency to call variants')
+	parser_sub.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to call variants')
 	parser_sub.add_argument('--threads','-t',default=1,help='Threads to use',type=int)
 	parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 	parser_sub.add_argument('--call_method',default='low',choices=['low','high','optimise'],type=str,help='Level of quality stringency used by BCFtools to call variants. High will enable BAQ and set min baseQ to 13. Low will diable BAQ and set min baseQ to 0. Optimise will look at the coverage and decide whether to set low or high. Low stringency setting will greatly decrease the number of missing calls for low coverage isolates')

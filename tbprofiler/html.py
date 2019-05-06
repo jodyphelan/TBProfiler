@@ -1,5 +1,7 @@
 import pathogenprofiler as pp
 import time
+from .reformat import *
+
 def dict_list2html(l,columns = None, mappings = None):
     headings = list(l[0].keys()) if not columns else columns
     rows = []
@@ -40,50 +42,16 @@ def load_html(html_strings):
 """ % html_strings
 
 def write_html(json_results,conf,outfile,columns = None,drug_order = None):
-	if not columns:
-		columns=[]
-	drugs = set()
-	for l in open(conf["bed"]):
-		arr = l.rstrip().split()
-		for d in arr[5].split(","):
-			drugs.add(d)
-	if drug_order:
-		drugs = drug_order
-	drug_table = []
-	results = {}
-	annotation = {}
-	for key in columns:
-		if key not in json_results["dr_variants"][0]: pp.log("%s not found in variant annotation, is this a valid column in the database CSV file? Exiting!" % key,True)
-	for x in json_results["dr_variants"]:
-		d = x["drug"]
-		if d not in results: results[d] = list()
-		results[d].append("%s %s (%.2f)" % (x["gene"],x["change"].replace(">","&gt;"),x["freq"]))
-		if d not in annotation: annotation[d] = {key:[] for key in columns}
-		for key in columns:
-			annotation[d][key].append(x[key])
-	for d in drugs:
-		if d in results:
-			results[d] = ", ".join(results[d]) if len(results[d])>0 else ""
-			r = "R" if len(results[d])>0 else ""
-			for key in columns:
-				annotation[d][key] = ", ".join(annotation[d][key]) if len(annotation[d][key])>0 else ""
-		else:
-			results[d] = ""
-			r = ""
-		dictline = {"Drug":d.capitalize(),"Genotypic Resistance":r,"Mutations":results[d]}
-		for key in columns:
-			dictline[key] = annotation[d][key] if d in annotation else ""
-		drug_table.append(dictline)
-	pipeline_tbl = [{"Analysis":"Mapping","Program":json_results["pipeline"]["mapper"]},{"Analysis":"Variant Calling","Program":json_results["pipeline"]["variant_caller"]}]
+	json_results = get_summary(json_results,conf,columns = columns, drug_order=drug_order)
 	html_strings = {}
 	html_strings["id"] = json_results["id"]
 	html_strings["date"] = time.ctime()
 	html_strings["strain"] = json_results["sublin"]
 	html_strings["drtype"] = json_results["drtype"]
-	html_strings["dr_report"] = dict_list2html(drug_table,["Drug","Genotypic Resistance","Mutations"]+columns,{"Drug":"Drug<sup>1</sup>","Genotypic Resistance":"Resistance","Mutations":"Supporting Mutations (frequency)"})
+	html_strings["dr_report"] = dict_list2html(json_results["drug_table"],["Drug","Genotypic Resistance","Mutations"]+columns,{"Drug":"Drug<sup>1</sup>","Genotypic Resistance":"Resistance","Mutations":"Supporting Mutations (frequency)"})
 	html_strings["lineage_report"] = dict_list2html(json_results["lineage"],["lin","family","spoligotype","rd"],{"lin":"Lineage<sup>2</sup>","frac":"Estimated fraction","family":"Family","spoligotype":"Main Spoligotype","rd":"RDS"})
 	html_strings["other_var_report"] = dict_list2html(json_results["other_variants"],["gene","genome_pos","change","freq"],{"gene":"Gene","genome_pos":"Chromosome Position","change":"Mutation","freq":"Estimated fraction"})
-	html_strings["pipeline"] = dict_list2html(pipeline_tbl,["Analysis","Program"])
+	html_strings["pipeline"] = dict_list2html(json_results["pipline_table"],["Analysis","Program"])
 	html_strings["version"] = json_results["tbprofiler_version"]
 	o = open(outfile,"w")
 	pp.log("Writing results to %s" % outfile)

@@ -1,4 +1,5 @@
 import time
+from .reformat import *
 
 def lineagejson2text(x):
 	textlines = []
@@ -49,6 +50,10 @@ Lineage report
 Resistance report
 -----------------
 %(dr_report)s
+
+Resistance variants report
+-----------------
+%(dr_var_report)s
 
 Other variants report
 ---------------------
@@ -101,47 +106,25 @@ Version,%(version)s
 %(pipeline)s""" % text_strings
 
 
-def write_text(json_results,conf,outfile,columns = None):
-	if not columns:
-		columns=[]
-	drugs = set()
-	for l in open(conf["bed"]):
-		arr = l.rstrip().split()
-		for d in arr[5].split(","):
-			drugs.add(d)
-	drug_table = []
-	results = {}
-	annotation = {}
-	for x in json_results["dr_variants"]:
-		d = x["drug"]
-		if d not in results: results[d] = list()
-		results[d].append("%s %s (%.2f)" % (x["gene"],x["change"],x["freq"]))
-		if d not in annotation: annotation[d] = {key:[] for key in columns}
-		for key in columns:
-			annotation[d][key].append(x[key])
-	for d in drugs:
-		if d in results:
-			results[d] = ", ".join(results[d]) if len(results[d])>0 else ""
-			r = "R" if len(results[d])>0 else ""
-			for key in columns:
-				annotation[d][key] = ", ".join(annotation[d][key]) if len(annotation[d][key])>0 else ""
+def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0):
+	json_results = get_summary(json_results,conf,columns = columns,reporting_af=reporting_af)
+	uniq_dr_variants = {}
+	for var in json_results["dr_variants"]:
+		if var["change"] in uniq_dr_variants:
+			uniq_dr_variants[var["change"]]["drug"] += ", "+var["drug"]
 		else:
-			results[d] = ""
-			r = ""
-		dictline = {"Drug":d,"Genotypic Resistance":r,"Mutations":results[d]}
-		for key in columns:
-			dictline[key] = annotation[d][key] if d in annotation else ""
-		drug_table.append(dictline)
-	pipeline_tbl = [{"Analysis":"Mapping","Program":json_results["pipeline"]["mapper"]},{"Analysis":"Variant Calling","Program":json_results["pipeline"]["variant_caller"]}]
+			uniq_dr_variants[var["change"]] = var
+
 	text_strings = {}
 	text_strings["id"] = json_results["id"]
 	text_strings["date"] = time.ctime()
 	text_strings["strain"] = json_results["sublin"]
 	text_strings["drtype"] = json_results["drtype"]
-	text_strings["dr_report"] = dict_list2text(drug_table,["Drug","Genotypic Resistance","Mutations"]+columns)
+	text_strings["dr_report"] = dict_list2text(json_results["drug_table"],["Drug","Genotypic Resistance","Mutations"]+columns)
 	text_strings["lineage_report"] = dict_list2text(json_results["lineage"],["lin","frac","family","spoligotype","rd"],{"lin":"Lineage","frac":"Estimated fraction"})
+	text_strings["dr_var_report"] = dict_list2text(list(uniq_dr_variants.values()),["genome_pos","locus_tag","change","freq"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
 	text_strings["other_var_report"] = dict_list2text(json_results["other_variants"],["genome_pos","locus_tag","change","freq"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
-	text_strings["pipeline"] = dict_list2text(pipeline_tbl,["Analysis","Program"])
+	text_strings["pipeline"] = dict_list2text(json_results["pipline_table"],["Analysis","Program"])
 	text_strings["version"] = json_results["tbprofiler_version"]
 	o = open(outfile,"w")
 	o.write(load_text(text_strings))
@@ -154,46 +137,16 @@ def write_text(json_results,conf,outfile,columns = None):
 
 
 def write_csv(json_results,conf,outfile,columns = None):
-	if not columns:
-		columns=[]
-	drugs = set()
-	for l in open(conf["bed"]):
-		arr = l.rstrip().split()
-		for d in arr[5].split(","):
-			drugs.add(d)
-	drug_table = []
-	results = {}
-	annotation = {}
-	for x in json_results["dr_variants"]:
-		d = x["drug"]
-		if d not in results: results[d] = list()
-		results[d].append("%s %s (%.2f)" % (x["gene"],x["change"],x["freq"]))
-		if d not in annotation: annotation[d] = {key:[] for key in columns}
-		for key in columns:
-			annotation[d][key].append(x[key])
-	for d in drugs:
-		if d in results:
-			results[d] = ", ".join(results[d]) if len(results[d])>0 else ""
-			r = "R" if len(results[d])>0 else ""
-			for key in columns:
-				annotation[d][key] = ", ".join(annotation[d][key]) if len(annotation[d][key])>0 else ""
-		else:
-			results[d] = ""
-			r = ""
-		dictline = {"Drug":d,"Genotypic Resistance":r,"Mutations":results[d]}
-		for key in columns:
-			dictline[key] = annotation[d][key] if d in annotation else ""
-		drug_table.append(dictline)
-	pipeline_tbl = [{"Analysis":"Mapping","Program":json_results["pipeline"]["mapper"]},{"Analysis":"Variant Calling","Program":json_results["pipeline"]["variant_caller"]}]
+	json_results = get_summary(json_results,conf,columns = columns)
 	csv_strings = {}
 	csv_strings["id"] = json_results["id"]
 	csv_strings["date"] = time.ctime()
 	csv_strings["strain"] = json_results["sublin"]
 	csv_strings["drtype"] = json_results["drtype"]
-	csv_strings["dr_report"] = dict_list2csv(drug_table,["Drug","Genotypic Resistance","Mutations"]+columns)
+	csv_strings["dr_report"] = dict_list2csv(json_results["drug_table"],["Drug","Genotypic Resistance","Mutations"]+columns)
 	csv_strings["lineage_report"] = dict_list2csv(json_results["lineage"],["lin","frac","family","spoligotype","rd"],{"lin":"Lineage","frac":"Estimated fraction"})
 	csv_strings["other_var_report"] = dict_list2csv(json_results["other_variants"],["genome_pos","locus_tag","change","freq"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
-	csv_strings["pipeline"] = dict_list2csv(pipeline_tbl,["Analysis","Program"])
+	csv_strings["pipeline"] = dict_list2csv(json_results["pipline_table"],["Analysis","Program"])
 	csv_strings["version"] = json_results["tbprofiler_version"]
 	o = open(outfile,"w")
 	o.write(load_csv(csv_strings))

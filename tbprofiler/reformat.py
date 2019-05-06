@@ -1,6 +1,50 @@
 import re
 import pathogenprofiler as pp
 
+
+def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=0.0):
+	if not columns:
+		columns=[]
+	drugs = set()
+	for l in open(conf["bed"]):
+		arr = l.rstrip().split()
+		for d in arr[5].split(","):
+			drugs.add(d)
+	if drug_order:
+		drugs = drug_order
+	drug_table = []
+	results = {}
+	annotation = {}
+	for key in columns:
+		if key not in json_results["dr_variants"][0]: pp.log("%s not found in variant annotation, is this a valid column in the database CSV file? Exiting!" % key,True)
+	for x in json_results["dr_variants"]:
+		d = x["drug"]
+		if float(x["freq"])<reporting_af:continue
+		if d not in results: results[d] = list()
+		results[d].append("%s %s (%.2f)" % (x["gene"],x["change"],x["freq"]))
+		if d not in annotation: annotation[d] = {key:[] for key in columns}
+		for key in columns:
+			annotation[d][key].append(x[key])
+	for d in drugs:
+		if d in results:
+			results[d] = ", ".join(results[d]) if len(results[d])>0 else ""
+			r = "R" if len(results[d])>0 else ""
+			for key in columns:
+				annotation[d][key] = ", ".join(annotation[d][key]) if len(annotation[d][key])>0 else ""
+		else:
+			results[d] = ""
+			r = ""
+		dictline = {"Drug":d.capitalize(),"Genotypic Resistance":r,"Mutations":results[d]}
+		for key in columns:
+			dictline[key] = annotation[d][key] if d in annotation else ""
+		drug_table.append(dictline)
+	pipeline_tbl = [{"Analysis":"Mapping","Program":json_results["pipeline"]["mapper"]},{"Analysis":"Variant Calling","Program":json_results["pipeline"]["variant_caller"]}]
+	new_json = json_results.copy()
+	new_json["drug_table"] = drug_table
+	new_json["pipline_table"] = pipeline_tbl
+	return new_json
+
+
 def reformat_mutations(x,vartype,gene,gene_info):
 	aa_short2long = {
 	'A': 'Ala', 'R': 'Arg', 'N': 'Asn', 'D': 'Asp', 'C': 'Cys', 'Q': 'Gln',
