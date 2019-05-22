@@ -38,8 +38,11 @@ def main(args):
 						tmp_samples = [x for x in samples2meta if samples2meta[x]==cat]
 						num = len(set(tmp_samples).intersection(set(variants[d][m])))
 						tot_num = len(tmp_samples)
-						pct = num/tot_num*100
-						sys.stdout.write("\t%s/%s (%.2f)" % (num,tot_num,pct))
+						if tot_num==0:
+							sys.stdout.write("\t0/0 (0.00)" )
+						else:
+							pct = num/tot_num*100
+							sys.stdout.write("\t%s/%s (%.2f)" % (num,tot_num,pct))
 			sys.stdout.write("\n")
 
 parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
