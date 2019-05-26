@@ -33,7 +33,6 @@ def main(args):
 	for drug in sorted(drug2genes):
 		if drug not in meta[samples[0]]: continue
 		for gene in sorted(drug2genes[drug]):
-			if gene!="Rv2043c":continue
 			if gene not in variants: continue
 			for mutation in tqdm(variants[gene]):
 				t = [
