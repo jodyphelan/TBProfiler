@@ -6,6 +6,7 @@ import argparse
 import os
 from tqdm import tqdm
 import sys
+
 def main(args):
 	change_field = "change" if args.variant_format=="hgvs" else "_internal_change"
 	conf = json.load(open(sys.prefix+"/share/tbprofiler/%s.config.json" % args.db))

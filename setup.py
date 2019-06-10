@@ -20,6 +20,7 @@ setuptools.setup(
 		'scripts/tbprofiler_get_library_freq.py',
 		'scripts/tbprofiler_get_heteroresistant_calls.py',
 		'scripts/tbprofiler_odds_ratios.py',
+		'scripts/tbprofiler_generate_haplotypes.py',
 		],
 	data_files=[('share/tbprofiler',["db/tbdb.ann.txt","db/tbdb.barcode.bed","db/tbdb.bed","db/tbdb.dr.json","db/tbdb.fasta","db/tbdb.gff","example_data/tbprofiler.test.fq.gz"])]
 )
