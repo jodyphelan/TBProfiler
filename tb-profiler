@@ -12,7 +12,7 @@ except:
 	sys.base_prefix = getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', sys.prefix))
 def main_reprofile(args):
 	if pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.config.json"):
-		files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json"}
+		files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
 		new_conf = {}
 		for key in files:
 			new_conf[key] = sys.base_prefix+"/share/tbprofiler/tbdb"+files[key]
@@ -21,17 +21,17 @@ def main_reprofile(args):
 	conf = json.load(open(pp.filecheck(sys.base_prefix+"/share/tbprofiler/%s.config.json" % args.db)))
 	old_results = json.load(open(args.json))
 	new_results = old_results.copy()
-	variant_dump = []
+	variant_dump = {}
 	for var in old_results["dr_variants"]:
 		del var["drug"]
 		var["gene_id"] = var["locus_tag"]
 		var["change"] = var["_internal_change"]
-		variant_dump.append(var)
+		variant_dump[(var["locus_tag"],var["change"])] = var
 	for var in old_results["other_variants"]:
-		variant_dump.append(var)
 		var["gene_id"] = var["locus_tag"]
 		var["change"] = var["_internal_change"]
-	new_results["variants"] = variant_dump
+		variant_dump[(var["locus_tag"],var["change"])] = var
+	new_results["variants"] = list(variant_dump.values())
 	del new_results["other_variants"]
 	del new_results["dr_variants"]
 	new_results = pp.db_compare(db_file=conf["json_db"],mutations=new_results)
@@ -40,6 +40,7 @@ def main_reprofile(args):
 		del var["gene_id"]
 	for var in new_results["other_variants"]:
 		del var["gene_id"]
+	new_results["db_version"] = json.load(open(conf["version"]))
 	json.dump(new_results,open("%s.results.json"%args.prefix,"w"))
 
 def main_profile(args):
@@ -47,14 +48,14 @@ def main_profile(args):
 		args.webserver_root = "/srv/www/htdocs/"
 		args.dir = "/srv/www/htdocs/input"
 
-	if pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.config.json"):
-		files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json"}
-		new_conf = {}
-		for key in files:
-			new_conf[key] = sys.base_prefix+"/share/tbprofiler/tbdb"+files[key]
-		json.dump(new_conf,open(sys.base_prefix+"/share/tbprofiler/tbdb.config.json","w"))
+	conf_file = sys.base_prefix+"/share/tbprofiler/%s.config.json" % args.db
+	if pp.nofile(conf_file):
+		if args.db=="tbdb":
+			pp.run_cmd("tb-profiler update_tbdb")
+		else:
+			pp.log("Can't find config file for db: %s" % conf_file,ext=True)
 
-	conf = json.load(open(pp.filecheck(sys.base_prefix+"/share/tbprofiler/%s.config.json" % args.db)))
+	conf = json.load(open(conf_file))
 	for x in ["bam","vcf","results"]:
 		if pp.nofolder(args.dir+"/"+x):
 			os.mkdir(args.dir+"/"+x)
@@ -85,6 +86,7 @@ def main_profile(args):
 	results["tbprofiler_version"] = tbp._VERSION
 	outfile = "%s.results.json" % (args.dir+"/"+args.prefix)
 	results["pipeline"] = {"mapper":args.mapper if not args.bam else "N/A","variant_caller":args.caller}
+	results["db_version"] = json.load(open(conf["version"]))
 	json.dump(results,open(outfile,"w"))
 	tex_output = args.dir+"/"+args.prefix+".results.tex"
 	text_output = args.dir+"/"+args.prefix+".results.txt"
@@ -112,7 +114,6 @@ def main_profile(args):
 		html_output = args.webserver_root+"/output/"+args.prefix+".html"
 		tbp.write_html(results,conf,html_output,extra_columns,["isoniazid","rifampicin","ethambutol","pyrazinamide","streptomycin","ethionamide","fluoroquinolones","amikacin","capreomycin","kanamycin"])
 		pp.run_cmd("rm %(dir)s/bam/%(prefix)s*" % vars(args))
-#		pp.run_cmd("rm %(dir)s/results/%(prefix)s*" % vars(args))
 		pp.run_cmd("rm %(dir)s/vcf/%(prefix)s*" % vars(args))
 	pp.log("Profiling finished sucessfully!")
 	if args.meta:
@@ -131,8 +132,10 @@ def main_update_tbdb(args):
 	pp.log("Sucessfully updated TBDB")
 def main_load_library(args):
 	lib_prefix = args.prefix.split("/")[-1]
-	files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json"}
+	files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
 	new_conf = {}
+	if pp.nofolder(sys.base_prefix+"/share/tbprofiler"):
+		pp.run_cmd("mkdir %s " % sys.base_prefix+"/share/tbprofiler/")
 	for key in files:
 		new_conf[key] = sys.base_prefix+"/share/tbprofiler/"+lib_prefix+files[key]
 		pp.run_cmd("cp %s %s" % (args.prefix+files[key],new_conf[key]))
@@ -205,7 +208,6 @@ def main_vcf_profile(args):
 		results["tbprofiler_version"] = tbp._VERSION
 		outfile = "%s.results.json" % (args.dir+"/"+args.prefix)
 		results["pipeline"] = {"mapper": "N/A","variant_caller":"N/A"}
-		print(outfile)
 		json.dump(results,open(outfile,"w"))
 		tex_output = args.dir+"/"+args.prefix+".results.tex"
 		text_output = args.dir+"/"+args.prefix+".results.txt"
