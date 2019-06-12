@@ -135,7 +135,7 @@ def main_load_library(args):
 	files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
 	new_conf = {}
 	if pp.nofolder(sys.base_prefix+"/share/tbprofiler"):
-		pp.run_cmd("mkdir %s " % sys.base_prefix+"/share/tbprofiler/")
+		pp.run_cmd("mkdir %s " % (sys.base_prefix+"/share/tbprofiler/"))
 	for key in files:
 		new_conf[key] = sys.base_prefix+"/share/tbprofiler/"+lib_prefix+files[key]
 		pp.run_cmd("cp %s %s" % (args.prefix+files[key],new_conf[key]))
