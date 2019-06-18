@@ -45,84 +45,86 @@ def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=
 	return new_json
 
 
-def reformat_mutations(x,vartype,gene,gene_info):
-	aa_short2long = {
-	'A': 'Ala', 'R': 'Arg', 'N': 'Asn', 'D': 'Asp', 'C': 'Cys', 'Q': 'Gln',
-	'E': 'Glu', 'G': 'Gly', 'H': 'His', 'I': 'Ile', 'L': 'Leu', 'K': 'Lys',
-	'M': 'Met', 'F': 'Phe', 'P': 'Pro', 'S': 'Ser', 'T': 'Thr', 'W': 'Trp',
-	'Y': 'Tyr', 'V': 'Val', '*': 'Stop', '-': '-'
-	}
-	# big Deletion
-	# Chromosome_3073680_3074470
-	if "large_deletion" in vartype:
-		re_obj = re.search("([0-9]+)_([0-9]+)",x)
-		if re_obj:
-			start = re_obj.group(1)
-			end = re_obj.group(2)
-			return "Chromosome:g.%s_%sdel" % (start,end)
-	# Substitution
-	# 450S>450L
-	if "missense" in vartype or "start_lost" in vartype:
-		re_obj = re.search("([0-9]+)([A-Z])>([0-9]+)([A-Z])",x)
-		if re_obj:
-			codon_num = int(re_obj.group(1))
-			ref = aa_short2long[re_obj.group(2)]
-			alt = aa_short2long[re_obj.group(4)]
-			return "p.%s%s%s" % (ref,codon_num,alt)
-		# Deletion
-		# 761100CAATTCATGG>C
-	if "frame" in vartype:
-		re_obj = re.search("([0-9]+)([A-Z][A-Z]+)>([A-Z])",x)
-		if re_obj:
-			chr_pos = int(re_obj.group(1))
-			ref = re_obj.group(2)
-			alt = re_obj.group(3)
-			strand = "-" if gene[-1]=="c" else "+"
-			del_len = len(ref)-len(alt)
-			if strand == "+":
-				gene_start = gene_info[chr_pos] + 1
-				gene_end = gene_start + del_len - 1
-				return "c.%s_%sdel" % (gene_start,gene_end)
-			else:
-				gene_start = gene_info[chr_pos+del_len]
-				gene_end = gene_info[chr_pos] -1
-				return "c.%s_%sdel" % (gene_start,gene_end)
-		# Insertion
-		# 1918692G>GTT
-		re_obj = re.search("([0-9]+)([A-Z])>([A-Z][A-Z]+)",x)
-		if re_obj:
-			chr_pos = int(re_obj.group(1))
-			ref = re_obj.group(2)
-			alt = re_obj.group(3)
-			strand = "-" if gene[-1]=="c" else "+"
-			gene_start = gene_info[chr_pos] + 1
-			gene_end = gene_start + 1
-			if strand == "+":
-				return "c.%s_%sins%s" % (gene_start,gene_end,alt[1:])
-			else:
-	 			return "c.%s_%sins%s" % (gene_start,gene_end,pp.revcom(alt[1:]))
-	if "non_coding" in vartype:
-		re_obj = re.match("([0-9]+)([A-Z]+)>([A-Z]+)",x)
-		if re_obj:
-			gene_pos = int(re_obj.group(1))
-			ref = re_obj.group(2)
-			alt = re_obj.group(3)
-			return "r.%s%s>%s" % (gene_pos,ref.lower(),alt.lower())
-		re_obj = re.match("(\-[0-9]+)([A-Z]+)>([A-Z]+)",x)
-		if re_obj:
-			gene_pos = int(re_obj.group(1))
-			ref = re_obj.group(2)
-			alt = re_obj.group(3)
-			strand = "-" if gene[-1]=="c" else "+"
-			if strand=="+":
-				return "c.%s%s>%s" % (gene_pos,ref,alt)
-			else:
-				return "c.%s%s>%s" % (gene_pos,pp.revcom(ref),pp.revcom(alt))
-	if "synonymous" in vartype:
-		re_obj = re.search("([\-0-9]+)([A-Z])>([A-Z])",x)
-		if re_obj:
-			return "c.%s" % (x)
-	return x
+# def reformat_mutations(x,vartype,gene,gene_info):
+# 	aa_short2long = {
+# 	'A': 'Ala', 'R': 'Arg', 'N': 'Asn', 'D': 'Asp', 'C': 'Cys', 'Q': 'Gln',
+# 	'E': 'Glu', 'G': 'Gly', 'H': 'His', 'I': 'Ile', 'L': 'Leu', 'K': 'Lys',
+# 	'M': 'Met', 'F': 'Phe', 'P': 'Pro', 'S': 'Ser', 'T': 'Thr', 'W': 'Trp',
+# 	'Y': 'Tyr', 'V': 'Val', '*': '*', '-': '-'
+# 	}
+# 	# big Deletion
+# 	# Chromosome_3073680_3074470
+# 	if "large_deletion" in vartype:
+# 		re_obj = re.search("([0-9]+)_([0-9]+)",x)
+# 		if re_obj:
+# 			start = re_obj.group(1)
+# 			end = re_obj.group(2)
+# 			return "Chromosome:g.%s_%sdel" % (start,end)
+# 	# Substitution
+# 	# 450S>450L
+# 	if "missense" in vartype or "start_lost" in vartype or "stop_gained" in vartype:
+# 		re_obj = re.search("([0-9]+)([A-Z\*])>([0-9]+)([A-Z\*])",x)
+# 		if re_obj:
+# 			codon_num = int(re_obj.group(1))
+# 			ref = aa_short2long[re_obj.group(2)]
+# 			alt = aa_short2long[re_obj.group(4)]
+# 			return "p.%s%s%s" % (ref,codon_num,alt)
+# 		# Deletion
+# 		# 761100CAATTCATGG>C
+# 	if "frame" in vartype:
+# 		re_obj = re.search("([0-9]+)([A-Z][A-Z]+)>([A-Z])",x)
+# 		if re_obj:
+# 			chr_pos = int(re_obj.group(1))
+# 			ref = re_obj.group(2)
+# 			alt = re_obj.group(3)
+# 			strand = "-" if gene[-1]=="c" else "+"
+# 			del_len = len(ref)-len(alt)
+# 			if strand == "+":
+# 				gene_start = gene_info[chr_pos] + 1
+# 				gene_end = gene_start + del_len - 1
+# 				return "c.%s_%sdel" % (gene_start,gene_end)
+# 			else:
+# 				gene_start = gene_info[chr_pos+del_len]
+# 				gene_end = gene_info[chr_pos] -1
+# 				return "c.%s_%sdel" % (gene_start,gene_end)
+# 		# Insertion
+# 		# 1918692G>GTT
+# 		re_obj = re.search("([0-9]+)([A-Z])>([A-Z][A-Z]+)",x)
+# 		if re_obj:
+# 			chr_pos = int(re_obj.group(1))
+# 			ref = re_obj.group(2)
+# 			alt = re_obj.group(3)
+# 			strand = "-" if gene[-1]=="c" else "+"
+# 			if strand == "+":
+# 				gene_start = gene_info[chr_pos]
+# 				gene_end = gene_start + 1
+# 				return "c.%s_%sins%s" % (gene_start,gene_end,alt[1:])
+# 			else:
+# 				gene_start = gene_info[chr_pos] - 1
+# 				gene_end = gene_info[chr_pos]
+# 				return "c.%s_%sins%s" % (gene_start,gene_end,pp.revcom(alt[1:]))
+# 	if "non_coding" in vartype:
+# 		re_obj = re.match("([0-9]+)([A-Z]+)>([A-Z]+)",x)
+# 		if re_obj:
+# 			gene_pos = int(re_obj.group(1))
+# 			ref = re_obj.group(2)
+# 			alt = re_obj.group(3)
+# 			return "r.%s%s>%s" % (gene_pos,ref.lower(),alt.lower())
+# 		re_obj = re.match("(\-[0-9]+)([A-Z]+)>([A-Z]+)",x)
+# 		if re_obj:
+# 			gene_pos = int(re_obj.group(1))
+# 			ref = re_obj.group(2)
+# 			alt = re_obj.group(3)
+# 			strand = "-" if gene[-1]=="c" else "+"
+# 			if strand=="+":
+# 				return "c.%s%s>%s" % (gene_pos,ref,alt)
+# 			else:
+# 				return "c.%s%s>%s" % (gene_pos,pp.revcom(ref),pp.revcom(alt))
+# 	if "synonymous" in vartype:
+# 		re_obj = re.search("([\-0-9]+)([A-Z])>([A-Z])",x)
+# 		if re_obj:
+# 			return "c.%s" % (x)
+# 	return x
 
 def add_genes(results,conf):
 
@@ -212,7 +214,7 @@ def reformat_annotations(results,conf):
 		chr2gene_pos[int(row[1])] = int(row[3])
 	for var in results["variants"]:
 		var["_internal_change"] = var["change"]
-		var["change"] = reformat_mutations(var["change"],var["type"],var["locus_tag"],chr2gene_pos)
+		var["change"] = pp.reformat_mutations(var["change"],var["type"],var["locus_tag"],chr2gene_pos)
 	results["dr_variants"] = []
 	for d in [x for x in results["variants"] if "annotation" in x]:
 		for drug in d["annotation"]["drugs"]:
