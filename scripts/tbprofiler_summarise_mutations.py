@@ -29,7 +29,7 @@ def main(args):
 	columns = args.columns.split(",") if args.columns else []
 	if args.summary:
 		O = open(args.summary,"w")
-		O.write("%s\n" % ("\t".join(["Gene","Mutation"]+columns+["%s_num\t%s_pct" % (x,x) if args.pct else x list(sample_sets)])))
+		O.write("%s\n" % ("\t".join(["Gene","Mutation"]+columns+["%s_num\t%s_pct" % (x,x) if args.pct else x for x in list(sample_sets)])))
 		for var_string in mutations:
 			var = json.loads(var_string)
 			if "gene_name" not in var: var["gene_name"] = var["gene"] ######Fix for large deletions not haveing this key
