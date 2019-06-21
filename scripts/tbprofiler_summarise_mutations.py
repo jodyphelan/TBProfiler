@@ -16,6 +16,7 @@ def main(args):
 
 	mutations = defaultdict(set)
 	for s in tqdm(total_samples):
+		if pp.nofile("%s/%s.results.json" % (args.dir,s)): continue
 		tmp = json.load(open("%s/%s.results.json" % (args.dir,s)))
 		for var in tmp["dr_variants"]:
 			tmp_var = var
