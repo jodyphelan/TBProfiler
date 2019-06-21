@@ -22,6 +22,8 @@ def main(args):
 			tmp_var = var
 			if "sample" in tmp_var:
 				del tmp_var["sample"]
+			if "gene_name" in tmp_var:
+				del tmp_var["gene_name"]
 			del tmp_var["freq"]
 			mutations[json.dumps(tmp_var)].add(s)
 	columns = args.columns.split(",") if args.columns else []
