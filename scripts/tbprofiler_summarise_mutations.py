@@ -29,7 +29,7 @@ def main(args):
 	columns = args.columns.split(",") if args.columns else []
 	if args.summary:
 		O = open(args.summary,"w")
-		O.write("%s\n" % ("\t".join(["Gene","Mutation"]+columns+list(sample_sets))))
+		O.write("%s\n" % ("\t".join(["Gene","Mutation"]+columns+["%s_num\t%s_pct" % (x,x) if args.pct else x list(sample_sets)])))
 		for var_string in mutations:
 			var = json.loads(var_string)
 			if "gene_name" not in var: var["gene_name"] = var["gene"] ######Fix for large deletions not haveing this key
@@ -39,7 +39,7 @@ def main(args):
 				num = len([s for s in sample_sets[f] if s in mutations[var_string]])
 				if args.pct:
 					pct = num/len(sample_sets[f])*100
-					tmp_freqs.append("%s (%.2f)" % (num,pct))
+					tmp_freqs.append("%s\t%.2f" % (num,pct))
 				else:
 					tmp_freqs.append("%s" % num)
 			O.write("%s\t%s\t%s\t%s\n" % (var["gene_name"],var["change"],"\t".join([str(var[x]) for x in columns]),"\t".join(tmp_freqs)))
