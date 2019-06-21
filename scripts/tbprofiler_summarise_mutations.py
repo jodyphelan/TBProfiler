@@ -20,7 +20,6 @@ def main(args):
 		tmp = json.load(open("%s/%s.results.json" % (args.dir,s)))
 		for var in tmp["dr_variants"]:
 			tmp_var = var
-			print(tmp_var)
 			if "sample" in tmp_var:
 				del tmp_var["sample"]
 			del tmp_var["freq"]
