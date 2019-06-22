@@ -26,6 +26,16 @@ def main(args):
 				del tmp_var["gene_name"]
 			del tmp_var["freq"]
 			mutations[json.dumps(tmp_var)].add(s)
+		if args.non_dr:
+			for var in tmp["other_variants"]:
+				tmp_var = var
+				if "sample" in tmp_var:
+					del tmp_var["sample"]
+				if "gene_name" in tmp_var:
+					del tmp_var["gene_name"]
+				del tmp_var["freq"]
+				mutations[json.dumps(tmp_var)].add(s)
+
 	columns = args.columns.split(",") if args.columns else []
 	if args.summary:
 		O = open(args.summary,"w")
@@ -51,6 +61,7 @@ parser.add_argument('--dir',default="results",type=str,help='NGS Platform')
 parser.add_argument('--summary',type=str,help='NGS Platform')
 parser.add_argument('--pct',action="store_true",help='NGS Platform')
 parser.add_argument('--columns',type=str,help='NGS Platform')
+parser.add_argument('--non-dr',action="store_true",help='NGS Platform')
 parser.set_defaults(func=main)
 
 args = parser.parse_args()
