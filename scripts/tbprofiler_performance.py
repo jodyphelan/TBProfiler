@@ -6,6 +6,7 @@ import json
 import argparse
 from collections import defaultdict
 from tqdm import tqdm
+import csv
 
 fluoroquinolones = ['ciprofloxacin','levofloxacin', 'moxifloxacin', 'ofloxacin','fluoroquinolones']
 aminoglycosides = ['amikacin', 'capreomycin','kanamycin']
@@ -32,11 +33,20 @@ DATA
 		O.write("%s\tred\n" % x)
 	O.close()
 
+def load_dst(dst_csv,drugs=None):
+	drugs = ["rifampicin", "isoniazid", "pyrazinamide", "ethambutol", "streptomycin", "fluoroquinolones", "moxifloxacin", "ofloxacin", "levofloxacin", "ciprofloxacin", "aminoglycosides", "amikacin", "kanamycin", "capreomycin", "ethionamide", "para-aminosalicylic_acid", "cycloserine", "linezolid"] if not drugs else drugs
+	dst = {}
+	for row in csv.DictReader(open(dst_csv)):
+		dst[row["id"]] = {}
+		for d in drugs:
+			dst[row["id"]][d] = row[d]
+	return dst
+
 def calculate(args):
 	sample_file = args.samples
 	dst_file = args.dst
 
-	dst = json.load(open(dst_file))
+	dst = load_dst(dst_file)
 	drug_loci = pp.load_bed(args.bed,[6],4) # {'Rv0668': ('rifampicin')}
 	FAIL = open("samples_not_found.txt","w")
 	samples = [x.rstrip() for x in open(sample_file).readlines()]

@@ -6,36 +6,58 @@ import argparse
 import os
 from tqdm import tqdm
 import sys
-
+import pathogenprofiler as pp
 def main(args):
 	change_field = "change" if args.variant_format=="hgvs" else "_internal_change"
 	conf = json.load(open(sys.prefix+"/share/tbprofiler/%s.config.json" % args.db))
 	drug2genes = defaultdict(set)
+	gene2drugs = defaultdict(set)
 	for l in open(conf["bed"]):
 		row = l.rstrip().split()
 		for d in row[5].split(","):
 			drug2genes[d].add(row[3])
+			gene2drugs[row[3]].add(d)
 	if args.samples:
 		samples = [x.rstrip() for x in open(args.samples).readlines()]
 	else:
 		samples = [x.replace(".results.json","") for x in os.listdir("results/") if x[-13:]==".results.json"]
 	variants = defaultdict(lambda:defaultdict(list))
-	print("sample,%s" % (",".join(["mutations_%s" % x for x in sorted(drug2genes)])))
+	if args.non_dr:
+		print("sample,%s" % (",".join(["%s,%s" % ("dr_mutations_%s" % x,"other_mutations_%s" % x)  for x in sorted(drug2genes)])))
+	else:
+		print("sample,%s" % (",".join(["dr_mutations_%s" % x for x in sorted(drug2genes)])))
 	for s in tqdm(samples):
+		if pp.nofile("%s/%s.results.json" % (args.dir,s)):
+			if args.non_dr:
+				print("%s,%s" % (s,",".join(["NA,NA" for _ in drug2genes])))
+			else:
+				print("%s,%s" % (s,",".join(["NA" for _ in drug2genes])))
+			continue
 		tmp = json.load(open("%s/%s.results.json" % (args.dir,s)))
-		sample_mutations = defaultdict(list)
-		tmp_store = set([json.dumps(x) for x in tmp["dr_variants"]])
-		tmp["dr_variants"] = []
-		tmp["dr_variants"] = [json.loads(x) for x in tmp_store]
+		sample_dr_mutations = defaultdict(list)
+		tmp_store = set([json.dumps(x) for x in tmp["dr_variants"]])	# This step is only to remove duplicate
+		tmp["dr_variants"] = []											# mutations introduced by a bug that is
+		tmp["dr_variants"] = [json.loads(x) for x in tmp_store]			# now fixed
 		for var in tmp["dr_variants"]:
-			sample_mutations[var["drug"]].append(var["gene"]+"_"+var[change_field])
-		print("%s,%s" % (s,",".join(["; ".join(sample_mutations[d]) for d in sorted(drug2genes)])))
+			sample_dr_mutations[var["drug"]].append(var["gene"]+"_"+var[change_field])
+		if args.non_dr:
+			sample_other_mutations = defaultdict(list)
+			tmp_store = set([json.dumps(x) for x in tmp["other_variants"]])	# This step is only to remove duplicate
+			tmp["other_variants"] = []										# mutations introduced by a bug that is
+			tmp["other_variants"] = [json.loads(x) for x in tmp_store]		# now fixed
+			for var in tmp["other_variants"]:
+				for d in gene2drugs[var["locus_tag"]]:
+					sample_other_mutations[d].append(var["gene"]+"_"+var[change_field])
+			print("%s,%s" % (s,",".join(["%s,%s" % ("; ".join(sample_dr_mutations[d]) if d in sample_dr_mutations else "WT","; ".join(sample_other_mutations[d]) if d in sample_other_mutations else "WT",) for d in sorted(drug2genes)])))
+		else:
+			print("%s,%s" % (s,",".join(["; ".join(sample_dr_mutations[d]) if d in sample_dr_mutations else "WT" for d in sorted(drug2genes)])))
 
 parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--samples',type=str,help='NGS Platform')
 parser.add_argument('--dir',default="results/",type=str,help='NGS Platform')
 parser.add_argument('--db',default="tbdb",type=str,help='NGS Platform')
 parser.add_argument('--variant-format',default="hgvs",choices=["hgvs","bcftools"],type=str,help='NGS Platform')
+parser.add_argument('--non-dr',action="store_true",help='NGS Platform')
 parser.set_defaults(func=main)
 
 args = parser.parse_args()
