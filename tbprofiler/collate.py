@@ -41,6 +41,7 @@ def collate_results(prefix,conf_file,sample_file=None,full_results=True,full_var
 			results[s]["XDR"] = temp["XDR"]
 		dr_drugs[s] = [x["drug"] for x in temp["dr_variants"]]
 	if full_variant_results:
+
 		all_vars = json.load(open(conf["json_db"]))
 		lt2gene = {}
 		for l in open(conf["bed"]):
@@ -48,9 +49,9 @@ def collate_results(prefix,conf_file,sample_file=None,full_results=True,full_var
 			row = l.rstrip().split()
 			lt2gene[row[3]] = row[4] if row[4]!="." else row[3]
 		dr_variants_set = set()
-		for g in all_vars:
-			for c in all_vars[g]:
-				dr_variants_set.add((lt2gene[g],c))
+		for gene in all_vars:
+			for mutation in all_vars[gene]:
+				dr_variants_set.add((lt2gene[gene],all_vars[gene][mutation]["hgvs_mutation"]))
 		VAR = open(prefix+".variants.txt","w")
 		VAR.write("sample\t%s\n" % ("\t".join(["%s_%s" % (g,c) for g,c in sorted(dr_variants_set,key=lambda x: x[0])])))
 		for s in samples:
