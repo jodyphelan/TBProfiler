@@ -48,12 +48,21 @@ def main_profile(args):
 		args.webserver_root = "/srv/www/htdocs/"
 		args.dir = "/srv/www/htdocs/input"
 
-	conf_file = sys.base_prefix+"/share/tbprofiler/%s.config.json" % args.db
-	if pp.nofile(conf_file):
-		if args.db=="tbdb":
-			pp.run_cmd("tb-profiler update_tbdb")
-		else:
-			pp.log("Can't find config file for db: %s" % conf_file,ext=True)
+	if args.external_db:
+		if pp.nofile(args.external_db+".config.json"):
+			files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
+			new_conf = {}
+			for key in files:
+				new_conf[key] = args.external_db+files[key]
+			json.dump(new_conf,open(args.external_db+".config.json","w"))
+		conf_file = args.external_db+".config.json"
+	else:
+		conf_file = sys.base_prefix+"/share/tbprofiler/"+args.db+".config.json"
+		if pp.nofile(conf_file):
+			if args.db=="tbdb":
+				pp.run_cmd("tb-profiler update_tbdb")
+			else:
+				pp.log("Can't find config file for db: %s" % conf_file,ext=True)
 
 	conf = json.load(open(conf_file))
 	for x in ["bam","vcf","results"]:
@@ -61,9 +70,9 @@ def main_profile(args):
 			os.mkdir(args.dir+"/"+x)
 	if args.platform=="minION":
 		args.mapper = "minimap2"
+	pp.log("Using conf file: %s" % conf_file)
 
-	conf_file = pp.filecheck(sys.base_prefix+"/share/tbprofiler/"+args.db+".config.json")
-	conf = json.load(open(conf_file))
+
 	if args.webserver:
 		fastqs = []
 		for l in pp.cmd_out("ls %s/input/%s* | grep fastq" % (args.webserver_root,args.prefix)):
@@ -141,7 +150,8 @@ def main_load_library(args):
 		pp.run_cmd("cp %s %s" % (args.prefix+files[key],new_conf[key]))
 	json.dump(new_conf,open(sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".config.json","w"))
 	pp.run_cmd("samtools faidx %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
-	pp.run_cmd("gatk CreateSequenceDictionary -R %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
+	if pp.nofile(sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".dict"):
+		pp.run_cmd("gatk CreateSequenceDictionary -R %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
 	pp.log("Sucessfully imported library")
 
 def main_lineage(args):
@@ -241,6 +251,7 @@ if __name__=="__main__":
 	parser_sub.add_argument('--bam','-a',help='BAM file. Make sure it has been generated using the H37Rv genome (GCA_000195955.2)')
 	parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix for all results generated')
 	parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
+	parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 	parser_sub.add_argument('--mapper',default="bwa", choices=["bwa","minimap2","bowtie2"],help="Mapping tool to use. If you are using minION data it will default to minimap2",type=str)
 	parser_sub.add_argument('--caller',default="GATK", choices=["BCFtools","GATK"],help="Variant calling tool to use.",type=str)
 	parser_sub.add_argument('--min_depth',default=10,type=int,help='Minimum depth required to call variant. Bases with depth below this cutoff will be marked as missing')
