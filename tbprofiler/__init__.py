@@ -7,4 +7,4 @@ from .phylogeny import *
 from .vcfprofile import *
 import os
 _ROOT = os.path.abspath(os.path.dirname(__file__))
-_VERSION = "2.6.0"
+_VERSION = "2.6.1"
