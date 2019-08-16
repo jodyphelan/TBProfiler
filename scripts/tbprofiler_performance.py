@@ -222,7 +222,7 @@ def analyse(args):
 	drug_loci = pp.load_bed(args.bed,[6],4)
 	for d in drug_loci:
 		drug_loci[d] = [x.lower() for x in drug_loci[d][0].split(";")]
-
+	print(drug_loci)
 	drug =	args.drug
 	results = json.load(open("results.json"))
 	fn = defaultdict(int)
@@ -235,8 +235,9 @@ def analyse(args):
 		print("%s\tFalse_negative" % s)
 		tmp = json.load(open("%s/%s.results.json"%(args.dir,s)))
 		for var in tmp["other_variants"]:
-			if drug not in drug_loci[var["locus_tag"]]:
+			if not any([drug in x for x in drug_loci[var["locus_tag"]]]):
 				continue
+
 			fn[(var["gene"],var["locus_tag"],var["change"])]+=1
 	for s in results[drug]["fp"]:
 		print("%s\tFalse_positive" % s)

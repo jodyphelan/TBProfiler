@@ -1,9 +1,7 @@
 import json
 import pathogenprofiler as pp
 import os
-def phylogeny(prefix,conf_file,sample_file=None,base_dir = ".",threads=3):
-    conf = json.load(open(conf_file))
-
+def phylogeny(prefix,conf,sample_file=None,base_dir = ".",threads=3):
     if sample_file:
         samples = [x.rstrip() for x in open(sample_file).readlines()]
     else:
