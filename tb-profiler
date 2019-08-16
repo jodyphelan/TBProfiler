@@ -314,6 +314,7 @@ if __name__=="__main__":
 	parser_sub.add_argument('json',help='JSON output file')
 	parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
 	parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
+	parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 	parser_sub.set_defaults(func=main_reprofile)
 
 
@@ -323,6 +324,7 @@ if __name__=="__main__":
 	parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
 	parser_sub.add_argument('--pdf',action="store_true",help="Add PDF output. This requires pdflatex to be installed")
 	parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
+	parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 	parser_sub.set_defaults(func=main_reformat)
 
 	parser_sub = subparsers.add_parser('load_library', help='Load new library', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -339,6 +341,7 @@ if __name__=="__main__":
 	parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
 	parser_sub.add_argument('--outfmt',default='json',choices=["json","txt"],type=str,help="Output format")
 	parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
+	parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 	parser_sub.set_defaults(func=main_lineage)
 
 	parser_sub = subparsers.add_parser('collate', help='Collate results form multiple samples together', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -348,6 +351,7 @@ if __name__=="__main__":
 	parser_sub.add_argument('--full',action="store_true",help='Output mutations in main result file')
 	parser_sub.add_argument('--all_variants',action="store_true",help='Output all variants in variant matrix')
 	parser_sub.add_argument('--db',default='tbdb',help='Full path to mutation database json file to use')
+	parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 	parser_sub.set_defaults(func=main_collate)
 
 	# parser_sub = subparsers.add_parser('phylogeny', help='Create a phylogeny based on SNPs', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
