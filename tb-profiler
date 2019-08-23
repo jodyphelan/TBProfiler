@@ -6,19 +6,27 @@ import json
 import tbprofiler as tbp
 import os
 import csv
+
 try:
 	sys.base_prefix
 except:
 	sys.base_prefix = getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', sys.prefix))
-def main_reprofile(args):
-	if pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.config.json"):
-		files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
-		new_conf = {}
-		for key in files:
-			new_conf[key] = sys.base_prefix+"/share/tbprofiler/tbdb"+files[key]
-		json.dump(new_conf,open(sys.base_prefix+"/share/tbprofiler/tbdb"+".config.json","w"))
 
-	conf = json.load(open(pp.filecheck(sys.base_prefix+"/share/tbprofiler/%s.config.json" % args.db)))
+def get_conf_dict(library_prefix):
+	files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
+	conf = {}
+	for key in files:
+		sys.stderr.write("Using %s file: %s\n" % (key,library_prefix+files[key]))
+		conf[key] = pp.filecheck(library_prefix+files[key])
+	return conf
+
+def main_reprofile(args):
+	if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
+		pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+	if args.external_db:
+		conf = get_conf_dict(args.external_db)
+	else:
+		conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
 	old_results = json.load(open(args.json))
 	new_results = old_results.copy()
 	variant_dump = {}
@@ -44,33 +52,23 @@ def main_reprofile(args):
 	json.dump(new_results,open("%s.results.json"%args.prefix,"w"))
 
 def main_profile(args):
+
+	if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
+		pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
 	if args.webserver:
 		args.webserver_root = "/srv/www/htdocs/"
 		args.dir = "/srv/www/htdocs/input"
 
 	if args.external_db:
-		if pp.nofile(args.external_db+".config.json"):
-			files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
-			new_conf = {}
-			for key in files:
-				new_conf[key] = args.external_db+files[key]
-			json.dump(new_conf,open(args.external_db+".config.json","w"))
-		conf_file = args.external_db+".config.json"
+		conf = get_conf_dict(args.external_db)
 	else:
-		conf_file = sys.base_prefix+"/share/tbprofiler/"+args.db+".config.json"
-		if pp.nofile(conf_file):
-			if args.db=="tbdb":
-				pp.run_cmd("tb-profiler update_tbdb")
-			else:
-				pp.log("Can't find config file for db: %s" % conf_file,ext=True)
+		conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
 
-	conf = json.load(open(conf_file))
 	for x in ["bam","vcf","results"]:
 		if pp.nofolder(args.dir+"/"+x):
 			os.mkdir(args.dir+"/"+x)
 	if args.platform=="minION":
 		args.mapper = "minimap2"
-	pp.log("Using conf file: %s" % conf_file)
 
 
 	if args.webserver:
@@ -89,7 +87,7 @@ def main_profile(args):
 			pp.run_cmd("mv %s %s" % (args.read2,args.read2.replace(".gz","")))
 			pp.run_cmd("gzip %s" % (args.read2.replace(".gz","")))
 
-	results = pp.profiler(conf_file=conf_file,prefix=args.dir+"/"+args.prefix,r1=args.read1,r2=args.read2,bam_file=args.bam,call_method=args.call_method,min_depth=args.min_depth,threads=args.threads,platform=args.platform,mapper=args.mapper,run_delly=True,af=args.af,caller=args.caller)
+	results = pp.profiler(conf=conf,prefix=args.dir+"/"+args.prefix,r1=args.read1,r2=args.read2,bam_file=args.bam,call_method=args.call_method,min_depth=args.min_depth,threads=args.threads,platform=args.platform,mapper=args.mapper,run_delly=True,af=args.af,caller=args.caller)
 	results = tbp.reformat(results,conf)
 	results["id"] = args.prefix
 	results["tbprofiler_version"] = tbp._VERSION
@@ -139,24 +137,27 @@ def main_update_tbdb(args):
 	pp.run_cmd("tb-profiler load_library tbdb")
 	os.chdir("../")
 	pp.log("Sucessfully updated TBDB")
+
 def main_load_library(args):
 	lib_prefix = args.prefix.split("/")[-1]
 	files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
-	new_conf = {}
 	if pp.nofolder(sys.base_prefix+"/share/tbprofiler"):
 		pp.run_cmd("mkdir %s " % (sys.base_prefix+"/share/tbprofiler/"))
 	for key in files:
-		new_conf[key] = sys.base_prefix+"/share/tbprofiler/"+lib_prefix+files[key]
-		pp.run_cmd("cp %s %s" % (args.prefix+files[key],new_conf[key]))
-	json.dump(new_conf,open(sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".config.json","w"))
+		new_file_location = sys.base_prefix+"/share/tbprofiler/"+lib_prefix+files[key]
+		pp.run_cmd("cp %s %s" % (args.prefix+files[key],new_file_location))
 	pp.run_cmd("samtools faidx %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
 	if pp.nofile(sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".dict"):
 		pp.run_cmd("gatk CreateSequenceDictionary -R %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
 	pp.log("Sucessfully imported library")
 
 def main_lineage(args):
-	conf_file = pp.filecheck(sys.base_prefix+"/share/tbprofiler/"+args.db+".config.json")
-	conf = json.load(open(conf_file))
+	if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
+		pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+	if args.external_db:
+		conf = get_conf_dict(args.external_db)
+	else:
+		conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
 	pp.filecheck(args.bam)
 	bam = pp.bam(args.bam,args.bam,conf["ref"])
 	mutations = bam.get_bed_gt(conf["barcode"])
@@ -173,20 +174,36 @@ def main_lineage(args):
 		O.close()
 
 def main_collate(args):
-	conf_file = pp.filecheck(sys.base_prefix+"/share/tbprofiler/"+args.db+".config.json")
-	tbp.collate_results(args.prefix,conf_file,sample_file=args.samples)
+	if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
+		pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+	if args.external_db:
+		conf = get_conf_dict(args.external_db)
+	else:
+		conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
+	tbp.collate_results(args.prefix,conf,sample_file=args.samples,dir=args.dir)
 
 def main_phylogeny(args):
-	conf_file = pp.filecheck(sys.base_prefix+"/share/tbprofiler/"+args.db+".config.json")
-	tbp.phylogeny(prefix=args.prefix,conf_file=conf_file,sample_file=args.samples,base_dir=args.dir)
+	if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
+		pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+
+	if args.external_db:
+		conf = get_conf_dict(args.external_db)
+	else:
+		conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
+	tbp.phylogeny(prefix=args.prefix,conf=conf,sample_file=args.samples,base_dir=args.dir)
 
 def main_version(args):
 	print("\nTBProfiler version %s\n\nContact: Jody Phelan (jody.phelan@lshtm.ac.uk)\n" % tbp._VERSION)
 
 def main_reformat(args):
+	if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
+		pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+
 	results = json.load(open(args.json))
-	conf_file = pp.filecheck(sys.base_prefix+"/share/tbprofiler/"+args.db+".config.json")
-	conf = json.load(open(conf_file))
+	if args.external_db:
+		conf = get_conf_dict(args.external_db)
+	else:
+		conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
 	args.prefix = results["id"]
 	tex_output = args.prefix+".results.tex"
 	csv_output = args.prefix+".results.csv"
@@ -206,8 +223,13 @@ def main_vcf_profile(args):
 			os.mkdir(args.dir+"/"+x)
 
 	bcf_obj = pp.bcf(args.vcf)
-	conf_file = pp.filecheck(sys.base_prefix+"/share/tbprofiler/"+args.db+".config.json")
-	conf = json.load(open(conf_file))
+	if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
+		pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+
+	if args.external_db:
+		conf = get_conf_dict(args.external_db)
+	else:
+		conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
 	for s in bcf_obj.samples:
 		args.prefix = s
 		args.tmp_vcf = pp.get_random_file()
@@ -277,6 +299,7 @@ if __name__=="__main__":
 	parser_sub = subparsers.add_parser('vcf_profile', help='Run profiling pipeline on VCF file. Warning: this assumes that you have good coverage across the genome', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 	parser_sub.add_argument('vcf',help='VCF file')
 	parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
+	parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 	parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 	parser_sub.add_argument('--txt',action="store_true",help="Add text output")
 	parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
@@ -291,6 +314,7 @@ if __name__=="__main__":
 	parser_sub.add_argument('json',help='JSON output file')
 	parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
 	parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
+	parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 	parser_sub.set_defaults(func=main_reprofile)
 
 
@@ -300,6 +324,7 @@ if __name__=="__main__":
 	parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
 	parser_sub.add_argument('--pdf',action="store_true",help="Add PDF output. This requires pdflatex to be installed")
 	parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
+	parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 	parser_sub.set_defaults(func=main_reformat)
 
 	parser_sub = subparsers.add_parser('load_library', help='Load new library', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -316,6 +341,7 @@ if __name__=="__main__":
 	parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
 	parser_sub.add_argument('--outfmt',default='json',choices=["json","txt"],type=str,help="Output format")
 	parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
+	parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 	parser_sub.set_defaults(func=main_lineage)
 
 	parser_sub = subparsers.add_parser('collate', help='Collate results form multiple samples together', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -325,6 +351,7 @@ if __name__=="__main__":
 	parser_sub.add_argument('--full',action="store_true",help='Output mutations in main result file')
 	parser_sub.add_argument('--all_variants',action="store_true",help='Output all variants in variant matrix')
 	parser_sub.add_argument('--db',default='tbdb',help='Full path to mutation database json file to use')
+	parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 	parser_sub.set_defaults(func=main_collate)
 
 	# parser_sub = subparsers.add_parser('phylogeny', help='Create a phylogeny based on SNPs', formatter_class=argparse.ArgumentDefaultsHelpFormatter)

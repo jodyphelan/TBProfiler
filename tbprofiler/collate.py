@@ -3,8 +3,7 @@ import os
 from collections import defaultdict
 from tqdm import tqdm
 
-def collate_results(prefix,conf_file,sample_file=None,full_results=True,full_variant_results=True):
-	conf = json.load(open(conf_file))
+def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=True,full_variant_results=True):
 	set_all_drugs = set()
 	for l in open(conf["bed"]):
 		arr = l.rstrip().split()
@@ -14,7 +13,7 @@ def collate_results(prefix,conf_file,sample_file=None,full_results=True,full_var
 	if sample_file:
 		samples = [x.rstrip() for x in open(sample_file).readlines()]
 	else:
-		samples = [x.replace(".results.json","") for x in os.listdir("results/") if x[-13:]==".results.json"]
+		samples = [x.replace(".results.json","") for x in os.listdir("%s/" % dir) if x[-13:]==".results.json"]
 
 	results = defaultdict(dict)
 	dr_variants = defaultdict(lambda:defaultdict(dict))
@@ -24,7 +23,7 @@ def collate_results(prefix,conf_file,sample_file=None,full_results=True,full_var
 		for d in set_all_drugs:
 			results[s][d] = set()
 	for s in tqdm(samples):
-		temp = json.load(open("results/%s.results.json" % (s)))
+		temp = json.load(open("%s/%s.results.json" % (dir,s)))
 		for x in temp["dr_variants"]:
 			dr_variants[x["gene"]][x["change"]][s] = x["freq"]
 			dr_variants_set.add((x["gene"],x["change"]))
