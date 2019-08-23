@@ -20600,4 +20600,3 @@ Chromosome	ena	mRNA	4410786	4410929	.	-	.	ID=transcript:Rv3924c;Parent=gene:Rv39
 Chromosome	ena	exon	4410786	4410929	.	-	.	Parent=transcript:Rv3924c;Name=Rv3924c-1;constitutive=1;ensembl_end_phase=0;ensembl_phase=0;exon_id=Rv3924c-1;rank=1
 Chromosome	ena	CDS	4410786	4410929	.	-	0	ID=CDS:Rv3924c;Parent=transcript:Rv3924c;protein_id=Rv3924c
 ###
-
