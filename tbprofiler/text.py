@@ -61,7 +61,8 @@ Other variants report
 
 Analysis pipeline specifications
 --------------------------------
-Version: %(version)s
+Pipeline version: %(version)s
+Database version: %(db_version)s
 %(pipeline)s
 
 Disclaimer
@@ -102,7 +103,8 @@ Other variants report
 
 Analysis pipeline specifications
 --------------------------------
-Version,%(version)s
+Pipeline version,%(version)s
+Database version,"%(db_version)s"
 %(pipeline)s""" % text_strings
 
 
@@ -125,6 +127,7 @@ def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0):
 	text_strings["other_var_report"] = dict_list2text(json_results["other_variants"],["genome_pos","locus_tag","gene","change","freq"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
 	text_strings["pipeline"] = dict_list2text(json_results["pipline_table"],["Analysis","Program"])
 	text_strings["version"] = json_results["tbprofiler_version"]
+	text_strings["db_version"] = "%s_%s_%s_%s" % (json_results["db_version"]["name"],json_results["db_version"]["commit"],json_results["db_version"]["Author"],json_results["db_version"]["Date"])
 	o = open(outfile,"w")
 	o.write(load_text(text_strings))
 	o.close()
@@ -147,6 +150,7 @@ def write_csv(json_results,conf,outfile,columns = None):
 	csv_strings["other_var_report"] = dict_list2csv(json_results["other_variants"],["genome_pos","locus_tag","change","freq"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
 	csv_strings["pipeline"] = dict_list2csv(json_results["pipline_table"],["Analysis","Program"])
 	csv_strings["version"] = json_results["tbprofiler_version"]
+	csv_strings["db_version"] = "%s_%s_%s_%s" % (json_results["db_version"]["name"],json_results["db_version"]["commit"],json_results["db_version"]["Author"],json_results["db_version"]["Date"])
 	o = open(outfile,"w")
 	o.write(load_csv(csv_strings))
 	o.close()
