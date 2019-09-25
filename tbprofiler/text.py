@@ -1,6 +1,13 @@
 import time
 from .reformat import *
 
+_DRUGS = [
+    'rifampicin', 'isoniazid', 'ethambutol', 'pyrazinamide', 'streptomycin',
+    'fluoroquinolones', 'amikacin', 'capreomycin', 'kanamycin',
+    'cycloserine',  'ethionamide', 'clofazimine', 'para-aminosalicylic_acid',
+    'delamanid', 'bedaquiline', 'linezolid'
+]
+
 def lineagejson2text(x):
 	textlines = []
 	for l in x:
@@ -110,6 +117,7 @@ Database version,"%(db_version)s"
 
 def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0):
 	json_results = get_summary(json_results,conf,columns = columns,reporting_af=reporting_af)
+	json_results["drug_table"] = [[y for y in json_results["drug_table"] if y["Drug"].upper()==d.upper()][0] for d in _DRUGS]
 	uniq_dr_variants = {}
 	for var in json_results["dr_variants"]:
 		if var["change"] in uniq_dr_variants:
@@ -140,6 +148,7 @@ def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0):
 
 def write_csv(json_results,conf,outfile,columns = None):
 	json_results = get_summary(json_results,conf,columns = columns)
+	json_results["drug_table"] = [[y for y in json_results["drug_table"] if y["Drug"].upper()==d.upper()][0] for d in _DRUGS]
 	csv_strings = {}
 	csv_strings["id"] = json_results["id"]
 	csv_strings["date"] = time.ctime()
