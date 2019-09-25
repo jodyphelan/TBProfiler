@@ -87,7 +87,7 @@ def main_profile(args):
 			pp.run_cmd("mv %s %s" % (args.read2,args.read2.replace(".gz","")))
 			pp.run_cmd("gzip %s" % (args.read2.replace(".gz","")))
 
-	results = pp.profiler(conf=conf,prefix=args.dir+"/"+args.prefix,r1=args.read1,r2=args.read2,bam_file=args.bam,call_method=args.call_method,min_depth=args.min_depth,threads=args.threads,platform=args.platform,mapper=args.mapper,run_delly=True,af=args.af,caller=args.caller)
+	results = pp.profiler(conf=conf,prefix=args.dir+"/"+args.prefix,r1=args.read1,r2=args.read2,bam_file=args.bam,call_method=args.call_method,min_depth=args.min_depth,threads=args.threads,platform=args.platform,mapper=args.mapper,run_delly=True,af=args.af,caller=args.caller,whole_genome=args.call_whole_genome)
 	results = tbp.reformat(results,conf)
 	results["id"] = args.prefix
 	results["tbprofiler_version"] = tbp._VERSION
@@ -114,8 +114,9 @@ def main_profile(args):
 	if not args.bam:
 		pp.run_cmd("mv %(dir)s/%(prefix)s.bam* %(dir)s/bam/" % vars(args))
 	pp.run_cmd("mv %(dir)s/%(prefix)s.results* %(dir)s/results/" % vars(args))
-	pp.run_cmd("mv %(dir)s/%(prefix)s.targets.g*cf* %(dir)s/%(prefix)s.targets.csq.bcf* %(dir)s/vcf/" % vars(args))
-	pp.run_cmd("rm %(dir)s/%(prefix)s.targets.bcf %(dir)s/%(prefix)s.targets.missing.bcf %(dir)s/%(prefix)s.targets.del_pos.bed %(dir)s/%(prefix)s.*.csi" % vars(args))
+#	args.gvcf_file = "%s.gvcf.gz" % (args.prefix if not args.call_whole_genome else args.prefix.replace(".targets",""))
+	pp.run_cmd("mv %(dir)s/%(prefix)s*.gvcf.gz* %(dir)s/%(prefix)s.targets.csq.vcf.gz* %(dir)s/vcf/" % vars(args))
+	pp.run_cmd("rm -f  %(dir)s/%(prefix)s.targets*.vcf.gz %(dir)s/%(prefix)s.del_pos.bed %(dir)s/%(prefix)s.*.csi" % vars(args))
 	pp.run_cmd("rm %(dir)s/%(prefix)s.targets.delly.bcf" % vars(args))
 	if args.webserver:
 		html_output = args.webserver_root+"/output/"+args.prefix+".html"
@@ -276,6 +277,7 @@ if __name__=="__main__":
 	parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 	parser_sub.add_argument('--mapper',default="bwa", choices=["bwa","minimap2","bowtie2"],help="Mapping tool to use. If you are using minION data it will default to minimap2",type=str)
 	parser_sub.add_argument('--caller',default="GATK", choices=["BCFtools","GATK"],help="Variant calling tool to use.",type=str)
+	parser_sub.add_argument('--call_whole_genome',action="store_true",help='Call variants on whole genome (Useful if you need to use whole genome variants later)')
 	parser_sub.add_argument('--min_depth',default=10,type=int,help='Minimum depth required to call variant. Bases with depth below this cutoff will be marked as missing')
 	parser_sub.add_argument('--af',default=0.1,type=float,help='Minimum allele frequency to call variants')
 	parser_sub.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to call variants')
