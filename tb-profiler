@@ -116,7 +116,7 @@ def main_profile(args):
 	pp.run_cmd("mv %(dir)s/%(prefix)s.results* %(dir)s/results/" % vars(args))
 #	args.gvcf_file = "%s.gvcf.gz" % (args.prefix if not args.call_whole_genome else args.prefix.replace(".targets",""))
 	pp.run_cmd("mv %(dir)s/%(prefix)s*.gvcf.gz* %(dir)s/%(prefix)s.targets.csq.vcf.gz* %(dir)s/vcf/" % vars(args))
-	pp.run_cmd("rm -f  %(dir)s/%(prefix)s.targets*.vcf.gz %(dir)s/%(prefix)s.del_pos.bed %(dir)s/%(prefix)s.*.csi" % vars(args))
+	pp.run_cmd("rm -f  %(dir)s/%(prefix)s.targets*.vcf.gz %(dir)s/%(prefix)s*.del_pos.bed %(dir)s/%(prefix)s.*.csi" % vars(args))
 	pp.run_cmd("rm %(dir)s/%(prefix)s.targets.delly.bcf" % vars(args))
 	if args.webserver:
 		html_output = args.webserver_root+"/output/"+args.prefix+".html"
