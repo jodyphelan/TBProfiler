@@ -39,7 +39,7 @@ def main(args):
         params["vcf"] = "%s/%s.targets.csq.vcf.gz" % (args.dir, s)
         params["tmp_vcf"] = "%s/%s.targets.csq.tmp.vcf.gz" % (args.dir, s)
         params["sample_fa"] = "%s.targets.fa" % (s)
-        pp.run_cmd("bcftools filter -e 'sum(AD)=0' -S . %(vcf)s | bcftools view -a | grep -v NON_REF | -Oz -o %(tmp_vcf)s" % params)
+        pp.run_cmd("bcftools filter -e 'sum(AD)=0' -S . %(vcf)s | bcftools view -a | grep -v NON_REF | bcftools view -Oz -o %(tmp_vcf)s" % params)
         pp.run_cmd("bcftools index %(tmp_vcf)s" % params)
         pp.run_cmd("samtools faidx -r %(tmp_locations)s %(ref)s | bcftools consensus -H A %(tmp_vcf)s > %(sample_fa)s" % params)
         fa_dict = pp.fasta(params["sample_fa"]).fa_dict
