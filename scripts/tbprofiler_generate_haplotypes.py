@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 import json
 from collections import defaultdict
-import re
 import argparse
 import os
 from tqdm import tqdm

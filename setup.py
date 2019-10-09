@@ -4,7 +4,7 @@ import setuptools
 setuptools.setup(
 
 	name="tbprofiler",
-	version="2.6.1",
+	version="2.6.2",
 	packages=["tbprofiler",],
 	license="MIT",
 	long_description="TBProfiler command line tool",
@@ -22,6 +22,7 @@ setuptools.setup(
 		'scripts/tbprofiler_odds_ratios.py',
 		'scripts/tbprofiler_generate_haplotypes.py',
 		'scripts/tbprofiler_summarise_mutations.py',
+        'scripts/tbprofiler_generate_sequences.py',
 		],
 	data_files=[('share/tbprofiler',["db/tbdb.ann.txt","db/tbdb.barcode.bed","db/tbdb.bed","db/tbdb.dr.json","db/tbdb.fasta","db/tbdb.gff","db/tbdb.version.json","example_data/tbprofiler.test.fq.gz"])]
 )
