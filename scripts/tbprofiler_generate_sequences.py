@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-import json
 from collections import defaultdict
 import argparse
 import os
@@ -38,11 +37,14 @@ def main(args):
         FILES[row[0]] = open("%s.fasta" % row[1],"w")
     for s in samples:
         params["vcf"] = "%s/%s.targets.csq.vcf.gz" % (args.dir, s)
+        params["tmp_vcf"] = "%s/%s.targets.csq.tmp.vcf.gz" % (args.dir, s)
         params["sample_fa"] = "%s.targets.fa" % (s)
-        pp.run_cmd("samtools faidx -r %(tmp_locations)s %(ref)s | bcftools consensus -H A %(vcf)s > %(sample_fa)s" % params)
+        pp.run_cmd("bcftools filter -e 'sum(AD)=0' -S . %(vcf)s -Oz -o %(tmp_vcf)s")
+        pp.run_cmd("samtools faidx -r %(tmp_locations)s %(ref)s | bcftools consensus -H A %(tmp_vcf)s > %(sample_fa)s" % params)
         fa_dict = pp.fasta(params["sample_fa"]).fa_dict
         for locus in fa_dict:
             FILES[locus].write(">%s\n%s\n" % (s,fa_dict[locus]))
+        pp.rm_files([params["tmp_vcf"]])
     pp.rm_files([params["tmp_locations"], params["tmp_mappings"]])
 
 parser = argparse.ArgumentParser(
