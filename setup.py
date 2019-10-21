@@ -23,6 +23,7 @@ setuptools.setup(
 		'scripts/tbprofiler_generate_haplotypes.py',
 		'scripts/tbprofiler_summarise_mutations.py',
         'scripts/tbprofiler_generate_sequences.py',
+        'scripts/tbprofiler_rank_mutations.py',
 		],
 	data_files=[('share/tbprofiler',["db/tbdb.ann.txt","db/tbdb.barcode.bed","db/tbdb.bed","db/tbdb.dr.json","db/tbdb.fasta","db/tbdb.gff","db/tbdb.version.json","example_data/tbprofiler.test.fq.gz"])]
 )

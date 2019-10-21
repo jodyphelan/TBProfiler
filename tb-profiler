@@ -8,369 +8,423 @@ import os
 import csv
 
 try:
-	sys.base_prefix
+    sys.base_prefix
 except:
-	sys.base_prefix = getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', sys.prefix))
+    sys.base_prefix = getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', sys.prefix))
 
 def get_conf_dict(library_prefix):
-	files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
-	conf = {}
-	for key in files:
-		sys.stderr.write("Using %s file: %s\n" % (key,library_prefix+files[key]))
-		conf[key] = pp.filecheck(library_prefix+files[key])
-	return conf
+    files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
+    conf = {}
+    for key in files:
+        sys.stderr.write("Using %s file: %s\n" % (key,library_prefix+files[key]))
+        conf[key] = pp.filecheck(library_prefix+files[key])
+    return conf
 
 def main_reprofile(args):
-	if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
-		pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
-	if args.external_db:
-		conf = get_conf_dict(args.external_db)
-	else:
-		conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
-	old_results = json.load(open(args.json))
-	new_results = old_results.copy()
-	variant_dump = {}
-	for var in old_results["dr_variants"]:
-		del var["drug"]
-		var["gene_id"] = var["locus_tag"]
-		var["change"] = var["_internal_change"]
-		variant_dump[(var["locus_tag"],var["change"])] = var
-	for var in old_results["other_variants"]:
-		var["gene_id"] = var["locus_tag"]
-		var["change"] = var["_internal_change"]
-		variant_dump[(var["locus_tag"],var["change"])] = var
-	new_results["variants"] = list(variant_dump.values())
-	del new_results["other_variants"]
-	del new_results["dr_variants"]
-	new_results = pp.db_compare(db_file=conf["json_db"],mutations=new_results)
-	tbp.reformat_annotations(new_results,conf)
-	for var in new_results["dr_variants"]:
-		del var["gene_id"]
-	for var in new_results["other_variants"]:
-		del var["gene_id"]
-	new_results["db_version"] = json.load(open(conf["version"]))
-	json.dump(new_results,open("%s.results.json"%args.prefix,"w"))
+    if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
+        pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+    if args.external_db:
+        conf = get_conf_dict(args.external_db)
+    else:
+        conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
+    old_results = json.load(open(args.json))
+    new_results = old_results.copy()
+    variant_dump = {}
+    for var in old_results["dr_variants"]:
+        del var["drug"]
+        var["gene_id"] = var["locus_tag"]
+        var["change"] = var["_internal_change"]
+        variant_dump[(var["locus_tag"],var["change"])] = var
+    for var in old_results["other_variants"]:
+        var["gene_id"] = var["locus_tag"]
+        var["change"] = var["_internal_change"]
+        variant_dump[(var["locus_tag"],var["change"])] = var
+    new_results["variants"] = list(variant_dump.values())
+    del new_results["other_variants"]
+    del new_results["dr_variants"]
+    new_results = pp.db_compare(db_file=conf["json_db"],mutations=new_results)
+    tbp.reformat_annotations(new_results,conf)
+    for var in new_results["dr_variants"]:
+        del var["gene_id"]
+    for var in new_results["other_variants"]:
+        del var["gene_id"]
+    new_results["db_version"] = json.load(open(conf["version"]))
+    json.dump(new_results,open("%s.results.json"%args.prefix,"w"))
 
 def main_profile(args):
 
-	if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
-		pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
-	if args.webserver:
-		args.webserver_root = "/srv/www/htdocs/"
-		args.dir = "/srv/www/htdocs/input"
+    if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
+        pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+    if args.webserver:
+        args.webserver_root = "/srv/www/htdocs/"
+        args.dir = "/srv/www/htdocs/input"
 
-	if args.external_db:
-		conf = get_conf_dict(args.external_db)
-	else:
-		conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
+    if args.external_db:
+        conf = get_conf_dict(args.external_db)
+    else:
+        conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
 
-	for x in ["bam","vcf","results"]:
-		if pp.nofolder(args.dir+"/"+x):
-			os.mkdir(args.dir+"/"+x)
-	if args.platform=="minION":
-		args.mapper = "minimap2"
+    for x in ["bam","vcf","results"]:
+        if pp.nofolder(args.dir+"/"+x):
+            os.mkdir(args.dir+"/"+x)
+    if args.platform=="minION":
+        args.mapper = "minimap2"
 
 
-	if args.webserver:
-		fastqs = []
-		for l in pp.cmd_out("ls %s/input/%s* | grep fastq" % (args.webserver_root,args.prefix)):
-			fastqs.append(l.strip())
-		if len(fastqs)==0:
-			pp.log("Can't find the files in %s" % args.webserver_root,True)
-		args.read1 = fastqs[0]
-		if len(fastqs)>1:
-			args.read2 = fastqs[1]
-		if pp.filetype(args.read1)=="ASCII":
-			pp.run_cmd("mv %s %s" % (args.read1,args.read1.replace(".gz","")))
-			pp.run_cmd("gzip %s" % (args.read1.replace(".gz","")))
-		if pp.filetype(args.read2)=="ASCII":
-			pp.run_cmd("mv %s %s" % (args.read2,args.read2.replace(".gz","")))
-			pp.run_cmd("gzip %s" % (args.read2.replace(".gz","")))
+    if args.webserver:
+        fastqs = []
+        for l in pp.cmd_out("ls %s/input/%s* | grep fastq" % (args.webserver_root,args.prefix)):
+            fastqs.append(l.strip())
+        if len(fastqs)==0:
+            pp.log("Can't find the files in %s" % args.webserver_root,True)
+        args.read1 = fastqs[0]
+        if len(fastqs)>1:
+            args.read2 = fastqs[1]
+        if pp.filetype(args.read1)=="ASCII":
+            pp.run_cmd("mv %s %s" % (args.read1,args.read1.replace(".gz","")))
+            pp.run_cmd("gzip %s" % (args.read1.replace(".gz","")))
+        if pp.filetype(args.read2)=="ASCII":
+            pp.run_cmd("mv %s %s" % (args.read2,args.read2.replace(".gz","")))
+            pp.run_cmd("gzip %s" % (args.read2.replace(".gz","")))
 
-	results = pp.profiler(conf=conf,prefix=args.dir+"/"+args.prefix,r1=args.read1,r2=args.read2,bam_file=args.bam,call_method=args.call_method,min_depth=args.min_depth,threads=args.threads,platform=args.platform,mapper=args.mapper,run_delly=True,af=args.af,caller=args.caller,whole_genome=args.call_whole_genome)
-	results = tbp.reformat(results,conf)
-	results["id"] = args.prefix
-	results["tbprofiler_version"] = tbp._VERSION
-	outfile = "%s.results.json" % (args.dir+"/"+args.prefix)
-	results["pipeline"] = {"mapper":args.mapper if not args.bam else "N/A","variant_caller":args.caller}
-	results["db_version"] = json.load(open(conf["version"]))
-	json.dump(results,open(outfile,"w"))
-	tex_output = args.dir+"/"+args.prefix+".results.tex"
-	text_output = args.dir+"/"+args.prefix+".results.txt"
-	csv_output = args.dir+"/"+args.prefix+".results.csv"
-	html_output = args.dir+"/"+args.prefix+".results.html"
-	extra_columns = [x.lower() for x in args.add_columns.split(",")] if args.add_columns else []
-	if args.pdf:
-		tbp.write_tex(results,conf,tex_output,extra_columns)
-		pp.run_cmd("pdflatex %s"%tex_output,verbose=1)
-		pp.rm_files([tex_output, args.dir+"/"+args.prefix+".results.aux",args.dir+"/"+args.prefix+".results.log"])
-	if args.txt:
-		tbp.write_text(results,conf,text_output,extra_columns,reporting_af=args.reporting_af)
-	if args.csv:
-		tbp.write_csv(results,conf,csv_output,extra_columns)
-	if args.html:
-		tbp.write_html(results,conf,html_output,extra_columns,["isoniazid","rifampicin","ethambutol","pyrazinamide","streptomycin","ethionamide","fluoroquinolones","amikacin","capreomycin","kanamycin"])
+    results = pp.profiler(conf=conf,prefix=args.dir+"/"+args.prefix,r1=args.read1,r2=args.read2,bam_file=args.bam,call_method=args.call_method,min_depth=args.min_depth,threads=args.threads,platform=args.platform,mapper=args.mapper,run_delly=True,af=args.af,caller=args.caller,whole_genome=args.call_whole_genome)
+    results = tbp.reformat(results,conf)
+    results["id"] = args.prefix
+    results["tbprofiler_version"] = tbp._VERSION
+    outfile = "%s.results.json" % (args.dir+"/"+args.prefix)
+    results["pipeline"] = {"mapper":args.mapper if not args.bam else "N/A","variant_caller":args.caller}
+    results["db_version"] = json.load(open(conf["version"]))
+    json.dump(results,open(outfile,"w"))
+    tex_output = args.dir+"/"+args.prefix+".results.tex"
+    text_output = args.dir+"/"+args.prefix+".results.txt"
+    csv_output = args.dir+"/"+args.prefix+".results.csv"
+    html_output = args.dir+"/"+args.prefix+".results.html"
+    extra_columns = [x.lower() for x in args.add_columns.split(",")] if args.add_columns else []
+    if args.pdf:
+        tbp.write_tex(results,conf,tex_output,extra_columns)
+        pp.run_cmd("pdflatex %s"%tex_output,verbose=1)
+        pp.rm_files([tex_output, args.dir+"/"+args.prefix+".results.aux",args.dir+"/"+args.prefix+".results.log"])
+    if args.txt:
+        tbp.write_text(results,conf,text_output,extra_columns,reporting_af=args.reporting_af)
+    if args.csv:
+        tbp.write_csv(results,conf,csv_output,extra_columns)
+    if args.html:
+        tbp.write_html(results,conf,html_output,extra_columns,["isoniazid","rifampicin","ethambutol","pyrazinamide","streptomycin","ethionamide","fluoroquinolones","amikacin","capreomycin","kanamycin"])
 
-	if not args.bam:
-		pp.run_cmd("mv %(dir)s/%(prefix)s.bam* %(dir)s/bam/" % vars(args))
-	pp.run_cmd("mv %(dir)s/%(prefix)s.results* %(dir)s/results/" % vars(args))
-#	args.gvcf_file = "%s.gvcf.gz" % (args.prefix if not args.call_whole_genome else args.prefix.replace(".targets",""))
-	pp.run_cmd("mv %(dir)s/%(prefix)s*.gvcf.gz* %(dir)s/%(prefix)s.targets.csq.vcf.gz* %(dir)s/vcf/" % vars(args))
-	pp.run_cmd("rm -f  %(dir)s/%(prefix)s.targets*.vcf.gz %(dir)s/%(prefix)s*.del_pos.bed %(dir)s/%(prefix)s.*.csi" % vars(args))
-	pp.run_cmd("rm %(dir)s/%(prefix)s.targets.delly.bcf" % vars(args))
-	if args.webserver:
-		html_output = args.webserver_root+"/output/"+args.prefix+".html"
-		tbp.write_html(results,conf,html_output,extra_columns,["isoniazid","rifampicin","ethambutol","pyrazinamide","streptomycin","ethionamide","fluoroquinolones","amikacin","capreomycin","kanamycin"])
-		pp.run_cmd("rm %(dir)s/bam/%(prefix)s*" % vars(args))
-		pp.run_cmd("rm %(dir)s/vcf/%(prefix)s*" % vars(args))
-	pp.log("Profiling finished sucessfully!")
-	if args.meta:
-		for row in csv.DictReader(open(args.meta)):
-			if row["id"]==results["id"]:
-				for col in row:
-					results["meta_"+col] = row[col]
+    if not args.bam:
+        pp.run_cmd("mv %(dir)s/%(prefix)s.bam* %(dir)s/bam/" % vars(args))
+    pp.run_cmd("mv %(dir)s/%(prefix)s.results* %(dir)s/results/" % vars(args))
+#    args.gvcf_file = "%s.gvcf.gz" % (args.prefix if not args.call_whole_genome else args.prefix.replace(".targets",""))
+    pp.run_cmd("mv %(dir)s/%(prefix)s*.gvcf.gz* %(dir)s/%(prefix)s.targets.csq.vcf.gz* %(dir)s/vcf/" % vars(args))
+    pp.run_cmd("rm -f  %(dir)s/%(prefix)s.targets*.vcf.gz %(dir)s/%(prefix)s*.del_pos.bed %(dir)s/%(prefix)s.*.csi" % vars(args))
+    pp.run_cmd("rm %(dir)s/%(prefix)s.targets.delly.bcf" % vars(args))
+    if args.webserver:
+        html_output = args.webserver_root+"/output/"+args.prefix+".html"
+        tbp.write_html(results,conf,html_output,extra_columns,["isoniazid","rifampicin","ethambutol","pyrazinamide","streptomycin","ethionamide","fluoroquinolones","amikacin","capreomycin","kanamycin"])
+        pp.run_cmd("rm %(dir)s/bam/%(prefix)s*" % vars(args))
+        pp.run_cmd("rm %(dir)s/vcf/%(prefix)s*" % vars(args))
+    pp.log("Profiling finished sucessfully!")
+    if args.meta:
+        for row in csv.DictReader(open(args.meta)):
+            if row["id"]==results["id"]:
+                for col in row:
+                    results["meta_"+col] = row[col]
 def main_update_tbdb(args):
-	if pp.nofolder("tbdb"):
-		pp.run_cmd("git clone https://github.com/jodyphelan/tbdb.git")
-	os.chdir("tbdb")
-	pp.run_cmd("git pull")
-	pp.run_cmd("python parse_db.py --seqname %s" % args.seqname)
-	pp.run_cmd("tb-profiler load_library tbdb")
-	os.chdir("../")
-	pp.log("Sucessfully updated TBDB")
+    if pp.nofolder("tbdb"):
+        pp.run_cmd("git clone https://github.com/jodyphelan/tbdb.git")
+    os.chdir("tbdb")
+    pp.run_cmd("git pull")
+    pp.run_cmd("python parse_db.py --seqname %s" % args.seqname)
+    pp.run_cmd("tb-profiler load_library tbdb")
+    os.chdir("../")
+    pp.log("Sucessfully updated TBDB")
 
 def main_load_library(args):
-	lib_prefix = args.prefix.split("/")[-1]
-	files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
-	if pp.nofolder(sys.base_prefix+"/share/tbprofiler"):
-		pp.run_cmd("mkdir %s " % (sys.base_prefix+"/share/tbprofiler/"))
-	for key in files:
-		new_file_location = sys.base_prefix+"/share/tbprofiler/"+lib_prefix+files[key]
-		pp.run_cmd("cp %s %s" % (args.prefix+files[key],new_file_location))
-	pp.run_cmd("samtools faidx %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
-	if pp.nofile(sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".dict"):
-		pp.run_cmd("gatk CreateSequenceDictionary -R %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
-	pp.log("Sucessfully imported library")
+    lib_prefix = args.prefix.split("/")[-1]
+    files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
+    if pp.nofolder(sys.base_prefix+"/share/tbprofiler"):
+        pp.run_cmd("mkdir %s " % (sys.base_prefix+"/share/tbprofiler/"))
+    for key in files:
+        new_file_location = sys.base_prefix+"/share/tbprofiler/"+lib_prefix+files[key]
+        pp.run_cmd("cp %s %s" % (args.prefix+files[key],new_file_location))
+    pp.run_cmd("samtools faidx %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
+    if pp.nofile(sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".dict"):
+        pp.run_cmd("gatk CreateSequenceDictionary -R %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
+    pp.log("Sucessfully imported library")
 
 def main_lineage(args):
-	if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
-		pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
-	if args.external_db:
-		conf = get_conf_dict(args.external_db)
-	else:
-		conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
-	pp.filecheck(args.bam)
-	bam = pp.bam(args.bam,args.bam,conf["ref"])
-	mutations = bam.get_bed_gt(conf["barcode"])
-	results = {}
-	results["barcode"] = pp.barcode(mutations,conf["barcode"])
-	tbp.barcode2lineage(results)
-	if args.prefix:
-		outfile = "%s.%s" % (args.prefix,args.outfmt)
-		O = open(outfile,"w")
-		if args.outfmt=="json":
-			json.dump(results["lineage"],O)
-		elif args.outfmt=="txt":
-			O.write(tbp.text.lineagejson2text(results["lineage"]))
-		O.close()
+    if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
+        pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+    if args.external_db:
+        conf = get_conf_dict(args.external_db)
+    else:
+        conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
+    pp.filecheck(args.bam)
+    bam = pp.bam(args.bam,args.bam,conf["ref"])
+    mutations = bam.get_bed_gt(conf["barcode"])
+    results = {}
+    results["barcode"] = pp.barcode(mutations,conf["barcode"])
+    tbp.barcode2lineage(results)
+    if args.prefix:
+        outfile = "%s.%s" % (args.prefix,args.outfmt)
+        O = open(outfile,"w")
+        if args.outfmt=="json":
+            json.dump(results["lineage"],O)
+        elif args.outfmt=="txt":
+            O.write(tbp.text.lineagejson2text(results["lineage"]))
+        O.close()
 
 def main_collate(args):
-	if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
-		pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
-	if args.external_db:
-		conf = get_conf_dict(args.external_db)
-	else:
-		conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
-	tbp.collate_results(args.prefix,conf,sample_file=args.samples,dir=args.dir)
+    if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
+        pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+    if args.external_db:
+        conf = get_conf_dict(args.external_db)
+    else:
+        conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
+    tbp.collate_results(args.prefix,conf,sample_file=args.samples,dir=args.dir)
 
 def main_phylogeny(args):
-	if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
-		pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+    if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
+        pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
 
-	if args.external_db:
-		conf = get_conf_dict(args.external_db)
-	else:
-		conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
-	tbp.phylogeny(prefix=args.prefix,conf=conf,sample_file=args.samples,base_dir=args.dir)
+    if args.external_db:
+        conf = get_conf_dict(args.external_db)
+    else:
+        conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
+    tbp.phylogeny(prefix=args.prefix,conf=conf,sample_file=args.samples,base_dir=args.dir)
 
 def main_version(args):
-	print("\nTBProfiler version %s\n\nContact: Jody Phelan (jody.phelan@lshtm.ac.uk)\n" % tbp._VERSION)
+    print("\nTBProfiler version %s\n\nContact: Jody Phelan (jody.phelan@lshtm.ac.uk)\n" % tbp._VERSION)
 
 def main_reformat(args):
-	if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
-		pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+    if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
+        pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
 
-	results = json.load(open(args.json))
-	if args.external_db:
-		conf = get_conf_dict(args.external_db)
-	else:
-		conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
-	args.prefix = results["id"]
-	tex_output = args.prefix+".results.tex"
-	csv_output = args.prefix+".results.csv"
-	text_output = args.prefix+".results.txt"
-	if args.pdf:
-		tbp.write_tex(results,conf,tex_output)
-		pp.run_cmd("pdflatex %s"%tex_output,verbose=1)
-		pp.rm_files([tex_output, args.prefix+".results.aux",args.prefix+".results.log"])
-	if args.txt:
-		tbp.write_text(results,conf,text_output)
-	if args.csv:
-		tbp.write_csv(results,conf,csv_output)
+    results = json.load(open(args.json))
+    if args.external_db:
+        conf = get_conf_dict(args.external_db)
+    else:
+        conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
+    args.prefix = results["id"]
+    tex_output = args.prefix+".results.tex"
+    csv_output = args.prefix+".results.csv"
+    text_output = args.prefix+".results.txt"
+    if args.pdf:
+        tbp.write_tex(results,conf,tex_output)
+        pp.run_cmd("pdflatex %s"%tex_output,verbose=1)
+        pp.rm_files([tex_output, args.prefix+".results.aux",args.prefix+".results.log"])
+    if args.txt:
+        tbp.write_text(results,conf,text_output)
+    if args.csv:
+        tbp.write_csv(results,conf,csv_output)
+
+
+def main_fasta_profile(args):
+    for x in ["bam","vcf","results"]:
+        if pp.nofolder(args.dir+"/"+x):
+            os.mkdir(args.dir+"/"+x)
+    if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
+        pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+
+    if args.external_db:
+        conf = get_conf_dict(args.external_db)
+    else:
+        conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
+    results = pp.fasta_profiler(conf, args.prefix, args.fasta)
+    results = tbp.reformat(results,conf)
+    results["id"] = args.prefix
+    results["tbprofiler_version"] = tbp._VERSION
+    outfile = "%s.results.json" % (args.dir+"/"+args.prefix)
+    results["pipeline"] = {"mapper":"N/A","variant_caller":"paftools.js"}
+    results["db_version"] = json.load(open(conf["version"]))
+    json.dump(results,open(outfile,"w"))
+    tex_output = args.dir+"/"+args.prefix+".results.tex"
+    text_output = args.dir+"/"+args.prefix+".results.txt"
+    csv_output = args.dir+"/"+args.prefix+".results.csv"
+    html_output = args.dir+"/"+args.prefix+".results.html"
+    extra_columns = [x.lower() for x in args.add_columns.split(",")] if args.add_columns else []
+    if args.pdf:
+        tbp.write_tex(results,conf,tex_output,extra_columns)
+        pp.run_cmd("pdflatex %s"%tex_output,verbose=1)
+        pp.rm_files([tex_output, args.dir+"/"+args.prefix+".results.aux",args.dir+"/"+args.prefix+".results.log"])
+    if args.txt:
+        tbp.write_text(results,conf,text_output,extra_columns,reporting_af=0.7)
+    if args.csv:
+        tbp.write_csv(results,conf,csv_output,extra_columns)
+    if args.html:
+        tbp.write_html(results,conf,html_output,extra_columns,["isoniazid","rifampicin","ethambutol","pyrazinamide","streptomycin","ethionamide","fluoroquinolones","amikacin","capreomycin","kanamycin"])
+    pp.run_cmd(f"mv {args.prefix}.results* results/ ")
+    pp.run_cmd(f"mv {args.prefix}.targets.vcf* {args.prefix}.vcf* vcf/ ")
+
 
 def main_vcf_profile(args):
-	for x in ["bam","vcf","results"]:
-		if pp.nofolder(args.dir+"/"+x):
-			os.mkdir(args.dir+"/"+x)
+    for x in ["bam","vcf","results"]:
+        if pp.nofolder(args.dir+"/"+x):
+            os.mkdir(args.dir+"/"+x)
 
-	bcf_obj = pp.bcf(args.vcf)
-	if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
-		pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+    bcf_obj = pp.bcf(args.vcf)
+    if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
+        pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
 
-	if args.external_db:
-		conf = get_conf_dict(args.external_db)
-	else:
-		conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
-	for s in bcf_obj.samples:
-		args.prefix = s
-		args.tmp_vcf = pp.get_random_file()
-		pp.run_cmd("bcftools view -s %(prefix)s -c 1 -Oz -o %(tmp_vcf)s %(vcf)s" % vars(args))
-		args.prefix = args.prefix.replace("/","_").replace(".","_")
-		results = tbp.profile_vcf(args.tmp_vcf,conf=conf)
-		results = tbp.reformat(results,conf)
-		results["id"] = args.prefix
-		results["tbprofiler_version"] = tbp._VERSION
-		outfile = "%s.results.json" % (args.dir+"/"+args.prefix)
-		results["pipeline"] = {"mapper": "N/A","variant_caller":"N/A"}
-		json.dump(results,open(outfile,"w"))
-		tex_output = args.dir+"/"+args.prefix+".results.tex"
-		text_output = args.dir+"/"+args.prefix+".results.txt"
-		csv_output = args.dir+"/"+args.prefix+".results.csv"
-		html_output = args.dir+"/"+args.prefix+".results.html"
-		extra_columns = [x.lower() for x in args.add_columns.split(",")] if args.add_columns else []
-		if args.pdf:
-			tbp.write_tex(results,conf,tex_output,extra_columns)
-			pp.run_cmd("pdflatex %s"%tex_output,verbose=1)
-			pp.rm_files([tex_output, args.dir+"/"+args.prefix+".results.aux",args.dir+"/"+args.prefix+".results.log"])
-		if args.txt:
-			tbp.write_text(results,conf,text_output,extra_columns)
-		if args.csv:
-			tbp.write_csv(results,conf,csv_output,extra_columns)
+    if args.external_db:
+        conf = get_conf_dict(args.external_db)
+    else:
+        conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
+    for s in bcf_obj.samples:
+        args.prefix = s
+        args.tmp_vcf = pp.get_random_file()
+        pp.run_cmd("bcftools view -s %(prefix)s -c 1 -Oz -o %(tmp_vcf)s %(vcf)s" % vars(args))
+        args.prefix = args.prefix.replace("/","_").replace(".","_")
+        results = tbp.profile_vcf(args.tmp_vcf,conf=conf)
+        results = tbp.reformat(results,conf)
+        results["id"] = args.prefix
+        results["tbprofiler_version"] = tbp._VERSION
+        outfile = "%s.results.json" % (args.dir+"/"+args.prefix)
+        results["pipeline"] = {"mapper": "N/A","variant_caller":"N/A"}
+        json.dump(results,open(outfile,"w"))
+        tex_output = args.dir+"/"+args.prefix+".results.tex"
+        text_output = args.dir+"/"+args.prefix+".results.txt"
+        csv_output = args.dir+"/"+args.prefix+".results.csv"
+        html_output = args.dir+"/"+args.prefix+".results.html"
+        extra_columns = [x.lower() for x in args.add_columns.split(",")] if args.add_columns else []
+        if args.pdf:
+            tbp.write_tex(results,conf,tex_output,extra_columns)
+            pp.run_cmd("pdflatex %s"%tex_output,verbose=1)
+            pp.rm_files([tex_output, args.dir+"/"+args.prefix+".results.aux",args.dir+"/"+args.prefix+".results.log"])
+        if args.txt:
+            tbp.write_text(results,conf,text_output,extra_columns)
+        if args.csv:
+            tbp.write_csv(results,conf,csv_output,extra_columns)
 
-		pp.run_cmd("mv %(dir)s/%(prefix)s.results* %(dir)s/results/" % vars(args))
+        pp.run_cmd("mv %(dir)s/%(prefix)s.results* %(dir)s/results/" % vars(args))
 
 
 def main_test(args):
-	pp.run_cmd("tb-profiler profile -1 %s" % (sys.base_prefix+"/share/tbprofiler/tbprofiler.test.fq.gz"),verbose=2)
+    pp.run_cmd("tb-profiler profile -1 %s" % (sys.base_prefix+"/share/tbprofiler/tbprofiler.test.fq.gz"),verbose=2)
 
 if __name__=="__main__":
-	parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	subparsers = parser.add_subparsers(help="Task to perform")
+    parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    subparsers = parser.add_subparsers(help="Task to perform")
 
-	parser_sub = subparsers.add_parser('profile', help='Run whole profiling pipeline', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	parser_sub.add_argument('--platform','-m',choices=["Illumina","minION"],default="Illumina",help='NGS Platform used to generate data')
-	parser_sub.add_argument('--read1','-1',help='First read file')
-	parser_sub.add_argument('--read2','-2',help='Second read file')
-	parser_sub.add_argument('--bam','-a',help='BAM file. Make sure it has been generated using the H37Rv genome (GCA_000195955.2)')
-	parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix for all results generated')
-	parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
-	parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
-	parser_sub.add_argument('--mapper',default="bwa", choices=["bwa","minimap2","bowtie2"],help="Mapping tool to use. If you are using minION data it will default to minimap2",type=str)
-	parser_sub.add_argument('--caller',default="GATK", choices=["BCFtools","GATK"],help="Variant calling tool to use.",type=str)
-	parser_sub.add_argument('--call_whole_genome',action="store_true",help='Call variants on whole genome (Useful if you need to use whole genome variants later)')
-	parser_sub.add_argument('--min_depth',default=10,type=int,help='Minimum depth required to call variant. Bases with depth below this cutoff will be marked as missing')
-	parser_sub.add_argument('--af',default=0.1,type=float,help='Minimum allele frequency to call variants')
-	parser_sub.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to call variants')
-	parser_sub.add_argument('--threads','-t',default=1,help='Threads to use',type=int)
-	parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
-	parser_sub.add_argument('--call_method',default='low',choices=['low','high','optimise'],type=str,help='Level of quality stringency used by BCFtools to call variants. High will enable BAQ and set min baseQ to 13. Low will diable BAQ and set min baseQ to 0. Optimise will look at the coverage and decide whether to set low or high. Low stringency setting will greatly decrease the number of missing calls for low coverage isolates')
-	parser_sub.add_argument('--txt',action="store_true",help="Add text output")
-	parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
-	parser_sub.add_argument('--pdf',action="store_true",help="Add PDF output. This requires pdflatex to be installed")
-	parser_sub.add_argument('--html',action="store_true",help="Add HTML output")
-	parser_sub.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and pdf results")
-	parser_sub.add_argument('--meta',default=None,type=str,help="Add meta data from a CSV file to the results. The CSV file must contain a column labelled \"id\" with the same value as the prefix argument")
-	parser_sub.add_argument('--webserver',action="store_true",help="Webserver root")
-	parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
-	parser_sub.add_argument('--plot_cov',action="store_true",help="Not currently used")
-	parser_sub.add_argument('--min_gene_frac',default=0.9,type=float,help='Not currently used')
-	parser_sub.add_argument('--format','-f',default="classic",choices=["classic","new","tex"],help='Not currently used')
+    parser_sub = subparsers.add_parser('profile', help='Run whole profiling pipeline', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser_sub.add_argument('--platform','-m',choices=["Illumina","minION"],default="Illumina",help='NGS Platform used to generate data')
+    parser_sub.add_argument('--read1','-1',help='First read file')
+    parser_sub.add_argument('--read2','-2',help='Second read file')
+    parser_sub.add_argument('--bam','-a',help='BAM file. Make sure it has been generated using the H37Rv genome (GCA_000195955.2)')
+    parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix for all results generated')
+    parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
+    parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
+    parser_sub.add_argument('--mapper',default="bwa", choices=["bwa","minimap2","bowtie2"],help="Mapping tool to use. If you are using minION data it will default to minimap2",type=str)
+    parser_sub.add_argument('--caller',default="GATK", choices=["BCFtools","GATK"],help="Variant calling tool to use.",type=str)
+    parser_sub.add_argument('--call_whole_genome',action="store_true",help='Call variants on whole genome (Useful if you need to use whole genome variants later)')
+    parser_sub.add_argument('--min_depth',default=10,type=int,help='Minimum depth required to call variant. Bases with depth below this cutoff will be marked as missing')
+    parser_sub.add_argument('--af',default=0.1,type=float,help='Minimum allele frequency to call variants')
+    parser_sub.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to call variants')
+    parser_sub.add_argument('--threads','-t',default=1,help='Threads to use',type=int)
+    parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+    parser_sub.add_argument('--call_method',default='low',choices=['low','high','optimise'],type=str,help='Level of quality stringency used by BCFtools to call variants. High will enable BAQ and set min baseQ to 13. Low will diable BAQ and set min baseQ to 0. Optimise will look at the coverage and decide whether to set low or high. Low stringency setting will greatly decrease the number of missing calls for low coverage isolates')
+    parser_sub.add_argument('--txt',action="store_true",help="Add text output")
+    parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
+    parser_sub.add_argument('--pdf',action="store_true",help="Add PDF output. This requires pdflatex to be installed")
+    parser_sub.add_argument('--html',action="store_true",help="Add HTML output")
+    parser_sub.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and pdf results")
+    parser_sub.add_argument('--meta',default=None,type=str,help="Add meta data from a CSV file to the results. The CSV file must contain a column labelled \"id\" with the same value as the prefix argument")
+    parser_sub.add_argument('--webserver',action="store_true",help="Webserver root")
+    parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
+    parser_sub.add_argument('--plot_cov',action="store_true",help="Not currently used")
+    parser_sub.add_argument('--min_gene_frac',default=0.9,type=float,help='Not currently used')
+    parser_sub.add_argument('--format','-f',default="classic",choices=["classic","new","tex"],help='Not currently used')
 
-	parser_sub.set_defaults(func=main_profile)
+    parser_sub.set_defaults(func=main_profile)
 
-	parser_sub = subparsers.add_parser('vcf_profile', help='Run profiling pipeline on VCF file. Warning: this assumes that you have good coverage across the genome', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	parser_sub.add_argument('vcf',help='VCF file')
-	parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
-	parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
-	parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
-	parser_sub.add_argument('--txt',action="store_true",help="Add text output")
-	parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
-	parser_sub.add_argument('--pdf',action="store_true",help="Add PDF output. This requires pdflatex to be installed")
-	parser_sub.add_argument('--html',action="store_true",help="Add HTML output")
-	parser_sub.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and pdf results")
-	parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
+    parser_sub = subparsers.add_parser('vcf_profile', help='Run profiling pipeline on VCF file. Warning: this assumes that you have good coverage across the genome', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser_sub.add_argument('vcf',help='VCF file')
+    parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
+    parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
+    parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+    parser_sub.add_argument('--txt',action="store_true",help="Add text output")
+    parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
+    parser_sub.add_argument('--pdf',action="store_true",help="Add PDF output. This requires pdflatex to be installed")
+    parser_sub.add_argument('--html',action="store_true",help="Add HTML output")
+    parser_sub.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and pdf results")
+    parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
 
-	parser_sub.set_defaults(func=main_vcf_profile)
+    parser_sub.set_defaults(func=main_vcf_profile)
 
-	parser_sub = subparsers.add_parser('reprofile', help='Reprofile previous results using a new library. The new library must have same targets and the old one.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	parser_sub.add_argument('json',help='JSON output file')
-	parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
-	parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
-	parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
-	parser_sub.set_defaults(func=main_reprofile)
+    parser_sub = subparsers.add_parser('fasta_profile', help='(BETA) Run profiling pipeline on Fasta file. Warning: this assumes that this is a good quality assembly which coveres all drug resistance loci', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser_sub.add_argument('fasta',help='VCF file')
+    parser_sub.add_argument('prefix',help='VCF file')
+    parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
+    parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
+    parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+    parser_sub.add_argument('--txt',action="store_true",help="Add text output")
+    parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
+    parser_sub.add_argument('--pdf',action="store_true",help="Add PDF output. This requires pdflatex to be installed")
+    parser_sub.add_argument('--html',action="store_true",help="Add HTML output")
+    parser_sub.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and pdf results")
+    parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
 
+    parser_sub.set_defaults(func=main_fasta_profile)
 
-	parser_sub = subparsers.add_parser('reformat', help='Reformat json results into text or pdf', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	parser_sub.add_argument('json',default="tbprofiler",help='Sample prefix')
-	parser_sub.add_argument('--txt',action="store_true",help="Add text output")
-	parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
-	parser_sub.add_argument('--pdf',action="store_true",help="Add PDF output. This requires pdflatex to be installed")
-	parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
-	parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
-	parser_sub.set_defaults(func=main_reformat)
-
-	parser_sub = subparsers.add_parser('load_library', help='Load new library', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	parser_sub.add_argument('prefix',type=str,help='Prefix to the library files')
-	parser_sub.set_defaults(func=main_load_library)
-
-	parser_sub = subparsers.add_parser('update_tbdb', help='Pull the latest tbdb library and load', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	parser_sub.add_argument('--seqname',default='Chromosome',help='Mutation panel name')
-	parser_sub.set_defaults(func=main_update_tbdb)
+    parser_sub = subparsers.add_parser('reprofile', help='Reprofile previous results using a new library. The new library must have same targets and the old one.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser_sub.add_argument('json',help='JSON output file')
+    parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
+    parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
+    parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
+    parser_sub.set_defaults(func=main_reprofile)
 
 
-	parser_sub = subparsers.add_parser('lineage', help='Profile only lineage', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	parser_sub.add_argument('--bam','-a',required=True, help='BAM file. Make sure it has been generated using the H37Rv genome (GCA_000195955.2)')
-	parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
-	parser_sub.add_argument('--outfmt',default='json',choices=["json","txt"],type=str,help="Output format")
-	parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
-	parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
-	parser_sub.set_defaults(func=main_lineage)
+    parser_sub = subparsers.add_parser('reformat', help='Reformat json results into text or pdf', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser_sub.add_argument('json',default="tbprofiler",help='Sample prefix')
+    parser_sub.add_argument('--txt',action="store_true",help="Add text output")
+    parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
+    parser_sub.add_argument('--pdf',action="store_true",help="Add PDF output. This requires pdflatex to be installed")
+    parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
+    parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
+    parser_sub.set_defaults(func=main_reformat)
 
-	parser_sub = subparsers.add_parser('collate', help='Collate results form multiple samples together', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
-	parser_sub.add_argument('--samples',help='File with samples (one per line)')
-	parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
-	parser_sub.add_argument('--full',action="store_true",help='Output mutations in main result file')
-	parser_sub.add_argument('--all_variants',action="store_true",help='Output all variants in variant matrix')
-	parser_sub.add_argument('--db',default='tbdb',help='Full path to mutation database json file to use')
-	parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
-	parser_sub.set_defaults(func=main_collate)
+    parser_sub = subparsers.add_parser('load_library', help='Load new library', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser_sub.add_argument('prefix',type=str,help='Prefix to the library files')
+    parser_sub.set_defaults(func=main_load_library)
 
-	# parser_sub = subparsers.add_parser('phylogeny', help='Create a phylogeny based on SNPs', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	# parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
-	# parser_sub.add_argument('--samples',help='File with samples (one per line)')
-	# parser_sub.add_argument('--db',default='tbdb',help='Full path to mutation database json file to use (default: TBProfiler panel)')
-	# parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
-	# parser_sub.set_defaults(func=main_phylogeny)
+    parser_sub = subparsers.add_parser('update_tbdb', help='Pull the latest tbdb library and load', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser_sub.add_argument('--seqname',default='Chromosome',help='Mutation panel name')
+    parser_sub.set_defaults(func=main_update_tbdb)
 
-	# parser_sub = subparsers.add_parser('test', help='Output program version and exit', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	# parser_sub.set_defaults(func=main_test)
 
-	parser_sub = subparsers.add_parser('version', help='Output program version and exit', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	parser_sub.set_defaults(func=main_version)
+    parser_sub = subparsers.add_parser('lineage', help='Profile only lineage', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser_sub.add_argument('--bam','-a',required=True, help='BAM file. Make sure it has been generated using the H37Rv genome (GCA_000195955.2)')
+    parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
+    parser_sub.add_argument('--outfmt',default='json',choices=["json","txt"],type=str,help="Output format")
+    parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
+    parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
+    parser_sub.set_defaults(func=main_lineage)
 
-	args = parser.parse_args()
-	if vars(args)=={}:
-		parser.print_help(sys.stderr)
-	else:
-		args.func(args)
+    parser_sub = subparsers.add_parser('collate', help='Collate results form multiple samples together', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
+    parser_sub.add_argument('--samples',help='File with samples (one per line)')
+    parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+    parser_sub.add_argument('--full',action="store_true",help='Output mutations in main result file')
+    parser_sub.add_argument('--all_variants',action="store_true",help='Output all variants in variant matrix')
+    parser_sub.add_argument('--db',default='tbdb',help='Full path to mutation database json file to use')
+    parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
+    parser_sub.set_defaults(func=main_collate)
+
+    # parser_sub = subparsers.add_parser('phylogeny', help='Create a phylogeny based on SNPs', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    # parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
+    # parser_sub.add_argument('--samples',help='File with samples (one per line)')
+    # parser_sub.add_argument('--db',default='tbdb',help='Full path to mutation database json file to use (default: TBProfiler panel)')
+    # parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+    # parser_sub.set_defaults(func=main_phylogeny)
+
+    # parser_sub = subparsers.add_parser('test', help='Output program version and exit', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    # parser_sub.set_defaults(func=main_test)
+
+    parser_sub = subparsers.add_parser('version', help='Output program version and exit', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser_sub.set_defaults(func=main_version)
+
+    args = parser.parse_args()
+    if vars(args)=={}:
+        parser.print_help(sys.stderr)
+    else:
+        args.func(args)

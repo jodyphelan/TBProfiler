@@ -14,7 +14,6 @@ def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=Tr
         samples = [x.rstrip() for x in open(sample_file).readlines()]
     else:
         samples = [x.replace(".results.json","") for x in os.listdir("%s/" % dir) if x[-13:]==".results.json"]
-        print(os.listdir("%s/" % dir))
 
     results = defaultdict(dict)
     dr_variants = defaultdict(lambda:defaultdict(dict))
