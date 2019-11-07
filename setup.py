@@ -4,7 +4,7 @@ import setuptools
 setuptools.setup(
 
 	name="tbprofiler",
-	version="2.6.2",
+	version="2.7.1",
 	packages=["tbprofiler",],
 	license="MIT",
 	long_description="TBProfiler command line tool",

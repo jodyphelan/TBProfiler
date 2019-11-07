@@ -6,9 +6,27 @@ import os
 from tqdm import tqdm
 import sys
 import pathogenprofiler as pp
+
+
+try:
+    sys.base_prefix
+except:
+    sys.base_prefix = getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', sys.prefix))
+
+
+def get_conf_dict(library_prefix):
+    files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
+    conf = {}
+    for key in files:
+        sys.stderr.write("Using %s file: %s\n" % (key,library_prefix+files[key]))
+        conf[key] = pp.filecheck(library_prefix+files[key])
+    return conf
+
+
+
 def main(args):
 	change_field = "change" if args.variant_format=="hgvs" else "_internal_change"
-	conf = json.load(open(sys.prefix+"/share/tbprofiler/%s.config.json" % args.db))
+	conf = conf = get_conf_dict(sys.base_prefix + "/share/tbprofiler/%s" % args.db)
 	drug2genes = defaultdict(set)
 	gene2drugs = defaultdict(set)
 	for l in open(conf["bed"]):
