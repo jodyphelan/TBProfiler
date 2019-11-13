@@ -1,14 +1,26 @@
 import json
 import os
+import sys
 from collections import defaultdict
 from tqdm import tqdm
 
 def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=True,full_variant_results=True):
+    if not os.path.isdir(dir):
+        sys.stderr.write("\nERROR: Can't find directory %s\n" % dir )
+        exit()
     set_all_drugs = set()
     for l in open(conf["bed"]):
         arr = l.rstrip().split()
         for d in arr[5].split(","):
             set_all_drugs.add(d)
+    tmp_drugs = ["rifampicin", "isoniazid", "pyrazinamide", "ethambutol", "streptomycin", "fluoroquinolones", "moxifloxacin", "ofloxacin", "levofloxacin", "ciprofloxacin", "aminoglycosides", "amikacin", "kanamycin", "capreomycin", "ethionamide", "para-aminosalicylic_acid", "cycloserine", "linezolid"]
+    drug_list = []
+    for d in tmp_drugs:
+        if d in set_all_drugs:
+            drug_list.append(d)
+    for d in sorted(list(set_all_drugs)):
+        if d not in drug_list:
+            drug_list.append(d)
 
     if sample_file:
         samples = [x.rstrip() for x in open(sample_file).readlines()]
@@ -20,7 +32,7 @@ def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=Tr
     dr_variants_set = set()
     dr_drugs = {}
     for s in samples:
-        for d in set_all_drugs:
+        for d in drug_list:
             results[s][d] = set()
     for s in tqdm(samples):
         temp = json.load(open("%s/%s.results.json" % (dir,s)))
@@ -31,7 +43,7 @@ def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=Tr
         # for x in temp["del"]:
         #     for d in x["drug"].split(";"):
         #         results[s][d].add("large_deletion_%s" % x["gene"] if full_results else "R")
-        for d in set_all_drugs:
+        for d in drug_list:
             results[s][d] = ", ".join(results[s][d]) if len(results[s][d])>0 else "-"
             results[s]["main_lin"] = temp["main_lin"]
             results[s]["sublin"] = temp["sublin"]
@@ -58,9 +70,9 @@ def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=Tr
         VAR.close()
 
     OUT = open(prefix+".txt","w")
-    OUT.write("sample\tmain_lineage\tsub_lineage\tDR_type\tMDR\tXDR\t%s" % "\t".join(set_all_drugs)+"\n")
+    OUT.write("sample\tmain_lineage\tsub_lineage\tDR_type\tMDR\tXDR\t%s" % "\t".join(drug_list)+"\n")
     for s in samples:
-        OUT.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" %(s,results[s]["main_lin"],results[s]["sublin"],results[s]["drtype"],results[s]["MDR"],results[s]["XDR"],"\t".join([results[s][x] for x in set_all_drugs])))
+        OUT.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" %(s,results[s]["main_lin"],results[s]["sublin"],results[s]["drtype"],results[s]["MDR"],results[s]["XDR"],"\t".join([results[s][x] for x in drug_list])))
     OUT.close()
     json.dump(results,open(prefix+".json","w"))
     lineage_cols = {"lineage1":"#104577","lineage2":"#ab2323","lineage3":"#18a68c","lineage4":"#f68e51","lineage5":"#7cb5d2","lineage6":"#fde05e","lineage7":"#bc94b7","lineageBOV":"#f8e0c8","lineageOther":"#000000"}
@@ -99,12 +111,12 @@ DATA
         OUT.write("%s\t%s\n" % (s,dr_cols.get(results[s]["drtype"],"#000000")))
     OUT.close()
 
-    set_all_drugs = ['rifampicin', 'isoniazid', 'ethambutol', 'pyrazinamide', 'streptomycin', 'fluoroquinolones', 'aminoglycosides', 'kanamycin', 'amikacin', 'capreomycin', 'ethionamide', 'para-aminosalicylic_acid', 'clofazimine', 'linezolid', 'bedaquiline']
+    drug_list = ['rifampicin', 'isoniazid', 'ethambutol', 'pyrazinamide', 'streptomycin', 'fluoroquinolones', 'aminoglycosides', 'kanamycin', 'amikacin', 'capreomycin', 'ethionamide', 'para-aminosalicylic_acid', 'clofazimine', 'linezolid', 'bedaquiline']
     OUT = open(prefix+".dr.indiv.itol.txt","w")
     dr_cols = {"Sensitive":"#80FF00","Drug-resistant":"#00FFFF","MDR":"#8000FF","XDR":"#FF0000"}
-    legend_shapes = "\t".join(["2" for x in set_all_drugs])
-    legend_colours = "\t".join(["black" for x in set_all_drugs])
-    legend_labels = "\t".join(set_all_drugs)
+    legend_shapes = "\t".join(["2" for x in drug_list])
+    legend_colours = "\t".join(["black" for x in drug_list])
+    legend_labels = "\t".join(drug_list)
     OUT.write("""DATASET_BINARY
 SEPARATOR TAB
 DATASET_LABEL    Drugs
@@ -118,5 +130,5 @@ FIELD_LABELS    %s
 DATA
 """ % (legend_shapes,legend_colours,legend_labels))
     for s in samples:
-        OUT.write("%s\t%s\n" % (s,"\t".join(["1" if d in dr_drugs[s] else "0" for d in set_all_drugs])))
+        OUT.write("%s\t%s\n" % (s,"\t".join(["1" if d in dr_drugs[s] else "0" for d in drug_list])))
     OUT.close()
