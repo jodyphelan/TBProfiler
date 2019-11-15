@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 import sys
 import pathogenprofiler as pp
 import argparse
@@ -259,8 +259,8 @@ def main_fasta_profile(args):
         tbp.write_csv(results,conf,csv_output,extra_columns)
     if args.html:
         tbp.write_html(results,conf,html_output,extra_columns,["isoniazid","rifampicin","ethambutol","pyrazinamide","streptomycin","ethionamide","fluoroquinolones","amikacin","capreomycin","kanamycin"])
-    pp.run_cmd(f"mv {args.prefix}.results* results/ ")
-    pp.run_cmd(f"mv {args.prefix}.targets.vcf* {args.prefix}.vcf* vcf/ ")
+    pp.run_cmd("mv %(prefix)s.results* results/ " % vars(args))
+    pp.run_cmd("mv %(prefix)s.targets.vcf* %(prefix)s.vcf* vcf/ " % vars(args))
 
 
 def main_vcf_profile(args):
