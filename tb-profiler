@@ -154,8 +154,8 @@ def main_load_library(args):
         pp.run_cmd("cp %s %s" % (args.prefix+files[key],new_file_location))
     pp.run_cmd("samtools faidx %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
     pp.run_cmd("bwa index %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
-    if pp.nofile(sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".dict"):
-        pp.run_cmd("gatk CreateSequenceDictionary -R %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
+    pp.run_cmd("rm %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".dict")
+    pp.run_cmd("gatk CreateSequenceDictionary -R %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
     pp.log("Sucessfully imported library")
 
 def main_lineage(args):
