@@ -25,7 +25,7 @@ conda install -c bioconda tb-profiler
 conda install -c bioconda tb-profiler samtools=1.9=h7c4ea83_11 ncurses=6.1=h0a44026_1002
 ```
 ##### Manually
-It is possible to install manually. The following pre-requisites will be needed at runtime: *trimmomatic, bwa, minimap2, bowtie2, samtools, bcftools, tqdm and parallel*.
+It is possible to install manually. The following pre-requisites will be needed at runtime: *trimmomatic (>=v0.38), bwa (>=v0.7.17), minimap2 (>=v2.16), bowtie2 (>=v2.3.5), samtools (>=v1.9), bcftools (>=v1.9), GATK (>=v4.1.4.0), tqdm (>=v4.32.2) and parallel (>=v20190522)*. The pipeline should work and has been tested on the program versions indicated in parentheses.
 
 You should also install the pathogen-profiler library found [here](https://github.com/jodyphelan/pathogen-profiler).
 
@@ -87,9 +87,9 @@ It is possible run TBProfiler on another reference genome. Although there is cur
 
 ## Under the hood
 The pipeline searches for small variants and big deletions associated with drug resistance. It will also report the lineage.
-By default it uses Trimmomatic to trim the reads, BWA (or minimap2 for nanopore) to align to the reference genome and GATK (open source v4) to call variants. 
+By default it uses Trimmomatic to trim the reads, BWA (or minimap2 for nanopore) to align to the reference genome and GATK (open source v4) to call variants.
 
-<img src="https://jodyphelan.github.io/img/TBProfiler.png">
+<img src="https://github.com/jodyphelan/jodyphelan.github.io/raw/master/TBProfiler_pipeline.png">
 
 ## ITOL files
 Several files are produced by the `tb-profile collate` function. Among these are several config files that can be used with [iTOL](http://itol.embl.de/) to annotate phylogenetic trees. A small tree and config files have been placed in the *example_data* directory. To use navigate to the iTOL website and upload the *tbprofiler.tree* file using the upload button on the navigation bar. Once this has been uploaded you will be taken to a visualisation of the tree. To add the annotation, click on the '+' button on the lower right hand corner and select the iTOL config files. You should now see a figure similar to the one below. The following annotations are included:

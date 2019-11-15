@@ -64,8 +64,8 @@ def main_profile(args):
     else:
         conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
 
-	if pp.nofolder(arga.dir):
-		os.mkdir(args.dir)
+    if pp.nofolder(args.dir):
+        os.mkdir(args.dir)
     for x in ["bam","vcf","results"]:
         if pp.nofolder(args.dir+"/"+x):
             os.mkdir(args.dir+"/"+x)
@@ -153,6 +153,7 @@ def main_load_library(args):
         new_file_location = sys.base_prefix+"/share/tbprofiler/"+lib_prefix+files[key]
         pp.run_cmd("cp %s %s" % (args.prefix+files[key],new_file_location))
     pp.run_cmd("samtools faidx %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
+    pp.run_cmd("bwa index %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
     if pp.nofile(sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".dict"):
         pp.run_cmd("gatk CreateSequenceDictionary -R %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
     pp.log("Sucessfully imported library")
@@ -199,7 +200,7 @@ def main_phylogeny(args):
     tbp.phylogeny(prefix=args.prefix,conf=conf,sample_file=args.samples,base_dir=args.dir)
 
 def main_version(args):
-    print("\nTBProfiler version %s\n\nContact: Jody Phelan (jody.phelan@lshtm.ac.uk)\n" % tbp._VERSION)
+    print("\nTBProfiler version %s\n" % tbp._VERSION)
 
 def main_reformat(args):
     if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
@@ -309,6 +310,7 @@ def main_test(args):
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
     subparsers = parser.add_subparsers(help="Task to perform")
 
     parser_sub = subparsers.add_parser('profile', help='Run whole profiling pipeline', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -317,7 +319,7 @@ if __name__=="__main__":
     parser_sub.add_argument('--read2','-2',help='Second read file')
     parser_sub.add_argument('--bam','-a',help='BAM file. Make sure it has been generated using the H37Rv genome (GCA_000195955.2)')
     parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix for all results generated')
-	parser_sub.add_argument('--no_trim',action="store_true",help="Don't trim files using trimmomatic")
+    parser_sub.add_argument('--no_trim',action="store_true",help="Don't trim files using trimmomatic")
     parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
     parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
     parser_sub.add_argument('--mapper',default="bwa", choices=["bwa","minimap2","bowtie2"],help="Mapping tool to use. If you are using minION data it will default to minimap2",type=str)
@@ -340,7 +342,7 @@ if __name__=="__main__":
     parser_sub.add_argument('--plot_cov',action="store_true",help="Not currently used")
     parser_sub.add_argument('--min_gene_frac',default=0.9,type=float,help='Not currently used')
     parser_sub.add_argument('--format','-f',default="classic",choices=["classic","new","tex"],help='Not currently used')
-
+    parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
     parser_sub.set_defaults(func=main_profile)
 
     parser_sub = subparsers.add_parser('vcf_profile', help='Run profiling pipeline on VCF file. Warning: this assumes that you have good coverage across the genome', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -354,7 +356,7 @@ if __name__=="__main__":
     parser_sub.add_argument('--html',action="store_true",help="Add HTML output")
     parser_sub.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and pdf results")
     parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
-
+    parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
     parser_sub.set_defaults(func=main_vcf_profile)
 
     parser_sub = subparsers.add_parser('fasta_profile', help='(BETA) Run profiling pipeline on Fasta file. Warning: this assumes that this is a good quality assembly which coveres all drug resistance loci', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -369,6 +371,7 @@ if __name__=="__main__":
     parser_sub.add_argument('--html',action="store_true",help="Add HTML output")
     parser_sub.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and pdf results")
     parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
+    parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
 
     parser_sub.set_defaults(func=main_fasta_profile)
 
@@ -377,6 +380,7 @@ if __name__=="__main__":
     parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
     parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
     parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
+    parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
     parser_sub.set_defaults(func=main_reprofile)
 
 
@@ -387,14 +391,17 @@ if __name__=="__main__":
     parser_sub.add_argument('--pdf',action="store_true",help="Add PDF output. This requires pdflatex to be installed")
     parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
     parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
+    parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
     parser_sub.set_defaults(func=main_reformat)
 
     parser_sub = subparsers.add_parser('load_library', help='Load new library', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser_sub.add_argument('prefix',type=str,help='Prefix to the library files')
+    parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
     parser_sub.set_defaults(func=main_load_library)
 
     parser_sub = subparsers.add_parser('update_tbdb', help='Pull the latest tbdb library and load', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser_sub.add_argument('--seqname',default='Chromosome',help='Mutation panel name')
+    parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
     parser_sub.set_defaults(func=main_update_tbdb)
 
 
@@ -404,6 +411,7 @@ if __name__=="__main__":
     parser_sub.add_argument('--outfmt',default='json',choices=["json","txt"],type=str,help="Output format")
     parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
     parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
+    parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
     parser_sub.set_defaults(func=main_lineage)
 
     parser_sub = subparsers.add_parser('collate', help='Collate results form multiple samples together', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -414,6 +422,7 @@ if __name__=="__main__":
     parser_sub.add_argument('--all_variants',action="store_true",help='Output all variants in variant matrix')
     parser_sub.add_argument('--db',default='tbdb',help='Full path to mutation database json file to use')
     parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
+    parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
     parser_sub.set_defaults(func=main_collate)
 
     # parser_sub = subparsers.add_parser('phylogeny', help='Create a phylogeny based on SNPs', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
