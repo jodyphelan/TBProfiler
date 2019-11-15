@@ -15,33 +15,25 @@ def main(args):
 			total_samples.add(s)
 
 	mutations = defaultdict(set)
+	columns = ["gene","change"] + (args.columns.split(",") if args.columns else [])
+
 	for s in tqdm(total_samples):
 		if pp.nofile("%s/%s.results.json" % (args.dir,s)): continue
 		tmp = json.load(open("%s/%s.results.json" % (args.dir,s)))
 		for var in tmp["dr_variants"]:
-			tmp_var = var
-			if "sample" in tmp_var:
-				del tmp_var["sample"]
-			if "gene_name" in tmp_var:
-				del tmp_var["gene_name"]
-			del tmp_var["freq"]
+			tmp_var = {x:var[x] for x in columns}
 			mutations[json.dumps(tmp_var)].add(s)
 		if args.non_dr:
 			for var in tmp["other_variants"]:
 				tmp_var = var
-				if "sample" in tmp_var:
-					del tmp_var["sample"]
-				if "gene_name" in tmp_var:
-					del tmp_var["gene_name"]
-				del tmp_var["freq"]
+				tmp_var = {x:var[x] for x in columns}
 				mutations[json.dumps(tmp_var)].add(s)
 
-	columns = args.columns.split(",") if args.columns else []
+
 	if args.summary:
 		O = open(args.summary,"w")
 		O.write("%s\n" % ("\t".join(["Gene","Mutation"]+columns+["%s_num\t%s_pct" % (x,x) if args.pct else x for x in list(sample_sets)])))
 		for var_string in mutations:
-			var = json.loads(var_string)
 			if "gene_name" not in var: var["gene_name"] = var["gene"] ######Fix for large deletions not haveing this key
 
 			tmp_freqs = []
