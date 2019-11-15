@@ -79,13 +79,13 @@ def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=Tr
     OUT = open(prefix+".lineage.itol.txt","w")
     OUT.write("""DATASET_COLORSTRIP
 SEPARATOR TAB
-DATASET_LABEL    Lineage
-COLOR    #ff0000
+DATASET_LABEL\tLineage
+COLOR\t#ff0000
 
-LEGEND_TITLE    Lineage
-LEGEND_SHAPES    1    1    1    1    1    1    1    1    1
-LEGEND_COLORS    %(lineage1)s    %(lineage2)s    %(lineage3)s    %(lineage4)s    %(lineage5)s    %(lineage6)s    %(lineage7)s    %(lineageBOV)s    %(lineageOther)s
-LEGEND_LABELS    Lineage1    Lineage2    Lineage3    Lineage4    Lineage5    Lineage6    Lineage7    Bovis    Other
+LEGEND_TITLE\tLineage
+LEGEND_SHAPES\t1\t1\t1\t1\t1\t1\t1\t1\t1
+LEGEND_COLORS\t%(lineage1)s\t%(lineage2)s\t%(lineage3)s\t%(lineage4)s\t%(lineage5)s\t%(lineage6)s\t%(lineage7)s\t%(lineageBOV)s\t%(lineageOther)s
+LEGEND_LABELS\tLineage1\tLineage2\tLineage3\tLineage4\tLineage5\tLineage6\tLineage7\tBovis\tOther
 
 DATA
 """ % lineage_cols)
@@ -97,13 +97,13 @@ DATA
     dr_cols = {"Sensitive":"#80FF00","Drug-resistant":"#00FFFF","MDR":"#8000FF","XDR":"#FF0000"}
     OUT.write("""DATASET_COLORSTRIP
 SEPARATOR TAB
-DATASET_LABEL    Drug-Resistance
-COLOR    #ff0000
+DATASET_LABEL\tDrug-Resistance
+COLOR\t#ff0000
 
-LEGEND_TITLE    Drug resistance
-LEGEND_SHAPES    1    1    1    1
-LEGEND_COLORS    #80FF00    #00FFFF    #8000FF    #FF0000
-LEGEND_LABELS    Sensitive    Drug-resisant    MDR    XDR
+LEGEND_TITLE\tDrug resistance
+LEGEND_SHAPES\t1\t1\t1\t1
+LEGEND_COLORS\t#80FF00\t#\t    #8000FF\t#FF0000
+LEGEND_LABELS\tSensitive\tDrug-resisant\tMDR\tXDR
 
 DATA
 """)
@@ -119,13 +119,13 @@ DATA
     legend_labels = "\t".join(drug_list)
     OUT.write("""DATASET_BINARY
 SEPARATOR TAB
-DATASET_LABEL    Drugs
-COLOR    #ff0000
+DATASET_LABEL\tDrugs
+COLOR\t#ff0000
 
-SHOW_LABELS    1
-FIELD_SHAPES    %s
-FIELD_COLORS    %s
-FIELD_LABELS    %s
+SHOW_LABELS\t1
+FIELD_SHAPES\t%s
+FIELD_COLORS\t%s
+FIELD_LABELS\t%s
 
 DATA
 """ % (legend_shapes,legend_colours,legend_labels))
