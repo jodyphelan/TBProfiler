@@ -418,7 +418,7 @@ if __name__=="__main__":
     parser_sub = subparsers.add_parser('collate', help='Collate results form multiple samples together', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
     parser_sub.add_argument('--samples',help='File with samples (one per line)')
-    parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+    parser_sub.add_argument('--dir','-d',default="results",help='Storage directory')
     parser_sub.add_argument('--full',action="store_true",help='Output mutations in main result file')
     parser_sub.add_argument('--all_variants',action="store_true",help='Output all variants in variant matrix')
     parser_sub.add_argument('--db',default='tbdb',help='Full path to mutation database json file to use')
