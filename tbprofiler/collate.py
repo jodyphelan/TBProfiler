@@ -59,7 +59,6 @@ def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=Tr
             #Chromosome      5240    7267    Rv0005  gyrB    FLUOROQUINOLONES
             row = l.rstrip().split()
             lt2gene[row[3]] = row[4] if row[4]!="." else row[3]
-        dr_variants_set = set()
         for gene in all_vars:
             for mutation in all_vars[gene]:
                 dr_variants_set.add((lt2gene[gene],all_vars[gene][mutation]["hgvs_mutation"]))
