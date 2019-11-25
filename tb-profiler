@@ -340,7 +340,7 @@ if __name__=="__main__":
     parser_sub.add_argument('--meta',default=None,type=str,help="Add meta data from a CSV file to the results. The CSV file must contain a column labelled \"id\" with the same value as the prefix argument")
     parser_sub.add_argument('--webserver',action="store_true",help="Webserver root")
     parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
-	parser_sub.add_argument('--no_flagstat',action="store_true",help="Don't collect flagstats")
+    parser_sub.add_argument('--no_flagstat',action="store_true",help="Don't collect flagstats")
     parser_sub.add_argument('--plot_cov',action="store_true",help="Not currently used")
     parser_sub.add_argument('--min_gene_frac',default=0.9,type=float,help='Not currently used')
     parser_sub.add_argument('--format','-f',default="classic",choices=["classic","new","tex"],help='Not currently used')
