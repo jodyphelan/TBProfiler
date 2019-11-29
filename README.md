@@ -29,11 +29,9 @@ It is possible to install manually. The following pre-requisites will be needed 
 
 You should also install the pathogen-profiler library found [here](https://github.com/jodyphelan/pathogen-profiler).
 
-To install tbprofiler run the following code:
+To install both libraries run the following code:
 ```
-git clone git@github.com:jodyphelan/TBProfiler.git
-cd TBProfiler
-python setup.py install
+pip3 install git+https://github.com/jodyphelan/pathogen-profiler.git git+https://github.com/jodyphelan/TBProfiler.git
 mkdir `python -c "import sys; print(getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', sys.prefix)));"`
 tb-profiler update_tbdb
 ```
