@@ -90,7 +90,7 @@ def main_profile(args):
             pp.run_cmd("gzip %s" % (args.read2.replace(".gz","")))
 
     results = pp.profiler(conf=conf,prefix=args.dir+"/"+args.prefix,r1=args.read1,r2=args.read2,bam_file=args.bam,call_method=args.call_method,min_depth=args.min_depth,threads=args.threads,platform=args.platform,mapper=args.mapper,run_delly=True,af=args.af,caller=args.caller,whole_genome=args.call_whole_genome,notrim=args.no_trim,noflagstat=args.no_flagstat)
-    results = tbp.reformat(results,conf)
+    results = tbp.reformat(results,conf,reporting_af=args.reporting_af)
     results["id"] = args.prefix
     results["tbprofiler_version"] = tbp._VERSION
     outfile = "%s.results.json" % (args.dir+"/"+args.prefix)
@@ -188,7 +188,7 @@ def main_collate(args):
         conf = get_conf_dict(args.external_db)
     else:
         conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
-    tbp.collate_results(args.prefix,conf,sample_file=args.samples,dir=args.dir)
+    tbp.collate_results(args.prefix,conf,sample_file=args.samples,dir=args.dir,reporting_af=args.reporting_af)
 
 def main_phylogeny(args):
     if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
@@ -422,6 +422,7 @@ if __name__=="__main__":
     parser_sub.add_argument('--dir','-d',default="results",help='Storage directory')
     parser_sub.add_argument('--full',action="store_true",help='Output mutations in main result file')
     parser_sub.add_argument('--all_variants',action="store_true",help='Output all variants in variant matrix')
+    parser_sub.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to call variants')
     parser_sub.add_argument('--db',default='tbdb',help='Full path to mutation database json file to use')
     parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
     parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)

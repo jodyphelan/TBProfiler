@@ -4,7 +4,7 @@ import sys
 from collections import defaultdict
 from tqdm import tqdm
 
-def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=True,full_variant_results=True):
+def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=True,full_variant_results=True,reporting_af=0.1):
     if not os.path.isdir(dir):
         sys.stderr.write("\nERROR: Can't find directory %s\n" % dir )
         exit()
@@ -37,9 +37,10 @@ def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=Tr
     for s in tqdm(samples):
         temp = json.load(open("%s/%s.results.json" % (dir,s)))
         for x in temp["dr_variants"]:
-            dr_variants[x["gene"]][x["change"]][s] = x["freq"]
-            dr_variants_set.add((x["gene"],x["change"]))
-            results[s][x["drug"]].add("%s_%s" % (x["gene"],x["change"]) if full_results else "R")
+            if x["freq"]>reporting_af:
+                dr_variants[x["gene"]][x["change"]][s] = x["freq"]
+                dr_variants_set.add((x["gene"],x["change"]))
+                results[s][x["drug"]].add("%s_%s" % (x["gene"],x["change"]) if full_results else "R")
         # for x in temp["del"]:
         #     for d in x["drug"].split(";"):
         #         results[s][d].add("large_deletion_%s" % x["gene"] if full_results else "R")
