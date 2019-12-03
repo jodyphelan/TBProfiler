@@ -324,7 +324,7 @@ if __name__=="__main__":
     parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
     parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
     parser_sub.add_argument('--mapper',default="bwa", choices=["bwa","minimap2","bowtie2"],help="Mapping tool to use. If you are using minION data it will default to minimap2",type=str)
-    parser_sub.add_argument('--caller',default="GATK", choices=["BCFtools","GATK"],help="Variant calling tool to use.",type=str)
+    parser_sub.add_argument('--caller',default="BCFtools", choices=["BCFtools","GATK"],help="Variant calling tool to use.",type=str)
     parser_sub.add_argument('--call_whole_genome',action="store_true",help='Call variants on whole genome (Useful if you need to use whole genome variants later)')
     parser_sub.add_argument('--min_depth',default=10,type=int,help='Minimum depth required to call variant. Bases with depth below this cutoff will be marked as missing')
     parser_sub.add_argument('--af',default=0.1,type=float,help='Minimum allele frequency to call variants')
