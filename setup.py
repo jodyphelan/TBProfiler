@@ -4,11 +4,10 @@ import setuptools
 setuptools.setup(
 
 	name="tbprofiler",
-	version="2.7.4",
+	version="2.8.0",
 	packages=["tbprofiler",],
 	license="MIT",
 	long_description="TBProfiler command line tool",
-	# install_requires=['numpy','pyvcf','tqdm','ete3','biopython','colour','matplotlib','pysam'],
 	scripts= [
 		'tb-profiler',
 		'scripts/tbprofiler_performance.py',
