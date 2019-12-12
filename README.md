@@ -27,7 +27,7 @@ conda install -c bioconda tb-profiler samtools=1.9=h7c4ea83_11 ncurses=6.1=h0a44
 ##### Manually
 It is possible to install manually. The following pre-requisites will be needed at runtime: *trimmomatic (>=v0.38), bwa (>=v0.7.17), minimap2 (>=v2.16), bowtie2 (>=v2.3.5), samtools (>=v1.9), bcftools (>=v1.9), GATK (>=v4.1.4.0), tqdm (>=v4.32.2) and parallel (>=v20190522)*. The pipeline should work and has been tested on the program versions indicated in parentheses.
 
-To install both libraries run the following code:
+To install the library run the following code:
 ```
 pip3 install git+https://github.com/jodyphelan/TBProfiler.git
 mkdir `python -c "import sys; print(getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', sys.prefix)));"`
