@@ -332,10 +332,9 @@ if __name__=="__main__":
     parser_sub.add_argument('--caller',default="bcftools", choices=["bcftools","gatk"],help="Variant calling tool to use.",type=str)
     parser_sub.add_argument('--min_depth',default=10,type=int,help='Minimum depth required to call variant. Bases with depth below this cutoff will be marked as missing')
     parser_sub.add_argument('--af',default=0.1,type=float,help='Minimum allele frequency to call variants')
-    parser_sub.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to call variants')
+    parser_sub.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to use variants for prediction')
     parser_sub.add_argument('--threads','-t',default=1,help='Threads to use',type=int)
     parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
-    parser_sub.add_argument('--call_method',default='low',choices=['low','high','optimise'],type=str,help='Level of quality stringency used by bcftools to call variants. High will enable BAQ and set min baseQ to 13. Low will diable BAQ and set min baseQ to 0. Optimise will look at the coverage and decide whether to set low or high. Low stringency setting will greatly decrease the number of missing calls for low coverage isolates')
     parser_sub.add_argument('--txt',action="store_true",help="Add text output")
     parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
     parser_sub.add_argument('--pdf',action="store_true",help="Add PDF output. This requires pdflatex to be installed")
@@ -426,15 +425,6 @@ if __name__=="__main__":
     parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
     parser_sub.set_defaults(func=main_collate)
 
-    # parser_sub = subparsers.add_parser('phylogeny', help='Create a phylogeny based on SNPs', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    # parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
-    # parser_sub.add_argument('--samples',help='File with samples (one per line)')
-    # parser_sub.add_argument('--db',default='tbdb',help='Full path to mutation database json file to use (default: TBProfiler panel)')
-    # parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
-    # parser_sub.set_defaults(func=main_phylogeny)
-
-    # parser_sub = subparsers.add_parser('test', help='Output program version and exit', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    # parser_sub.set_defaults(func=main_test)
 
     parser_sub = subparsers.add_parser('version', help='Output program version and exit', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser_sub.set_defaults(func=main_version)
