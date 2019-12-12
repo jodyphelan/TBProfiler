@@ -1,6 +1,5 @@
 from .tex import *
 from .text import *
-from .html import *
 from .reformat import *
 from .collate import *
 from .phylogeny import *
