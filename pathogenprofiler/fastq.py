@@ -18,10 +18,13 @@ class fastq:
         # Work out if it is paired end sequencing
         self.paired = True if (r1 and r2) else False
         filecheck(r1)
+        self.files = [r1]
         if self.paired:
             filecheck(r2)
+            self.files.append(r2)
         if r3:
             filecheck(r3)
+            self.files.append(r3)
 
     def trim(self, prefix, threads=4):
         """Perform trimming"""
@@ -29,6 +32,7 @@ class fastq:
         if self.paired:
             run_cmd("trimmomatic PE -threads %(threads)s -phred33 %(r1)s %(r2)s -baseout %(prefix)s LEADING:3 TRAILING:3 SLIDINGWINDOW:4:20 MINLEN:36" % vars(self))
             run_cmd("cat %(prefix)s_1U %(prefix)s_2U > %(prefix)s_TU" % vars(self))
+            run_cmd("rm %(prefix)s_1U %(prefix)s_2U" % vars(self))
             return fastq("%(prefix)s_1P" % vars(self), "%(prefix)s_2P" % vars(self), "%(prefix)s_TU" % vars(self))
         else:
             run_cmd("trimmomatic SE -threads %(threads)s -phred33 %(r1)s %(prefix)s_TU LEADING:3 TRAILING:3 SLIDINGWINDOW:4:20 MINLEN:36" % vars(self))
@@ -77,3 +81,4 @@ class fastq:
                 run_cmd("samtools merge -@ %(threads)s -f %(bam_unsort_file)s %(bam_pair_file)s %(bam_single_file)s" % vars(self))
                 run_cmd("samtools sort -@ %(threads)s -o %(bam_file)s %(bam_unsort_file)s" % vars(self))
                 run_cmd("rm %(bam_single_file)s %(bam_pair_file)s %(bam_unsort_file)s" % vars(self))
+        return bam(self.bam_file,self.prefix,self.platform)
