@@ -96,6 +96,8 @@ def main_profile(args):
             # Unpaired + trimming
             untrimmed_fastq_obj = pp.fastq(args.read1)
             fastq_obj = untrimmed_fastq_obj.trim(files_prefix)
+        else:
+            exit("\nPlease provide a bam file or a fastq file(s)...Exiting!\n")
         bam_obj = fastq_obj.map_to_ref(
             ref_file=conf["ref"], prefix=files_prefix,sample_name=args.prefix,
             aligner=args.mapper, platform=args.platform, threads=args.threads
