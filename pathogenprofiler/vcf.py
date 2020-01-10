@@ -124,7 +124,7 @@ class vcf:
     def load_variants(self):
         variants = defaultdict(lambda:defaultdict(lambda:defaultdict(dict)))
         raw_variants = defaultdict(lambda:defaultdict(lambda:defaultdict(dict)))
-        cmd = "bcftools query -f -u '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%TGT:%%AD]\\n' %s  | sed 's/\.\/\./N\/N/g'" % self.filename
+        cmd = "bcftools query -u -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%TGT:%%AD]\\n' %s  | sed 's/\.\/\./N\/N/g'" % self.filename
         for l in cmd_out(cmd):
             row = l.split()
             alts = row[3].split(",")

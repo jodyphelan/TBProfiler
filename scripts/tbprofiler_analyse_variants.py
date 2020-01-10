@@ -27,7 +27,7 @@ def get_conf_dict(library_prefix):
 def main(args):
 	if args.drugs:
 		args.drugs = [x.lower() for x in args.drugs.split(",")]
-	conf = conf = get_conf_dict(sys.base_prefix + "/share/tbprofiler/%s" % args.db)
+	conf = get_conf_dict(sys.base_prefix + "/share/tbprofiler/%s" % args.db)
 	json_db = json.load(open(conf["json_db"]))
 	drug2genes = defaultdict(set)
 	gene2drugs = defaultdict(set)

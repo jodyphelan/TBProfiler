@@ -4,7 +4,7 @@ import setuptools
 setuptools.setup(
 
 	name="tbprofiler",
-	version="2.8.1",
+	version="2.8.2",
 	packages=["tbprofiler","pathogenprofiler"],
 	license="MIT",
 	long_description="TBProfiler command line tool",
@@ -24,6 +24,7 @@ setuptools.setup(
         'scripts/tbprofiler_generate_sequences.py',
         'scripts/tbprofiler_rank_mutations.py',
         'scripts/tbprofiler_analyse_variants.py',
+        'scripts/tbprofiler_mutation_stats.py'
 		],
 	data_files=[('share/tbprofiler',["db/tbdb.ann.txt","db/tbdb.barcode.bed","db/tbdb.bed","db/tbdb.dr.json","db/tbdb.fasta","db/tbdb.gff","db/tbdb.version.json","example_data/tbprofiler.test.fq.gz"])]
 )
