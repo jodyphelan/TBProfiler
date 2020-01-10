@@ -6,6 +6,11 @@ This repository contains a complete rewrite of the [web version of TBProfiler](h
 
 The pipeline aligns reads to the H37Rv reference using bowtie2, BWA or minimap2 and then calls variants using SAMtools. These variants are then compared to a drug-resistance database. We also predict the number of reads supporting drug resistance variants as an insight into hetero-resistance \(not applicable for minION data\)
 
+### Using TBProfiler in your work
+
+#### Keeping up to date
+TBProfiler is under constant rapid development. If you plan to use the program in your work please make sure you are using the most up to date version! Similarly, the database is not static and is continuously being improved so make sure you are using the most latest version. If you use TBProfiler in your work please state the version of both the tool and the database as they are deveoped independantly from each other.
+
 ## Installation
 
 #### Conda
