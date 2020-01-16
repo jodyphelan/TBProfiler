@@ -38,8 +38,8 @@ class vcf:
         # self.temp_file = get_random_file()
         for l in cmd_out("bcftools query -l %(filename)s" % vars(self)):
             self.samples.append(l.rstrip())
-        for l in cmd_out("bcftools +check-ploidy %(filename)s | tail -1" % vars(self)):
-            self.ploidy = int(l.strip().split()[4])
+        # for l in cmd_out("bcftools +check-ploidy %(filename)s | tail -1" % vars(self)):
+        #     self.ploidy = int(l.strip().split()[4])
     def csq(self,ref_file,gff_file):
         add_arguments_to_self(self,locals())
         self.vcf_csq_file = self.prefix+".csq.vcf.gz"
