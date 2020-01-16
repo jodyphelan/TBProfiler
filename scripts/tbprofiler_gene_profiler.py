@@ -22,7 +22,8 @@ def main(args):
         conf = get_conf_dict(args.external_db)
     else:
         conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
-    args.prefix  = args.bam.split("/")[-1].replace(".bam","").replace(".cram","")
+    if not args.prefix:
+        args.prefix  = args.bam.split("/")[-1].replace(".bam","").replace(".cram","")
     bam_obj = pp.bam(args.bam, args.prefix, platform=args.platform)
     vcf_obj = bam_obj.call_variants(conf["ref"], caller=args.caller, bed_file=conf["bed"], threads=args.threads)
     csq_vcf_obj = vcf_obj.csq(conf["ref"],conf["gff"])
@@ -32,10 +33,12 @@ def main(args):
         results["variants"]  = csq[sample]
     outfile = "%s%s" % (args.prefix,args.suffix)
     json.dump(results,open(outfile,"w"))
+    pp.run_cmd("rm %(prefix)s.targets.vcf.gz* %(prefix)s.targets.csq.vcf.gz*")
 
 parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--bam',type=str,help='NGS Platform',required=True)
-parser.add_argument('--suffix',type=str,default=".results.json",help='NGS Platform')
+parser.add_argument('--prefix',type=str,help='Sample prefix for all results generated')
+parser.add_argument('--suffix',type=str,default=".results.json",help='Output file suffix')
 parser.add_argument('--platform','-m',choices=["illumina","nanopore"],default="illumina",help='NGS Platform used to generate data')
 parser.add_argument('--caller',default="bcftools", choices=["bcftools","gatk"],help="Variant calling tool to use.",type=str)
 parser.add_argument('--db',default='tbdb',help='Mutation panel name')
