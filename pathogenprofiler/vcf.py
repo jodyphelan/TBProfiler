@@ -38,14 +38,15 @@ class vcf:
         # self.temp_file = get_random_file()
         for l in cmd_out("bcftools query -l %(filename)s" % vars(self)):
             self.samples.append(l.rstrip())
-
+        for l in cmd_out("bcftools +check-ploidy %(filename)s | tail -1" % vars(self)):
+            self.ploidy = int(l.strip().split()[4])
     def csq(self,ref_file,gff_file):
         add_arguments_to_self(self,locals())
         self.vcf_csq_file = self.prefix+".csq.vcf.gz"
         run_cmd("bcftools csq -p m -f %(ref_file)s -g %(gff_file)s %(filename)s -Oz -o %(vcf_csq_file)s" % vars(self))
         return vcf(self.vcf_csq_file,self.prefix)
 
-    def load_csq(self,ann_file=None):
+    def load_csq(self, ann_file = None):
         ann = defaultdict(dict)
         if ann_file:
             for l in open(ann_file):
@@ -90,8 +91,8 @@ class vcf:
                 if row[i+1] == ".": continue
                 if row[i+1][0] == "@": continue
                 if info[-1] == "pseudogene": continue
-                gene_id = info[2]
                 gene_name = info[1]
+                gene_id = info[2] if info[2]!="" else gene_name
                 if info[0] == "intron":continue
                 if info[0] == "coding_sequence":
                     cng = "%s%s>%s" % (ann_pos,call1,call2)
