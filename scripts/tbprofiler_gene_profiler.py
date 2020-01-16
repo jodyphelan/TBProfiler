@@ -22,7 +22,7 @@ def main(args):
         conf = get_conf_dict(args.external_db)
     else:
         conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
-    args.prefix  = args.bam.replace(".bam","").replace(".cram","")
+    args.prefix  = args.bam.split("/")[-1].replace(".bam","").replace(".cram","")
     bam_obj = pp.bam(args.bam, args.prefix, platform=args.platform)
     vcf_obj = bam_obj.call_variants(conf["ref"], caller=args.caller, bed_file=conf["bed"], threads=args.threads)
     csq_vcf_obj = vcf_obj.csq(conf["ref"],conf["gff"])
@@ -38,6 +38,8 @@ parser.add_argument('--bam',type=str,help='NGS Platform',required=True)
 parser.add_argument('--suffix',type=str,default=".results.json",help='NGS Platform')
 parser.add_argument('--platform','-m',choices=["illumina","nanopore"],default="illumina",help='NGS Platform used to generate data')
 parser.add_argument('--caller',default="bcftools", choices=["bcftools","gatk"],help="Variant calling tool to use.",type=str)
+parser.add_argument('--db',default='tbdb',help='Mutation panel name')
+parser.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 parser.add_argument('--threads','-t',default=1,help='Threads to use',type=int)
 parser.set_defaults(func=main)
 
