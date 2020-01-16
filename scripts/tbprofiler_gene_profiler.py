@@ -33,7 +33,7 @@ def main(args):
         results["variants"]  = csq[sample]
     outfile = "%s%s" % (args.prefix,args.suffix)
     json.dump(results,open(outfile,"w"))
-    pp.run_cmd("rm %(prefix)s.targets.vcf.gz* %(prefix)s.targets.csq.vcf.gz*")
+    pp.run_cmd("rm %(prefix)s.targets.vcf.gz* %(prefix)s.targets.csq.vcf.gz*" % vars(args))
 
 parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--bam',type=str,help='NGS Platform',required=True)
