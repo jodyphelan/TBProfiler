@@ -288,7 +288,7 @@ def main_vcf_profile(args):
         args.sample_name = sample_name
         files_prefix = args.dir+"/"+sample_name
         args.tmp_vcf = pp.get_random_file()
-        pp.run_cmd("bcftools view -s %(sample_name)s -c 1 -Oz -o %(tmp_vcf)s %(vcf)s" % vars(args))
+        pp.run_cmd("bcftools view -s %(sample_name)s -c 1 %(vcf)s | bcftools +fixploidy -Oz -o %(tmp_vcf)s " % vars(args))
         results = pp.vcf_profiler(conf, files_prefix, sample_name, args.tmp_vcf)
         results = tbp.reformat(results,conf,reporting_af=args.reporting_af)
         results["id"] = sample_name
