@@ -100,7 +100,7 @@ def vcf_profiler(conf, prefix, sample_name, vcf_file):
 
     results["barcode"] = barcode(mutations,conf["barcode"])
     results = db_compare(db_file=conf["json_db"], mutations=results)
-    run_cmd("rm %s" % vcf_targets_file)
+    run_cmd("rm %s* %s*" % (vcf_targets_file,vcf_csq_obj.filename))
     return results
 
 def abi_profiler(conf,prefix,filenames):
