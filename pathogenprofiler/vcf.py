@@ -34,12 +34,8 @@ class vcf:
         else:
             self.prefix = prefix
         index_bcf(filename,self.threads)
-        # run_cmd("bcftools query -l %(filename)s > %(temp_file)s" % vars(self))
-        # self.temp_file = get_random_file()
         for l in cmd_out("bcftools query -l %(filename)s" % vars(self)):
             self.samples.append(l.rstrip())
-        # for l in cmd_out("bcftools +check-ploidy %(filename)s | tail -1" % vars(self)):
-        #     self.ploidy = int(l.strip().split()[4])
     def csq(self,ref_file,gff_file):
         add_arguments_to_self(self,locals())
         self.vcf_csq_file = self.prefix+".csq.vcf.gz"
@@ -48,11 +44,13 @@ class vcf:
 
     def load_csq(self, ann_file = None):
         ann = defaultdict(dict)
+        gene_set = []
         if ann_file:
             for l in open(ann_file):
                 #chrom pos gene gene/codon_pos
                 row = l.rstrip().split()
                 ann[row[0]][int(row[1])] = (row[2],row[3])
+                gene_set.append(row[2])
 
         nuc_variants = self.load_variants()
         variants = {s:[] for s in self.samples}
@@ -83,7 +81,13 @@ class vcf:
 
             for i in range(4,len(row)-4,5):
                 sample = row[i]
-                info = row[i+1].split("|") if row[i+1]!="." else row[i+2].split("|")
+                infos = [x.split("|") for x in row[i+1].split(",") if x!="."] + [x.split("|") for x in row[i+2].split(",") if x!="."]
+                info = None
+                for x in infos:
+                    if x[1] in gene_set or x[2] in gene_set:
+                        info = x
+                        break
+
                 call1,call2 = row[i+3].split("/") if "/" in row[i+3] else row[i+3].split("|")
                 ad = [int(x) if x!="." else 0 for x in row[i+4].split(",")]  if row[i+4]!="." else [0,100]
 
