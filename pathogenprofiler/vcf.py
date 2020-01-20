@@ -80,6 +80,9 @@ class vcf:
                 continue
 
             for i in range(4,len(row)-4,5):
+                if row[i+1] == ".": continue
+                if row[i+1][0] == "@": continue
+
                 sample = row[i]
                 infos = [x.split("|") for x in row[i+1].split(",") if x!="."] + [x.split("|") for x in row[i+2].split(",") if x!="."]
                 info = None
@@ -92,8 +95,6 @@ class vcf:
                 ad = [int(x) if x!="." else 0 for x in row[i+4].split(",")]  if row[i+4]!="." else [0,100]
 
                 adr = {alleles[i]:d/sum(ad) for i,d in enumerate(ad)}
-                if row[i+1] == ".": continue
-                if row[i+1][0] == "@": continue
                 if info[-1] == "pseudogene": continue
                 gene_name = info[1]
                 gene_id = info[2] if info[2]!="" else gene_name
