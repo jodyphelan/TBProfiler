@@ -13,10 +13,10 @@ def main(args):#locus_tag,mutation,resultdir=".",sample_file=None):
     for s in tqdm(samples):
         tmp = json.load(open("%s/%s.results.json" % (args.dir,s)))
         for var in tmp["dr_variants"]:
-            if var["gene"]==args.gene and var["change"]==args.mutation:
+            if (var["gene"]==args.gene or var["locus_tag"]==args.gene) and var["change"]==args.mutation:
                 positives.add(s)
         for var in tmp["other_variants"]:
-            if var["gene"]==args.gene and var["change"]==args.mutation:
+            if (var["gene"]==args.gene or var["locus_tag"]==args.gene) and var["change"]==args.mutation:
                 positives.add(s)
     negatives = set(samples)-positives
     if args.txt:
@@ -27,7 +27,7 @@ def main(args):#locus_tag,mutation,resultdir=".",sample_file=None):
         O = open("%s_%s.itol.txt" % (args.gene,args.mutation.replace(">","_")),"w")
         O.write("""DATASET_COLORSTRIP
 SEPARATOR TAB
-DATASET_LABEL\tsamples
+DATASET_LABEL\t%s_%s
 COLOR\t#ff0000
 
 LEGEND_TITLE\tsamples
@@ -36,9 +36,9 @@ LEGEND_COLORS\tblack
 LEGEND_LABELS\tSample
 
 DATA
-""")
+""" % (args.gene,args.mutation))
         for x in positives:
-            O.write("%s\tblack\n" % x.rstrip())
+            O.write("%s\tred\n" % x.rstrip())
         for x in negatives:
             O.write("%s\tgrey\n" % x.rstrip())
         O.close()
