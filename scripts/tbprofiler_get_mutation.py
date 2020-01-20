@@ -30,13 +30,13 @@ SEPARATOR TAB
 DATASET_LABEL\t%s_%s
 COLOR\t#ff0000
 
-LEGEND_TITLE\tsamples
+LEGEND_TITLE\%s_%s
 LEGEND_SHAPES\t1
-LEGEND_COLORS\tblack
-LEGEND_LABELS\tSample
+LEGEND_COLORS\tgrey\tred
+LEGEND_LABELS\tAbsent\tPresent
 
 DATA
-""" % (args.gene,args.mutation))
+""" % (args.gene,args.mutation,args.gene,args.mutation))
         for x in positives:
             O.write("%s\tred\n" % x.rstrip())
         for x in negatives:
