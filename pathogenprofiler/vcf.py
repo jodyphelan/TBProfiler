@@ -67,7 +67,7 @@ class vcf:
             else:
                 ann_pos = None
                 ann_gene = None
-            if len(row)==4:
+            if len(row)==4 or "coding_sequence" in line:
                 for alt in alts:
                     if chrom in ann and pos in ann[chrom]:
                         cng = "%s%s>%s" % (ann_pos,ref,alt)
