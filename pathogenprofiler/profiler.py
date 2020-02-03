@@ -47,7 +47,7 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=4, no_flagsta
     ### Run delly if specified ###
     if run_delly:
         delly_bcf = bam_obj.run_delly()
-        if delly_bcf!=None:
+        if delly_bcf is not None:
             results["delly"] = "success"
             deletions = delly_bcf.overlap_bed(conf["bed"])
             for deletion in deletions:
