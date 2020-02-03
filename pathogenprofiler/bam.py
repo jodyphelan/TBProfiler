@@ -14,8 +14,11 @@ class bam:
         index_bam(bam_file,threads=threads)
 
     def run_delly(self):
-        run_cmd("delly call -t DEL -g %(ref_file)s %(bam_file)s -o %(prefix)s.delly.bcf" % vars(self))
-        return delly_bcf("%(prefix)s.delly.bcf" % vars(self))
+        stdout,stderr = run_cmd("delly call -t DEL -g %(ref_file)s %(bam_file)s -o %(prefix)s.delly.bcf" % vars(self),terminate_on_error=False)
+        if "not enough data to estimate library parameters" in stderr:
+            return None
+        else:
+            return delly_bcf("%(prefix)s.delly.bcf" % vars(self))
 
     def call_variants(self,ref_file,caller,bed_file=None,threads=4):
         add_arguments_to_self(self, locals())

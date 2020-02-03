@@ -141,7 +141,7 @@ def main_profile(args):
         if not args.no_trim:
             pp.run_cmd("rm -f %s" % " ".join(fastq_obj.files))
     pp.run_cmd("mv -f %(dir)s/%(prefix)s*.vcf.gz* %(dir)s/vcf/" % vars(args))
-    if run_delly:
+    if run_delly and results["delly"]=="success":
         pp.run_cmd("mv -f %(dir)s/%(prefix)s.delly.bcf* %(dir)s/vcf/" % vars(args))
 
     ### Add meta data to results

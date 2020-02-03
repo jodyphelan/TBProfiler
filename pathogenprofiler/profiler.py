@@ -47,15 +47,19 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=4, no_flagsta
     ### Run delly if specified ###
     if run_delly:
         delly_bcf = bam_obj.run_delly()
-        deletions = delly_bcf.overlap_bed(conf["bed"])
-        for deletion in deletions:
-            tmp = {
-                "genome_pos": deletion["start"], "gene_id": deletion["region"],
-                "chr": deletion["chr"], "freq": 1, "type": "large_deletion",
-                "change": "%(chr)s_%(start)s_%(end)s" % deletion
-                }
-            results["variants"].append(tmp)
+        if delly_bcf!=None:
+            results["delly"] = "success"
+            deletions = delly_bcf.overlap_bed(conf["bed"])
+            for deletion in deletions:
+                tmp = {
+                    "genome_pos": deletion["start"], "gene_id": deletion["region"],
+                    "chr": deletion["chr"], "freq": 1, "type": "large_deletion",
+                    "change": "%(chr)s_%(start)s_%(end)s" % deletion
+                    }
+                results["variants"].append(tmp)
 
+        else:
+            results["delly"] = "fail"
     ### Compare variants to database ###
     results = db_compare(db_file=conf["json_db"], mutations=results)
 

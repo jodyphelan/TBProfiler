@@ -301,29 +301,27 @@ def bwa_index(ref):
         cmd = "bwa index %s" % ref
         run_cmd(cmd)
 
-def run_cmd(cmd,verbose=1,target=None):
+def run_cmd(cmd,verbose=1,target=None,terminate_on_error=True):
     """
     Wrapper to run a command using subprocess with 3 levels of verbosity and automatic exiting if command failed
     """
     if target and filecheck(target): return True
     cmd = "set -u pipefail; " + cmd
-    if verbose==2:
+    if verbose>0:
         sys.stderr.write("\nRunning command:\n%s\n" % cmd)
-        stdout = open("/dev/stdout","w")
-        stderr = open("/dev/stderr","w")
-    elif verbose==1:
-        sys.stderr.write("\nRunning command:\n%s\n" % cmd)
-        stdout = open("/dev/null","w")
-        stderr = open("/dev/null","w")
-    else:
-        stdout = open("/dev/null","w")
-        stderr = open("/dev/null","w")
 
-    res = subprocess.call(cmd,shell=True,stderr = stderr,stdout = stdout)
-    stderr.close()
-    if res!=0:
+    p = subprocess.Popen(cmd,shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout,stderr = p.communicate()
+
+    if terminate_on_error==True and p.returncode!=0:
         sys.stderr.write("Command Failed! Please Check!")
         exit(1)
+
+    if verbose>1:
+        sys.stdout.write(stdout)
+        sys.stderr.write(stderr)
+
+    return (stdout.decode(),stderr.decode())
 
 def index_bam(bamfile,threads=4,overwrite=False):
     """
