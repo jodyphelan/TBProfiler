@@ -40,7 +40,7 @@ def main_collate(args):
     samples = [x.replace(args.suffix,"") for x in os.listdir(args.dir) if x[-len(args.suffix):]==args.suffix]
     variants = defaultdict(lambda:defaultdict(set))
     for s in samples:
-        j = json.load(open("%s/%s.%s" % (args.dir,s,args.suffix)))
+        j = json.load(open("%s/%s%s" % (args.dir,s,args.suffix)))
         print("%s\t%s" % (s,";".join([var["change"] for var in j["variants"]])))
         for var in j["variants"]:
             variants[var["locus_tag"]][var["change"]].add(s)
