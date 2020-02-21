@@ -43,7 +43,7 @@ def main_collate(args):
         j = json.load(open("%s/%s%s" % (args.dir,s,args.suffix)))
         print("%s\t%s" % (s,";".join([var["change"] for var in j["variants"]])))
         for var in j["variants"]:
-            variants[var["locus_tag"]][var["change"]].add(s)
+            variants[var["gene_id"]][var["change"]].add(s)
 
 parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 subparsers = parser.add_subparsers(help="Task to perform")
