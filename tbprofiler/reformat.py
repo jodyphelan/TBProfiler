@@ -57,12 +57,7 @@ def add_genes(results,conf):
         del d["gene_id"]
     return results
 
-def barcode2lineage(results,max_node_skip=1):
-    results["lineage"] = []
-    for d in results["barcode"]:
-        results["lineage"].append({"lin":d["annotation"],"family":d["info"][0],"spoligotype":d["info"][1],"rd":d["info"][2],"frac":d["freq"]})
-    del results["barcode"]
-    results["lineage"] = sorted(results["lineage"],key= lambda x:len(x["lin"]))
+def get_main_lineage(lineage_dict_list,max_node_skip=1):
     def collapse_paths(paths):
         filtered_paths = []
         for p in sorted(paths,reverse=True):
@@ -75,10 +70,9 @@ def barcode2lineage(results,max_node_skip=1):
     def derive_path(x):
         return [".".join(x.split(".")[:i])for i in range(1,len(x.split(".")))] + [x]
 
-    lin = results["lineage"]
     lin_freqs = {}
     pool = []
-    for l in lin:
+    for l in lineage_dict_list:
         pool.append(l["lin"])
         lin_freqs[l["lin"]] = float(l["frac"])
     routes = [";".join(derive_path(x)) for x in pool]
@@ -90,11 +84,19 @@ def barcode2lineage(results,max_node_skip=1):
         freqs = [lin_freqs[n] for n in nodes if n in lin_freqs]
         path_mean_freq[nodes] = sum(freqs)/len(freqs)
 
+    main_lin = ";".join([x[0] for x in path_mean_freq])
+    sublin = ";".join([x[-1] for x in path_mean_freq])
+    return (main_lin,sublin)
 
-    results["main_lin"] = ";".join([x[0] for x in path_mean_freq])
-    results["sublin"] = ";".join([x[-1] for x in path_mean_freq])
-
-
+def barcode2lineage(results,max_node_skip=1):
+    results["lineage"] = []
+    for d in results["barcode"]:
+        results["lineage"].append({"lin":d["annotation"],"family":d["info"][0],"spoligotype":d["info"][1],"rd":d["info"][2],"frac":d["freq"]})
+    del results["barcode"]
+    results["lineage"] = sorted(results["lineage"],key= lambda x:len(x["lin"]))
+    main_lin,sublin = get_main_lineage(results["lineage"])
+    results["main_lin"] = main_lin
+    results["sublin"] = sublin
     return results
 
 
