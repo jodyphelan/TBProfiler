@@ -190,7 +190,7 @@ def main_lineage(args):
     results = {}
     results["barcode"] = pp.barcode(mutations,conf["barcode"])
     tbp.barcode2lineage(results)
-    outfile = "%s.%s" % (args.prefix,args.outfmt)
+    outfile = "%s.lineage.%s" % (args.prefix,args.outfmt)
     O = open(outfile,"w")
     if args.outfmt=="json":
         json.dump(results,O)
