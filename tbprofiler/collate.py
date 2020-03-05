@@ -41,9 +41,6 @@ def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=Tr
                 dr_variants[x["gene"]][x["change"]][s] = x["freq"]
                 dr_variants_set.add((x["gene"],x["change"]))
                 results[s][x["drug"]].add("%s_%s" % (x["gene"],x["change"]) if full_results else "R")
-        # for x in temp["del"]:
-        #     for d in x["drug"].split(";"):
-        #         results[s][d].add("large_deletion_%s" % x["gene"] if full_results else "R")
         for d in drug_list:
             results[s][d] = ", ".join(results[s][d]) if len(results[s][d])>0 else "-"
             results[s]["main_lin"] = temp["main_lin"]
