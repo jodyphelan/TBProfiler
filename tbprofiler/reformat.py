@@ -80,11 +80,12 @@ def get_main_lineage(lineage_dict_list,max_node_skip=1):
     path_mean_freq = {}
     for path in paths:
         nodes = tuple(path.split(";"))
-        if sum([n not in pool for n in nodes])>max_node_skip: continue
+        nodes_skipped = sum([n not in pool for n in nodes])
+        if nodes_skipped>max_node_skip: continue
         freqs = [lin_freqs[n] for n in nodes if n in lin_freqs]
         path_mean_freq[nodes] = sum(freqs)/len(freqs)
 
-    main_lin = ";".join([x[0] for x in path_mean_freq])
+    main_lin = ";".join(sorted(list(set([x[0] for x in path_mean_freq]))))
     sublin = ";".join([x[-1] for x in path_mean_freq])
     return (main_lin,sublin)
 
