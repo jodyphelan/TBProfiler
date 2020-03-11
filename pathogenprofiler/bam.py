@@ -8,7 +8,7 @@ class bam:
     """
     A class to perform operations on BAM files such as SNP calling
     """
-    def __init__(self,bam_file,prefix,platform,threads=4):
+    def __init__(self,bam_file,prefix,platform,threads=1):
         add_arguments_to_self(self, locals())
         filecheck(self.bam_file)
         index_bam(bam_file,threads=threads)
@@ -20,7 +20,7 @@ class bam:
         else:
             return delly_bcf("%(prefix)s.delly.bcf" % vars(self))
 
-    def call_variants(self,ref_file,caller,bed_file=None,threads=4):
+    def call_variants(self,ref_file,caller,bed_file=None,threads=1):
         add_arguments_to_self(self, locals())
         filecheck(ref_file)
         self.caller = caller.lower()

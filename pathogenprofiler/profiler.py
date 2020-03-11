@@ -9,7 +9,7 @@ import re
 
 
 
-def bam_profiler(conf, bam_file, prefix, platform, caller, threads=4, no_flagstat=False, run_delly=True):
+def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagstat=False, run_delly=True):
 
     log("Using %s\n\nPlease ensure that this BAM was made using the same reference as in the database.\nIf you are not sure what reference was used it is best to remap the reads." % bam_file)
 

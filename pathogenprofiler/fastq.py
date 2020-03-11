@@ -26,7 +26,7 @@ class fastq:
             filecheck(r3)
             self.files.append(r3)
 
-    def trim(self, prefix, threads=4):
+    def trim(self, prefix, threads=1):
         """Perform trimming"""
         add_arguments_to_self(self, locals())
         if self.paired:
@@ -38,7 +38,7 @@ class fastq:
             run_cmd("trimmomatic SE -threads %(threads)s -phred33 %(r1)s %(prefix)s_TU LEADING:3 TRAILING:3 SLIDINGWINDOW:4:20 MINLEN:36" % vars(self))
             return fastq("%(prefix)s_TU" % vars(self))
 
-    def map_to_ref(self, ref_file, prefix, sample_name, aligner, platform, threads=4):
+    def map_to_ref(self, ref_file, prefix, sample_name, aligner, platform, threads=1):
         """Mapping to a reference genome"""
         add_arguments_to_self(self, locals())
         self.aligner = aligner.lower()
