@@ -88,14 +88,14 @@ def main_profile(args):
         elif args.read1 and args.read2 and not args.no_trim:
             # Paired + trimming
             untrimmed_fastq_obj = pp.fastq(args.read1,args.read2)
-            fastq_obj = untrimmed_fastq_obj.trim(files_prefix)
+            fastq_obj = untrimmed_fastq_obj.trim(files_prefix,threads=args.threads)
         elif args.read1 and not args.read2 and args.no_trim:
             # Unpaired + trimming
             fastq_obj = pp.fastq(args.read1,args.read2)
         elif args.read1 and not args.read2 and not args.no_trim:
             # Unpaired + trimming
             untrimmed_fastq_obj = pp.fastq(args.read1)
-            fastq_obj = untrimmed_fastq_obj.trim(files_prefix)
+            fastq_obj = untrimmed_fastq_obj.trim(files_prefix,threads=args.threads)
         else:
             exit("\nPlease provide a bam file or a fastq file(s)...Exiting!\n")
         bam_obj = fastq_obj.map_to_ref(
