@@ -23,7 +23,7 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
         caller = "bcftools"
 
     ### Create bam object and call variants ###
-    bam_obj = bam(bam_file, prefix, platform=platform)
+    bam_obj = bam(bam_file, prefix, platform=platform, threads=threads)
     vcf_obj = bam_obj.call_variants(conf["ref"], caller=caller, bed_file=conf["bed"], threads=threads)
     csq_vcf_obj = vcf_obj.csq(conf["ref"],conf["gff"])
     csq = csq_vcf_obj.load_csq(ann_file=conf["ann"])
