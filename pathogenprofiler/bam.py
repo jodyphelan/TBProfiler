@@ -40,7 +40,7 @@ class bam:
         if self.platform == "nanopore":
             self.calling_cmd = "bcftools mpileup -f %(ref_file)s -Bq8 -a DP,AD -r {1} %(bam_file)s | bcftools call -mv | bcftools filter -e 'FMT/DP<10' -S . | bcftools filter -e 'IMF < 0.7' -S 0 -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
         elif self.caller == "bcftools":
-            self.calling_cmd = "bcftools mpileup -f %(ref_file)s -ABq0 -a DP,AD -r {1} %(bam_file)s | bcftools call -mv | bcftools norm -f %(ref_file)s | bcftools filter -e 'FMT/DP<10' -S . -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
+            self.calling_cmd = "bcftools mpileup -f %(ref_file)s -ABq8 -Q0 -a DP,AD -r {1} %(bam_file)s | bcftools call -mv | bcftools norm -f %(ref_file)s | bcftools filter -e 'FMT/DP<10' -S . -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
         elif self.caller == "gatk":
             self.calling_cmd = "gatk HaplotypeCaller -R %(ref_file)s -I %(bam_file)s -O %(prefix)s.{2}.vcf.gz -L {1}" % vars(self)
         elif self.caller == "freebayes":
