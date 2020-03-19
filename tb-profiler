@@ -88,14 +88,14 @@ def main_profile(args):
         elif args.read1 and args.read2 and not args.no_trim:
             # Paired + trimming
             untrimmed_fastq_obj = pp.fastq(args.read1,args.read2)
-            fastq_obj = untrimmed_fastq_obj.trim(files_prefix)
+            fastq_obj = untrimmed_fastq_obj.trim(files_prefix,threads=args.threads)
         elif args.read1 and not args.read2 and args.no_trim:
             # Unpaired + trimming
             fastq_obj = pp.fastq(args.read1,args.read2)
         elif args.read1 and not args.read2 and not args.no_trim:
             # Unpaired + trimming
             untrimmed_fastq_obj = pp.fastq(args.read1)
-            fastq_obj = untrimmed_fastq_obj.trim(files_prefix)
+            fastq_obj = untrimmed_fastq_obj.trim(files_prefix,threads=args.threads)
         else:
             exit("\nPlease provide a bam file or a fastq file(s)...Exiting!\n")
         bam_obj = fastq_obj.map_to_ref(
@@ -186,18 +186,17 @@ def main_lineage(args):
         conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
     pp.filecheck(args.bam)
     bam = pp.bam(args.bam,args.bam,conf["ref"])
-    mutations = bam.get_bed_gt(conf["barcode"])
+    mutations = bam.get_bed_gt(conf["barcode"],conf["ref"],args.caller)
     results = {}
     results["barcode"] = pp.barcode(mutations,conf["barcode"])
     tbp.barcode2lineage(results)
-    if args.prefix:
-        outfile = "%s.%s" % (args.prefix,args.outfmt)
-        O = open(outfile,"w")
-        if args.outfmt=="json":
-            json.dump(results["lineage"],O)
-        elif args.outfmt=="txt":
-            O.write(tbp.text.lineagejson2text(results["lineage"]))
-        O.close()
+    outfile = "%s.lineage.%s" % (args.prefix,args.outfmt)
+    O = open(outfile,"w")
+    if args.outfmt=="json":
+        json.dump(results,O)
+    elif args.outfmt=="txt":
+        O.write(tbp.text.lineagejson2text(results["lineage"]))
+    O.close()
 
 def main_collate(args):
     if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
@@ -331,7 +330,7 @@ if __name__=="__main__":
     parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
     parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
     parser_sub.add_argument('--mapper',default="bwa", choices=["bwa","minimap2","bowtie2"],help="Mapping tool to use. If you are using nanopore data it will default to minimap2",type=str)
-    parser_sub.add_argument('--caller',default="bcftools", choices=["bcftools","gatk"],help="Variant calling tool to use.",type=str)
+    parser_sub.add_argument('--caller',default="bcftools", choices=["bcftools","gatk","freebayes"],help="Variant calling tool to use.",type=str)
     parser_sub.add_argument('--min_depth',default=10,type=int,help='Minimum depth required to call variant. Bases with depth below this cutoff will be marked as missing')
     parser_sub.add_argument('--af',default=0.1,type=float,help='Minimum allele frequency to call variants')
     parser_sub.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to use variants for prediction')
@@ -410,6 +409,7 @@ if __name__=="__main__":
     parser_sub.add_argument('--bam','-a',required=True, help='BAM file. Make sure it has been generated using the H37Rv genome (GCA_000195955.2)')
     parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
     parser_sub.add_argument('--outfmt',default='json',choices=["json","txt"],type=str,help="Output format")
+    parser_sub.add_argument('--caller',default='bcftools',choices=["bcftools","gatk"],type=str,help="Variant caller")
     parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
     parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
     parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)

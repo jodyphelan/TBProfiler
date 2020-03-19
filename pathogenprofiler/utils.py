@@ -323,18 +323,20 @@ def run_cmd(cmd,verbose=1,target=None,terminate_on_error=True):
 
     return (stdout.decode(),stderr.decode())
 
-def index_bam(bamfile,threads=4,overwrite=False):
+def index_bam(bamfile,threads=1,overwrite=False):
     """
     Indexing a bam file
     """
     cmd = "samtools index -@ %s %s" % (threads,bamfile)
+    bam_or_cram = "cram" if bamfile[-4:]=="cram" else "bam"
+    suffix = ".bai" if bam_or_cram=="bam" else ".crai"
     if filecheck(bamfile):
-        if nofile(bamfile+".bai"):
+        if nofile(bamfile+suffix):
             run_cmd(cmd)
-        elif os.path.getmtime(bamfile+".bai")<os.path.getmtime(bamfile) or overwrite:
+        elif os.path.getmtime(bamfile+suffix)<os.path.getmtime(bamfile) or overwrite:
             run_cmd(cmd)
 
-def index_bcf(bcffile,threads=4,overwrite=False):
+def index_bcf(bcffile,threads=1,overwrite=False):
     """
     Indexing a bam file
     """

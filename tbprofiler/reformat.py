@@ -57,73 +57,49 @@ def add_genes(results,conf):
         del d["gene_id"]
     return results
 
-def barcode2lineage(results):
+def get_main_lineage(lineage_dict_list,max_node_skip=1):
+    def collapse_paths(paths):
+        filtered_paths = []
+        for p in sorted(paths,reverse=True):
+            if p=="lineageBOV_AFRI": continue
+            path_stored = any([p in x for x in filtered_paths])
+            if not path_stored:
+                filtered_paths.append(p)
+        return filtered_paths
+
+    def derive_path(x):
+        return [".".join(x.split(".")[:i])for i in range(1,len(x.split(".")))] + [x]
+
+    lin_freqs = {}
+    pool = []
+    for l in lineage_dict_list:
+        pool.append(l["lin"])
+        lin_freqs[l["lin"]] = float(l["frac"])
+    routes = [";".join(derive_path(x)) for x in pool]
+    paths = collapse_paths(routes)
+    path_mean_freq = {}
+    for path in paths:
+        nodes = tuple(path.split(";"))
+        nodes_skipped = sum([n not in pool for n in nodes])
+        if nodes_skipped>max_node_skip: continue
+        freqs = [lin_freqs[n] for n in nodes if n in lin_freqs]
+        path_mean_freq[nodes] = sum(freqs)/len(freqs)
+
+    main_lin = ";".join(sorted(list(set([x[0] for x in path_mean_freq]))))
+    sublin = ";".join([x[-1] for x in path_mean_freq])
+    return (main_lin,sublin)
+
+def barcode2lineage(results,max_node_skip=1):
     results["lineage"] = []
     for d in results["barcode"]:
         results["lineage"].append({"lin":d["annotation"],"family":d["info"][0],"spoligotype":d["info"][1],"rd":d["info"][2],"frac":d["freq"]})
     del results["barcode"]
     results["lineage"] = sorted(results["lineage"],key= lambda x:len(x["lin"]))
-
-    def get_dots(x):
-        return len([c for c in x if c=="."])
-    def derive_path(x):
-        return [".".join(x.split(".")[:i])for i in range(1,len(x.split(".")))] + [x]
-    lin = results["lineage"]
-    lin_fracs = {}
-    pool = []
-    for l in lin:
-        pool.append(l["lin"])
-        lin_fracs[l["lin"]] = float(l["frac"])
-
-    tree = {}
-    while len(pool)>0:
-        pool = sorted(pool,key=lambda x:get_dots(x))
-        node = pool.pop(0)
-        path = derive_path(node)
-        parent = path[-2] if len(path)>1 else None
-        if not parent:
-            tree[node] = {}
-        else:
-            tmp = tree
-            for i in range(len(path)-1):
-                if path[i] not in tmp:
-                    break
-                tmp = tmp[path[i]]
-            tmp[node] = {}
-
-    terminal_nodes = []
-    def traverse(x,n):
-        if x[n]=={}:
-            terminal_nodes.append(n)
-            return n
-        return [traverse(x[n],k) for k in x[n]]
-
-    traverse({"root":tree},"root")
-    lineage_freq = {}
-    sublineage_freq = {}
-    for l in terminal_nodes:
-        if l=="lineageBOV_AFRI":continue
-        tmp = None
-        for tmp in results["lineage"]:
-            if tmp["lin"]==l: break
-        sublineage_freq[l] = tmp["frac"] if tmp else None
-    for l in tree:
-        if l=="lineageBOV_AFRI":continue
-        tmp = None
-        for tmp in results["lineage"]:
-            if tmp["lin"]==l: break
-        lineage_freq[l] = tmp["frac"] if tmp else None
-    results["main_lin"] = ";".join(lineage_freq)
-    results["sublin"] = ";".join(sublineage_freq)
-
-    # results["main_lin"] = sorted(tree.keys(),key=lambda x:lin_fracs[x],reverse=True)[0]
-    # tmp = tree[results["main_lin"]]
-    # n = "NA"
-    # while len(tmp.keys())>0:
-    #     n = sorted(tmp.keys(),key=lambda x:lin_fracs[x])[0]
-    #     tmp = tmp[n]
-    # results["sublin"] = n
+    main_lin,sublin = get_main_lineage(results["lineage"])
+    results["main_lin"] = main_lin
+    results["sublin"] = sublin
     return results
+
 
 def reformat_annotations(results,conf,reporting_af=0.1):
     #Chromosome      4998    Rv0005  -242

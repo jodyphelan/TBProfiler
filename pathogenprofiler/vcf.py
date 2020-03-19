@@ -15,7 +15,7 @@ def parse_mutation(x):
     return change_num,ref_aa,alt_aa
 
 class vcf:
-    def __init__(self,filename,prefix=None,threads=4):
+    def __init__(self,filename,prefix=None,threads=1):
         self.samples = []
         add_arguments_to_self(self,locals())
         if prefix==None:
