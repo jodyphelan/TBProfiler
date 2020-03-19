@@ -37,7 +37,7 @@ def main(args):
 	if args.samples:
 		samples = [x.rstrip() for x in open(args.samples).readlines()]
 	else:
-		samples = [x.replace(".results.json","") for x in os.listdir("results/") if x[-13:]==".results.json"]
+		samples = [x.replace(".results.json","") for x in os.listdir(args.dir) if x[-13:]==".results.json"]
 	variants = defaultdict(lambda:defaultdict(list))
 	if args.non_dr:
 		print("sample,%s" % (",".join(["%s,%s" % ("dr_mutations_%s" % x,"other_mutations_%s" % x)  for x in sorted(drug2genes)])))

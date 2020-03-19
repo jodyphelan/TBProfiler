@@ -1,4 +1,5 @@
 from .utils import *
+from .fasta import fasta
 from collections import defaultdict
 import re
 re_seq = re.compile("([0-9\-]*)([A-Z\*]+)")
@@ -165,6 +166,7 @@ class vcf:
         add_arguments_to_self(self,locals())
         cmd = "bcftools convert --gvcf2vcf -f %(ref_file)s %(filename)s  | bcftools view -T %(bed_file)s  | bcftools query -u -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
         results = defaultdict(lambda : defaultdict(dict))
+        ref_seq = fasta(ref_file).fa_dict
         for l in cmd_out(cmd):
             #Chromosome    4348079    0/0    51
             chrom,pos,ref,alt,gt,ad = l.rstrip().split()
@@ -184,7 +186,7 @@ class vcf:
         for chrom in bed:
             for pos in bed[chrom]:
                 if int(pos) not in results[chrom]:
-                    results[chrom][int(pos)] = {bed[chrom][pos][2]:50}
+                    results[chrom][int(pos)] = {ref_seq[chrom][pos-1]:50}
         return results
 
 

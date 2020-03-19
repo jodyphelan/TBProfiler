@@ -17,22 +17,25 @@ def get_indel_nucleotide(x):
         log("Error can't find nucleotide number in %s" % x,True)
 
 def barcode(mutations,barcode_bed):
-    bed_num_col = len(open(barcode_bed).readline().rstrip().split())
-    cols = [1,3,4,5,6]+list(range(7,bed_num_col+1)) if bed_num_col>6 else [1,3,4,5,6]
-    bed = load_bed(barcode_bed,cols,1,3,intasint=True)
-    add_info = load_bed(barcode_bed,cols,4)
+    bed_num_col = len(open(barcode_bed).readline().rstrip().split("\t"))
+    bed = []
+    lineage_info = {}
+    for l in open(barcode_bed):
+        row = l.strip().split("\t")
+        bed.append(row)
+        lineage_info[row[3]] = row
     #{'Chromosome':{'4392120': ('Chromosome', '4392120', 'lineage4.4.1.2', 'G', 'A', 'Euro-American', 'T1', 'None')}}
-
     barcode_support = defaultdict(list)
-    for chrom in bed:
-        for pos in bed[chrom]:
-            marker = bed[chrom][pos]
-            tmp = [0,0]
-            if chrom in mutations and pos in mutations[chrom]:
-                if marker[3] in mutations[chrom][pos]: tmp[0] = mutations[chrom][pos][marker[3]]
-                if marker[4] in mutations[chrom][pos]: tmp[1] = mutations[chrom][pos][marker[4]]
-            if  tmp==[0,0]: continue
-            barcode_support[marker[2]].append(tmp)
+    for marker in bed:
+        tmp = [0,0]
+        chrom,pos = marker[0],int(marker[2])
+        if chrom in mutations and pos in mutations[chrom]:
+            if marker[4] in mutations[chrom][pos]:
+                tmp[1] = mutations[chrom][pos][marker[4]]
+            tmp[0] = sum(list(mutations[chrom][pos].values())) - tmp[1]
+
+        if  tmp==[0,0]: continue
+        barcode_support[marker[3]].append(tmp)
     barcode_frac = defaultdict(float)
     for l in barcode_support:
         # if stdev of fraction across all barcoding positions > 0.15
@@ -49,8 +52,7 @@ def barcode(mutations,barcode_bed):
     for l in barcode_frac:
         tmp = {"annotation":l,"freq":barcode_frac[l],"info":[]}
         if bed_num_col>6:
-            for i in range(5,bed_num_col-1):
-                tmp["info"].append(add_info[l][i])
+            tmp["info"] = [lineage_info[l][i] for i in range(5,bed_num_col)]
         final_results.append(tmp)
     return final_results
 
