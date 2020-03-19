@@ -17,12 +17,11 @@ def get_indel_nucleotide(x):
         log("Error can't find nucleotide number in %s" % x,True)
 
 def barcode(mutations,barcode_bed):
-    bed_num_col = len(open(barcode_bed).readline().rstrip().split())
-    cols = [1,3,4,5,6]+list(range(7,bed_num_col+1)) if bed_num_col>6 else [1,3,4,5,6]
+    bed_num_col = len(open(barcode_bed).readline().rstrip().split("\t"))
     bed = []
     lineage_info = {}
     for l in open(barcode_bed):
-        row = l.strip().split()
+        row = l.strip().split("\t")
         bed.append(row)
         lineage_info[row[3]] = row
     #{'Chromosome':{'4392120': ('Chromosome', '4392120', 'lineage4.4.1.2', 'G', 'A', 'Euro-American', 'T1', 'None')}}
@@ -53,7 +52,7 @@ def barcode(mutations,barcode_bed):
     for l in barcode_frac:
         tmp = {"annotation":l,"freq":barcode_frac[l],"info":[]}
         if bed_num_col>6:
-            tmp["info"] = [lineage_info[l][i] for i in range(5,bed_num_col-1)]
+            tmp["info"] = [lineage_info[l][i] for i in range(5,bed_num_col)]
         final_results.append(tmp)
     return final_results
 
