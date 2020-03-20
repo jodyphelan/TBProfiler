@@ -38,14 +38,17 @@ class bam:
         # only be run with bcftools and will not even take caller into account
         # if it is set the the wrong option
         if self.platform == "nanopore":
-            self.calling_cmd = "bcftools mpileup -f %(ref_file)s -Bq8 -a DP,AD -r {1} %(bam_file)s | bcftools call -mv | bcftools filter -e 'FMT/DP<10' -S . | bcftools filter -e 'IMF < 0.7' -S 0 -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
+            self.calling_params = calling_params if calling_params else "-Bq8"
+            self.calling_cmd = "bcftools mpileup -f %(ref_file)s %(calling_params)s -a DP,AD -r {1} %(bam_file)s | bcftools call -mv | bcftools filter -e 'FMT/DP<10' -S . | bcftools filter -e 'IMF < 0.7' -S 0 -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
         elif self.caller == "bcftools":
             self.calling_params = calling_params if calling_params else "-ABq8 -Q0"
             self.calling_cmd = "bcftools mpileup -f %(ref_file)s %(calling_params)s -a DP,AD -r {1} %(bam_file)s | bcftools call -mv | bcftools norm -f %(ref_file)s | bcftools filter -e 'FMT/DP<10' -S . -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
         elif self.caller == "gatk":
-            self.calling_cmd = "gatk HaplotypeCaller -R %(ref_file)s -I %(bam_file)s -O %(prefix)s.{2}.vcf.gz -L {1}" % vars(self)
+            self.calling_params = calling_params if calling_params else ""
+            self.calling_cmd = "gatk HaplotypeCaller -R %(ref_file)s -I %(bam_file)s -O %(prefix)s.{2}.vcf.gz -L {1} %(calling_params)s" % vars(self)
         elif self.caller == "freebayes":
-            self.calling_cmd = "freebayes -f %(ref_file)s -r {1} %(bam_file)s --haplotype-length 1 | bcftools view -c 1 | bcftools norm -f %(ref_file)s | bcftools filter -e 'FMT/DP<10' -S . -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
+            self.calling_params = calling_params if calling_params else ""
+            self.calling_cmd = "freebayes -f %(ref_file)s -r {1} %(bam_file)s --haplotype-length 1 %(calling_params)s | bcftools view -c 1 | bcftools norm -f %(ref_file)s | bcftools filter -e 'FMT/DP<10' -S . -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
 
         run_cmd('%(windows_cmd)s | parallel -j %(threads)s --col-sep " " "%(calling_cmd)s"' % vars(self))
         run_cmd('%(windows_cmd)s | parallel -j %(threads)s --col-sep " " "bcftools index  %(prefix)s.{2}.vcf.gz"' % vars(self) )
