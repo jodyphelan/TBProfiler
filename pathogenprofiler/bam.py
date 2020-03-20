@@ -20,7 +20,7 @@ class bam:
         else:
             return delly_bcf("%(prefix)s.delly.bcf" % vars(self))
 
-    def call_variants(self,ref_file,caller,bed_file=None,threads=1):
+    def call_variants(self,ref_file,caller,bed_file=None,threads=1,calling_params=None):
         add_arguments_to_self(self, locals())
         filecheck(ref_file)
         self.caller = caller.lower()
@@ -40,7 +40,8 @@ class bam:
         if self.platform == "nanopore":
             self.calling_cmd = "bcftools mpileup -f %(ref_file)s -Bq8 -a DP,AD -r {1} %(bam_file)s | bcftools call -mv | bcftools filter -e 'FMT/DP<10' -S . | bcftools filter -e 'IMF < 0.7' -S 0 -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
         elif self.caller == "bcftools":
-            self.calling_cmd = "bcftools mpileup -f %(ref_file)s -ABq8 -Q0 -a DP,AD -r {1} %(bam_file)s | bcftools call -mv | bcftools norm -f %(ref_file)s | bcftools filter -e 'FMT/DP<10' -S . -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
+            self.calling_params = calling_params if calling_params else "-ABq8 -Q0"
+            self.calling_cmd = "bcftools mpileup -f %(ref_file)s %(calling_params)s -a DP,AD -r {1} %(bam_file)s | bcftools call -mv | bcftools norm -f %(ref_file)s | bcftools filter -e 'FMT/DP<10' -S . -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
         elif self.caller == "gatk":
             self.calling_cmd = "gatk HaplotypeCaller -R %(ref_file)s -I %(bam_file)s -O %(prefix)s.{2}.vcf.gz -L {1}" % vars(self)
         elif self.caller == "freebayes":
