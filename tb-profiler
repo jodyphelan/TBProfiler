@@ -75,7 +75,10 @@ def main_profile(args):
         args.no_trim=True
         run_delly = False
     else:
-        run_delly = True
+        if args.no_delly:
+            run_delly = False
+        else:
+            run_delly = True
 
     ### Setup prefix for files ###
     files_prefix = args.dir+"/"+args.prefix
@@ -344,6 +347,7 @@ if __name__=="__main__":
     parser_sub.add_argument('--meta',default=None,type=str,help="Add meta data from a CSV file to the results. The CSV file must contain a column labelled \"id\" with the same value as the prefix argument")
     parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
     parser_sub.add_argument('--no_flagstat',action="store_true",help="Don't collect flagstats")
+    parser_sub.add_argument('--no_delly',action="store_true",help="Don't collect flagstats")
     parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
     parser_sub.set_defaults(func=main_profile)
 
