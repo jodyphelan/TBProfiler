@@ -45,13 +45,13 @@ class vcf:
 
     def load_csq(self, ann_file = None):
         ann = defaultdict(dict)
-        gene_set = []
+        gene_set = set()
         if ann_file:
             for l in open(ann_file):
                 #chrom pos gene gene/codon_pos
                 row = l.rstrip().split()
                 ann[row[0]][int(row[1])] = (row[2],row[3])
-                gene_set.append(row[2])
+                gene_set.add(row[2])
 
         nuc_variants = self.load_variants()
         variants = {s:[] for s in self.samples}
