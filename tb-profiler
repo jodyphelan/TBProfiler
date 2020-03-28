@@ -75,7 +75,10 @@ def main_profile(args):
         args.no_trim=True
         run_delly = False
     else:
-        run_delly = True
+        if args.no_delly:
+            run_delly = False
+        else:
+            run_delly = True
 
     ### Setup prefix for files ###
     files_prefix = args.dir+"/"+args.prefix
@@ -110,7 +113,7 @@ def main_profile(args):
     results = pp.bam_profiler(
         conf=conf, bam_file=bam_file, prefix=files_prefix, platform=args.platform,
         caller=args.caller, threads=args.threads, no_flagstat=args.no_flagstat,
-        run_delly = run_delly
+        run_delly = run_delly, calling_params=args.calling_params
     )
 
     ### Reformat the results to TB-Profiler style ###
@@ -331,6 +334,7 @@ if __name__=="__main__":
     parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
     parser_sub.add_argument('--mapper',default="bwa", choices=["bwa","minimap2","bowtie2"],help="Mapping tool to use. If you are using nanopore data it will default to minimap2",type=str)
     parser_sub.add_argument('--caller',default="bcftools", choices=["bcftools","gatk","freebayes"],help="Variant calling tool to use.",type=str)
+    parser_sub.add_argument('--calling_params',type=str,help='Override default parameters for variant calling')
     parser_sub.add_argument('--min_depth',default=10,type=int,help='Minimum depth required to call variant. Bases with depth below this cutoff will be marked as missing')
     parser_sub.add_argument('--af',default=0.1,type=float,help='Minimum allele frequency to call variants')
     parser_sub.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to use variants for prediction')
@@ -343,6 +347,7 @@ if __name__=="__main__":
     parser_sub.add_argument('--meta',default=None,type=str,help="Add meta data from a CSV file to the results. The CSV file must contain a column labelled \"id\" with the same value as the prefix argument")
     parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
     parser_sub.add_argument('--no_flagstat',action="store_true",help="Don't collect flagstats")
+    parser_sub.add_argument('--no_delly',action="store_true",help="Don't collect flagstats")
     parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
     parser_sub.set_defaults(func=main_profile)
 
