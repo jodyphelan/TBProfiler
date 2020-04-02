@@ -3,13 +3,13 @@ from .bam import bam
 from .barcode import barcode, db_compare
 from .fastq import fastq
 from .abi import abi
-from .vcf import vcf
+from .vcf import vcf,delly_bcf
 from .fasta import fasta
 import re
 
 
 
-def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagstat=False, run_delly=True, calling_params=None):
+def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagstat=False, run_delly=True, calling_params=None, delly_bcf_file=None, run_coverage=True):
 
     log("Using %s\n\nPlease ensure that this BAM was made using the same reference as in the database.\nIf you are not sure what reference was used it is best to remap the reads." % bam_file)
 
@@ -42,14 +42,18 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
 
     mutations = bam_obj.get_bed_gt(conf["barcode"],conf["ref"], caller=caller)
     results["barcode"] = barcode(mutations,conf["barcode"])
-    results["region_coverage"] = {row[4]:{"gene":row[4],"locus_tag":row[3],"non_zero_coverage_fraction":float(row[9])} for row in bam_obj.bed_zero_cov_regions(conf["bed"])}
+    if run_coverage:
+        results["region_coverage"] = {row[4]:{"gene":row[4],"locus_tag":row[3],"non_zero_coverage_fraction":float(row[9])} for row in bam_obj.bed_zero_cov_regions(conf["bed"])}
 
     ### Run delly if specified ###
     if run_delly:
-        delly_bcf = bam_obj.run_delly()
-        if delly_bcf is not None:
+        if delly_bcf_file:
+            delly_bcf_obj = delly_bcf(delly_bcf_file)
+        else:
+            delly_bcf_obj = bam_obj.run_delly()
+        if delly_bcf_obj is not None:
             results["delly"] = "success"
-            deletions = delly_bcf.overlap_bed(conf["bed"])
+            deletions = delly_bcf_obj.overlap_bed(conf["bed"])
             for deletion in deletions:
                 tmp = {
                     "genome_pos": deletion["start"], "gene_id": deletion["region"],
