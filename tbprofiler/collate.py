@@ -73,7 +73,7 @@ def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=Tr
         VAR.close()
 
     OUT = open(prefix+".txt","w")
-    OUT.write("sample\tmain_lineage\tsub_lineage\tDR_type\tMDR\tXDR\t\tnum_dr_variants\tnum_other_variants\t%s" % "\t".join(drug_list)+"\n")
+    OUT.write("sample\tmain_lineage\tsub_lineage\tDR_type\tMDR\tXDR\tnum_dr_variants\tnum_other_variants\t%s" % "\t".join(drug_list)+"\n")
     for s in samples:
         OUT.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" %(s,results[s]["main_lin"],results[s]["sublin"],results[s]["drtype"],results[s]["MDR"],results[s]["XDR"],len(sample_dr_mutations_set[s]),len(sample_other_mutations_set[s]),"\t".join([results[s][x] for x in drug_list])))
     OUT.close()
