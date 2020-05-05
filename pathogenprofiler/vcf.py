@@ -43,7 +43,7 @@ class vcf:
         run_cmd("bcftools csq -p m -f %(ref_file)s -g %(gff_file)s %(filename)s -Oz -o %(vcf_csq_file)s" % vars(self))
         return vcf(self.vcf_csq_file,self.prefix)
 
-    def load_csq(self, ann_file = None):
+    def load_csq(self, ann_file = None, allow_intergenic=False,debug = False):
         ann = defaultdict(dict)
         gene_set = set()
         if ann_file:
@@ -56,6 +56,8 @@ class vcf:
         nuc_variants = self.load_variants()
         variants = {s:[] for s in self.samples}
         for line in cmd_out("bcftools query -u -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%SAMPLE\\t%%TBCSQ\\t%%TGT\\t%%AD]\\n' %s" % self.filename):
+            if debug:
+                sys.stderr.write(line+"\n")
             row = line.split()
             chrom = row[0]
             pos = int(row[1])
@@ -75,6 +77,10 @@ class vcf:
                         for sample in self.samples:
                             if sample in nuc_variants[chrom][pos] and alt in nuc_variants[chrom][pos][sample]:
                                 variants[sample].append({"sample":sample,"gene_id":ann_gene,"chr":chrom,"genome_pos":pos,"type":"non_coding","change":cng,"freq":nuc_variants[chrom][pos][sample][alt]})
+                    elif allow_intergenic:
+                        cng = "%s%s>%s" % (pos,ref,alt)
+                        for sample in self.samples:
+                            variants[sample].append({"sample":sample,"gene_id":"NA","chr":chrom,"genome_pos":pos,"type":"intergenic","change":cng,"freq":nuc_variants[chrom][pos][sample][alt]})
                     else:
                         log(line)
                         log("ERROR in loading alts",True)
@@ -86,12 +92,16 @@ class vcf:
 
                 sample = row[i]
                 infos = [x.split("|") for x in row[i+1].split(",") if x!="."] + [x.split("|") for x in row[i+2].split(",") if x!="."]
+                if debug:
+                    sys.stderr.write(str(infos))
+                    sys.stderr.write("\n")
                 info = None
                 for x in infos:
                     if x[1] in gene_set or x[2] in gene_set:
                         info = x
                         break
-
+                if not ann_file:
+                    info = infos[0]
                 call1,call2 = row[i+3].split("/") if "/" in row[i+3] else row[i+3].split("|")
                 ad = [int(x) if x!="." else 0 for x in row[i+4].split(",")]  if row[i+4]!="." else [0,100]
 

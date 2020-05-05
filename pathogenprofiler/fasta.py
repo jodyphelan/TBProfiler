@@ -31,7 +31,9 @@ class fasta:
             counter = counter+len(result[seq])
         self.sum_length = sum_length
         self.fa_dict = result
-    def get_ref_variants(self,refseq,prefix):
+    def get_ref_variants(self,refseq,prefix,file_prefix=None):
         add_arguments_to_self(self,locals())
-        run_cmd("minimap2 %(refseq)s %(fa_file)s --cs | sort -k6,6 -k8,8n | paftools.js call -l 100 -L 100 -f %(refseq)s -s %(prefix)s - | bcftools view -Oz -o %(prefix)s.vcf.gz" % vars(self))
-        return "%s.vcf.gz" % self.prefix
+        if self.file_prefix==None:
+            self.file_prefix=prefix
+        run_cmd("minimap2 %(refseq)s %(fa_file)s --cs | sort -k6,6 -k8,8n | paftools.js call -l 100 -L 100 -f %(refseq)s -s %(prefix)s - | bcftools view -Oz -o %(file_prefix)s.vcf.gz" % vars(self))
+        return "%s.vcf.gz" % self.file_prefix
