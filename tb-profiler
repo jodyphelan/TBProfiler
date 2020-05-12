@@ -190,6 +190,16 @@ def main_lineage(args):
     pp.filecheck(args.bam)
     bam = pp.bam(args.bam,args.bam,conf["ref"])
     mutations = bam.get_bed_gt(conf["barcode"],conf["ref"],args.caller)
+    if args.snps:
+        with open("%s.lineage.snps.txt" % (args.prefix),"w") as OUT:
+            barcode_bed = pp.load_bed(conf["barcode"],[1,2,3,4,5],3)
+            for snp in sorted(list(barcode_bed.values()),key=lambda x:x[3]):
+                tmp = mutations[snp[0]][int(snp[2])]
+                lineage_reads = tmp[snp[4]] if snp[4] in tmp else 0
+                not_lineage_reads = sum(tmp.values()) - lineage_reads
+                fraction = lineage_reads/(lineage_reads+not_lineage_reads) if (sum(tmp.values())>0) else  "NA"
+                OUT.write("%s\t%s\t%s\t%s\t%s\n" % (snp[2],snp[3],lineage_reads,not_lineage_reads,fraction))
+
     results = {}
     results["barcode"] = pp.barcode(mutations,conf["barcode"])
     tbp.barcode2lineage(results)
@@ -414,6 +424,7 @@ if __name__=="__main__":
     parser_sub.add_argument('--bam','-a',required=True, help='BAM file. Make sure it has been generated using the H37Rv genome (GCA_000195955.2)')
     parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
     parser_sub.add_argument('--outfmt',default='json',choices=["json","txt"],type=str,help="Output format")
+    parser_sub.add_argument('--snps',action="store_true",help='Sample prefix')
     parser_sub.add_argument('--caller',default='bcftools',choices=["bcftools","gatk"],type=str,help="Variant caller")
     parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
     parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')

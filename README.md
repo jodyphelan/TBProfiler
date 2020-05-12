@@ -118,6 +118,10 @@ Several files are produced by the `tb-profile collate` function. Among these are
 
 ![](https://github.com/jodyphelan/jodyphelan.github.io/raw/master/img/itol_example.png)
 
+## Citation
+
+If you plan to use TB-Profiler in your work please cite [the paper](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0650-x) and include both the version of `tb-profiler` and the database.
+
 ## Issues
 
 Please raise them using the [Issues](https://github.com/jodyphelan/TBProfiler/issues) page.

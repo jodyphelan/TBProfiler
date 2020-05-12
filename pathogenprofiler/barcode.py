@@ -38,8 +38,10 @@ def barcode(mutations,barcode_bed):
         barcode_support[marker[3]].append(tmp)
     barcode_frac = defaultdict(float)
     for l in barcode_support:
-        # if stdev of fraction across all barcoding positions > 0.15
-        if stdev([x[1]/(x[0]+x[1]) for x in barcode_support[l]])>0.15: continue
+        # If stdev of fraction across all barcoding positions > 0.15
+        # Only look at positions with >5 reads
+        if stdev([x[1]/(x[0]+x[1]) for x in barcode_support[l] if sum(x)>5])>0.15: continue
+
         # if number of barcoding positions > 5 and only one shows alternate
         if len(barcode_support[l])>5 and len([x for x in barcode_support[l] if (x[1]/(x[0]+x[1]))>0])<2: continue
         barcode_pos_reads = sum([x[1] for x in barcode_support[l]])
