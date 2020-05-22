@@ -102,3 +102,21 @@ class bam:
                         d[a] = ad[i]
             results[chrom][pos] = d
         return results
+
+    def get_region_coverage(self,bed_file,per_base=False,group_column=4,fraction_threshold=0):
+        add_arguments_to_self(self, locals())
+        bed_num_columns = len(open(bed_file).readline().strip().split("\t"))
+        self.collapse_column = bed_num_columns + 1
+        region_cov = {}
+        region_fraction = []
+        for l in cmd_out("bedtools coverage -a %(bed_file)s -b %(bam_file)s -d | datamash -g %(group_column)s collapse %(collapse_column)s" % vars(self)):
+            row = l.split()
+            region = row[0]
+            region_cov[region] = [int(x) for x in row[1].split(",")]
+            total_num = len(region_cov[region])
+            num_thresh = len([d for d in region_cov[region] if d<=fraction_threshold])
+            region_fraction.append({"gene_id":region, "fraction":num_thresh/total_num, "cutoff": fraction_threshold})
+        if per_base:
+            return region_cov
+        else:
+            return region_fraction

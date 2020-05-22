@@ -9,7 +9,7 @@ import re
 
 
 
-def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagstat=False, run_delly=True, calling_params=None, delly_bcf_file=None, run_coverage=True):
+def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagstat=False, run_delly=True, calling_params=None, delly_bcf_file=None, run_coverage=True, coverage_fraction_threshold=0):
 
     log("Using %s\n\nPlease ensure that this BAM was made using the same reference as in the database.\nIf you are not sure what reference was used it is best to remap the reads." % bam_file)
 
@@ -36,14 +36,22 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
         bam_obj.flagstat()
 
     ### Put results into a dictionary ###
-    results = {"variants":[],"qc":{"pct_reads_mapped":bam_obj.pct_reads_mapped,"num_reads_mapped":bam_obj.num_reads_mapped}}
+    results = {
+        "variants":[],
+        "qc":{
+            "pct_reads_mapped":bam_obj.pct_reads_mapped,
+            "num_reads_mapped":bam_obj.num_reads_mapped
+        }
+    }
+
+    if run_coverage:
+        results["qc"]["gene_coverage"] = bam_obj.get_region_coverage(conf["bed"], fraction_threshold= coverage_fraction_threshold)
+
     for sample in csq:
         results["variants"]  = csq[sample]
 
     mutations = bam_obj.get_bed_gt(conf["barcode"],conf["ref"], caller=caller)
     results["barcode"] = barcode(mutations,conf["barcode"])
-    if run_coverage:
-        results["region_coverage"] = {row[4]:{"gene":row[4],"locus_tag":row[3],"non_zero_coverage_fraction":float(row[9])} for row in bam_obj.bed_zero_cov_regions(conf["bed"])}
 
     ### Run delly if specified ###
     if run_delly:
