@@ -44,6 +44,16 @@ def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=
     new_json["pipline_table"] = pipeline_tbl
     return new_json
 
+def dict_list_add_genes(dict_list,conf):
+    rv2gene = {}
+    for l in open(conf["bed"]):
+        row = l.rstrip().split()
+        rv2gene[row[3]] = row[4]
+    for d in dict_list:
+        d["locus_tag"] = d["gene_id"]
+        d["gene"] = rv2gene[d["gene_id"]]
+        del d["gene_id"]
+    return dict_list
 
 def add_genes(results,conf):
 
@@ -137,7 +147,9 @@ def reformat_annotations(results,conf,reporting_af=0.1):
     return results
 
 def reformat(results,conf,reporting_af):
-    results = add_genes(results,conf)
+    results["variants"] = dict_list_add_genes(results["variants"],conf)
+    if "gene_coverage" in results["qc"]:
+        results["qc"]["gene_coverage"] = dict_list_add_genes(results["qc"]["gene_coverage"],conf)
     results = barcode2lineage(results)
     results = reformat_annotations(results,conf,reporting_af)
     results["db_version"] = json.load(open(conf["version"]))
