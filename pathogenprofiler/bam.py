@@ -106,13 +106,15 @@ class bam:
     def get_region_coverage(self,bed_file,per_base=False,group_column=4,fraction_threshold=0):
         add_arguments_to_self(self, locals())
         bed_num_columns = len(open(bed_file).readline().strip().split("\t"))
-        self.collapse_column = bed_num_columns + 1
+        self.collapse_column = bed_num_columns + 2
         self.region_cov = {}
         self.region_fraction = []
         for l in cmd_out("bedtools coverage -a %(bed_file)s -b %(bam_file)s -d | datamash -g %(group_column)s collapse %(collapse_column)s" % vars(self)):
             row = l.split()
             region = row[0]
             self.region_cov[region] = [int(x) for x in row[1].split(",")]
+            # This is a bit of a hack! bedtools coverage doesn't report the coverage first base in the bed line
+            self.region_cov[region].insert(0,self.region_cov[region][0])
             total_num = len(self.region_cov[region])
             num_thresh = len([d for d in self.region_cov[region] if d<=fraction_threshold])
             self.region_fraction.append({"gene_id":region, "fraction":num_thresh/total_num, "cutoff": fraction_threshold})
@@ -120,3 +122,16 @@ class bam:
             return self.region_cov
         else:
             return self.region_fraction
+
+    def get_missing_amino_acids(self,ann_file,cutoff=20):
+        if not hasattr(self,"region_cov"):
+            self.get_region_coverage()
+        ann = defaultdict(list)
+        for l in open(ann_file):
+            row = l.strip().split()
+            ann[row[2]].append(int(row[3]))
+        missing_positions = {}
+        for gene in self.region_cov:
+            missing_positions[gene] = [ann[gene][i] for i in range(len(self.region_cov[gene])) if self.region_cov[gene][i]<cutoff]
+            print(gene,missing_positions[gene])
+        return missing_positions
