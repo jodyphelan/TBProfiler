@@ -40,7 +40,9 @@ def barcode(mutations,barcode_bed):
     for l in barcode_support:
         # If stdev of fraction across all barcoding positions > 0.15
         # Only look at positions with >5 reads
-        if stdev([x[1]/(x[0]+x[1]) for x in barcode_support[l] if sum(x)>5])>0.15: continue
+        tmp_allelic_dp = [x[1]/(x[0]+x[1]) for x in barcode_support[l] if sum(x)>5]
+        if len(tmp_allelic_dp)==0: continue
+        if stdev(tmp_allelic_dp)>0.15: continue
 
         # if number of barcoding positions > 5 and only one shows alternate
         if len(barcode_support[l])>5 and len([x for x in barcode_support[l] if (x[1]/(x[0]+x[1]))>0])<2: continue
