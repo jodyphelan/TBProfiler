@@ -1,6 +1,7 @@
 import re
 import pathogenprofiler as pp
 import json
+from collections import defaultdict
 
 def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=0.0):
     if not columns:
@@ -146,11 +147,34 @@ def reformat_annotations(results,conf,reporting_af=0.1):
     results["drtype"] = drtype
     return results
 
+def reformat_missing_gene_pos(results):
+    tmp_results = defaultdict(lambda: defaultdict(list))
+    for gene in results:
+        # This is a bit dangerous as it assumes all coding genes are labled with "Rv"
+        coding = True if gene[:2]=="Rv" else False
+        for pos in results[gene]:
+            if coding:
+                if pos>=0:
+                    codon = ((pos-1)//3) + 1
+                    tmp_results[gene][codon].append(pos)
+                else:
+                    tmp_results[gene][pos].append(pos)
+            else:
+                tmp_results[gene][pos].append(pos)
+    new_results = []
+    for gene in tmp_results:
+        for pos in tmp_results[gene]:
+            new_results.append({"gene_id":gene, "position":pos, "gene_positions":tmp_results[gene][pos], "position_type":"codon" if (gene[:2]=="Rv" and pos>=0) else "gene"})
+    return new_results
+
+
 def reformat(results,conf,reporting_af):
     results["variants"] = dict_list_add_genes(results["variants"],conf)
     if "gene_coverage" in results["qc"]:
         results["qc"]["gene_coverage"] = dict_list_add_genes(results["qc"]["gene_coverage"],conf)
+        results["qc"]["missing_positions"] = reformat_missing_gene_pos(results["qc"]["missing_positions"])
     results = barcode2lineage(results)
     results = reformat_annotations(results,conf,reporting_af)
+    print(results["qc"]["missing_positions"])
     results["db_version"] = json.load(open(conf["version"]))
     return results
