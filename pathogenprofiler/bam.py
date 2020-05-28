@@ -123,7 +123,7 @@ class bam:
         else:
             return self.region_fraction
 
-    def get_missing_amino_acids(self,ann_file,cutoff=20):
+    def get_missing_amino_acids(self,ann_file,cutoff=10):
         if not hasattr(self,"region_cov"):
             self.get_region_coverage()
         ann = defaultdict(list)
@@ -133,5 +133,4 @@ class bam:
         missing_positions = {}
         for gene in self.region_cov:
             missing_positions[gene] = [ann[gene][i] for i in range(len(self.region_cov[gene])) if self.region_cov[gene][i]<cutoff]
-            print(gene,missing_positions[gene])
         return missing_positions

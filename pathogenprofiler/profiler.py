@@ -9,7 +9,7 @@ import re
 
 
 
-def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagstat=False, run_delly=True, calling_params=None, delly_bcf_file=None, run_coverage=True, coverage_fraction_threshold=0):
+def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagstat=False, run_delly=True, calling_params=None, delly_bcf_file=None, run_coverage=True, coverage_fraction_threshold=0, missing_cov_threshold=10):
 
     log("Using %s\n\nPlease ensure that this BAM was made using the same reference as in the database.\nIf you are not sure what reference was used it is best to remap the reads." % bam_file)
 
@@ -46,7 +46,7 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
 
     if run_coverage:
         results["qc"]["gene_coverage"] = bam_obj.get_region_coverage(conf["bed"], fraction_threshold= coverage_fraction_threshold)
-        results["qc"]["missing_positions"] = bam_obj.get_missing_amino_acids(conf["ann"])
+        results["qc"]["missing_positions"] = bam_obj.get_missing_amino_acids(conf["ann"],cutoff=missing_cov_threshold)
 
     for sample in csq:
         results["variants"]  = csq[sample]

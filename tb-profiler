@@ -114,7 +114,8 @@ def main_profile(args):
         conf=conf, bam_file=bam_file, prefix=files_prefix, platform=args.platform,
         caller=args.caller, threads=args.threads, no_flagstat=args.no_flagstat,
         run_delly = run_delly, calling_params=args.calling_params,
-        coverage_fraction_threshold=args.coverage_fraction_threshold
+        coverage_fraction_threshold=args.coverage_fraction_threshold,
+        missing_cov_threshold=args.missing_cov_threshold
     )
 
     ### Reformat the results to TB-Profiler style ###
@@ -350,6 +351,7 @@ if __name__=="__main__":
     parser_sub.add_argument('--af',default=0.1,type=float,help='Minimum allele frequency to call variants')
     parser_sub.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to use variants for prediction')
     parser_sub.add_argument('--coverage_fraction_threshold',default=0,type=int,help='Cutoff used to calculate fraction of region covered by <= this value')
+    parser_sub.add_argument('--missing_cov_threshold',default=10,type=int,help='Cutoff used to positions/codons in genes which are missing')
     parser_sub.add_argument('--threads','-t',default=1,help='Threads to use',type=int)
     parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
     parser_sub.add_argument('--txt',action="store_true",help="Add text output")
