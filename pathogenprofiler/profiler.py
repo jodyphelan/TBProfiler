@@ -46,8 +46,7 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
 
     if run_coverage:
         results["qc"]["gene_coverage"] = bam_obj.get_region_coverage(conf["bed"], fraction_threshold= coverage_fraction_threshold)
-        results["qc"]["missing_positions"] = bam_obj.get_missing_amino_acids(conf["ann"],cutoff=missing_cov_threshold)
-
+        results["qc"]["missing_positions"] = bam_obj.get_missing_genomic_positions(cutoff=missing_cov_threshold)
     for sample in csq:
         results["variants"]  = csq[sample]
 

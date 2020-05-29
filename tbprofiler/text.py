@@ -154,7 +154,7 @@ def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0):
     text_strings["dr_var_report"] = dict_list2text(list(uniq_dr_variants.values()),["genome_pos","locus_tag","gene","change","freq","drug"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
     text_strings["other_var_report"] = dict_list2text(json_results["other_variants"],["genome_pos","locus_tag","gene","change","freq"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
     text_strings["coverage_report"] = dict_list2text(json_results["qc"]["gene_coverage"], ["gene","locus_tag","cutoff","fraction"]) if "gene_coverage" in json_results["qc"] else "NA"
-    text_strings["missing_report"] = dict_list2text(json_results["qc"]["missing_positions"],["gene_id","position","position_type"])
+    text_strings["missing_report"] = dict_list2text(json_results["qc"]["missing_positions"],["gene","locus_tag","position","position_type","drug_resistance_position"]) if "gene_coverage" in json_results["qc"] else "NA"
     text_strings["pipeline"] = dict_list2text(json_results["pipline_table"],["Analysis","Program"])
     text_strings["version"] = json_results["tbprofiler_version"]
     text_strings["db_version"] = "%s_%s_%s_%s" % (json_results["db_version"]["name"],json_results["db_version"]["commit"],json_results["db_version"]["Author"],json_results["db_version"]["Date"])
@@ -187,7 +187,7 @@ def write_csv(json_results,conf,outfile,columns = None):
     csv_strings["dr_var_report"] = dict_list2csv(list(uniq_dr_variants.values()),["genome_pos","locus_tag","gene","change","freq","drug"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
     csv_strings["other_var_report"] = dict_list2csv(json_results["other_variants"],["genome_pos","locus_tag","change","freq"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
     csv_strings["coverage_report"] = dict_list2csv(json_results["qc"]["gene_coverage"], ["gene","locus_tag","cutoff","fraction"]) if "gene_coverage" in json_results["qc"] else "NA"
-    csv_strings["missing_report"] = dict_list2csv(json_results["qc"]["missing_positions"],["gene_id","position","position_type"])
+    csv_strings["missing_report"] = dict_list2csv(json_results["qc"]["missing_positions"],["gene","locus_tag","position","position_type","drug_resistance_position"]) if "gene_coverage" in json_results["qc"] else "NA"
     csv_strings["pipeline"] = dict_list2csv(json_results["pipline_table"],["Analysis","Program"])
     csv_strings["version"] = json_results["tbprofiler_version"]
     csv_strings["db_version"] = "%s_%s_%s_%s" % (json_results["db_version"]["name"],json_results["db_version"]["commit"],json_results["db_version"]["Author"],json_results["db_version"]["Date"])
