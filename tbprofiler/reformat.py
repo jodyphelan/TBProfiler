@@ -2,6 +2,8 @@ import re
 import pathogenprofiler as pp
 import json
 from collections import defaultdict
+from .utils import get_genome_positions_from_json_db,rv2genes
+
 
 def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=0.0):
     if not columns:
@@ -147,24 +149,36 @@ def reformat_annotations(results,conf,reporting_af=0.1):
     results["drtype"] = drtype
     return results
 
-def reformat_missing_gene_pos(results):
+def reformat_missing_genome_pos(results,conf):
+    rv2gene = rv2genes(conf["bed"])
+    dr_associated_genome_pos = get_genome_positions_from_json_db(conf["json_db"],conf["ann"])
+    genome_pos2gene_pos = {}
+    genome_pos2gene = {}
+    for l in open(conf["ann"]):
+        row = l.strip().split()
+        genome_pos2gene_pos[int(row[1])] = int(row[3])
+        genome_pos2gene[int(row[1])] = row[2]
+
     tmp_results = defaultdict(lambda: defaultdict(list))
-    for gene in results:
+    for genome_pos in results:
         # This is a bit dangerous as it assumes all coding genes are labled with "Rv"
+        gene = genome_pos2gene[genome_pos]
+        gene_pos = genome_pos2gene_pos[genome_pos]
         coding = True if gene[:2]=="Rv" else False
-        for pos in results[gene]:
-            if coding:
-                if pos>=0:
-                    codon = ((pos-1)//3) + 1
-                    tmp_results[gene][codon].append(pos)
-                else:
-                    tmp_results[gene][pos].append(pos)
+        if coding:
+            if gene_pos>=0:
+                codon = ((gene_pos-1)//3) + 1
+                tmp_results[gene][codon].append(genome_pos)
             else:
-                tmp_results[gene][pos].append(pos)
+                tmp_results[gene][gene_pos].append(genome_pos)
+        else:
+            tmp_results[gene][gene_pos].append(genome_pos)
     new_results = []
     for gene in tmp_results:
         for pos in tmp_results[gene]:
-            new_results.append({"gene_id":gene, "position":pos, "gene_positions":tmp_results[gene][pos], "position_type":"codon" if (gene[:2]=="Rv" and pos>=0) else "gene"})
+            genome_positions = tmp_results[gene][pos]
+            dr_position = "DR" if any([x in dr_associated_genome_pos for x in genome_positions]) else ""
+            new_results.append({"locus_tag":gene, "gene": rv2gene[gene], "genome_positions": genome_positions , "position":pos, "position_type":"codon" if (gene[:2]=="Rv" and pos>=0) else "gene", "drug_resistance_position": dr_position})
     return new_results
 
 
@@ -172,9 +186,8 @@ def reformat(results,conf,reporting_af):
     results["variants"] = dict_list_add_genes(results["variants"],conf)
     if "gene_coverage" in results["qc"]:
         results["qc"]["gene_coverage"] = dict_list_add_genes(results["qc"]["gene_coverage"],conf)
-        results["qc"]["missing_positions"] = reformat_missing_gene_pos(results["qc"]["missing_positions"])
+        results["qc"]["missing_positions"] = reformat_missing_genome_pos(results["qc"]["missing_positions"],conf)
     results = barcode2lineage(results)
     results = reformat_annotations(results,conf,reporting_af)
-    print(results["qc"]["missing_positions"])
     results["db_version"] = json.load(open(conf["version"]))
     return results
