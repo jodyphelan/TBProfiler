@@ -3,8 +3,9 @@ import os
 import sys
 from collections import defaultdict
 from tqdm import tqdm
+from .utils import get_lt2drugs
 
-def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=True,full_variant_results=True,reporting_af=0.1):
+def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=True,full_variant_results=True,reporting_af=0.1,mark_missing=False):
     if not os.path.isdir(dir):
         sys.stderr.write("\nERROR: Can't find directory %s\n" % dir )
         exit()
@@ -36,8 +37,18 @@ def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=Tr
     for s in samples:
         for d in drug_list:
             results[s][d] = set()
+    lt2drugs = get_lt2drugs(conf["bed"])
+
     for s in tqdm(samples):
         temp = json.load(open("%s/%s.results.json" % (dir,s)))
+
+        missing_drugs = set()
+        if "missing_positions" in temp["qc"]:
+            missing_genes = [x["locus_tag"] for x in temp["qc"]["missing_positions"] if x["drug_resistance_position"]=="DR"]
+            for locus_tag in missing_genes:
+                missing_drugs = missing_drugs.union(set(lt2drugs[locus_tag]))
+
+
         for x in temp["dr_variants"]:
             if x["freq"]>reporting_af:
                 dr_variants[x["gene"]][x["change"]][s] = x["freq"]
@@ -49,6 +60,8 @@ def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=Tr
                 sample_other_mutations_set[s].add((x["gene"],x["change"]))
         for d in drug_list:
             results[s][d] = ", ".join(results[s][d]) if len(results[s][d])>0 else "-"
+            if mark_missing and d in missing_drugs:
+                results[s][d] = "*%s" % results[s][d]
             results[s]["main_lin"] = temp["main_lin"]
             results[s]["sublin"] = temp["sublin"]
             results[s]["drtype"] = temp["drtype"]
@@ -114,7 +127,7 @@ DATA
         OUT.write("%s\t%s\n" % (s,dr_cols.get(results[s]["drtype"],"#000000")))
     OUT.close()
 
-    drug_list = ['rifampicin', 'isoniazid', 'ethambutol', 'pyrazinamide', 'streptomycin', 'fluoroquinolones', 'aminoglycosides', 'kanamycin', 'amikacin', 'capreomycin', 'ethionamide', 'para-aminosalicylic_acid', 'clofazimine', 'linezolid', 'bedaquiline']
+    drug_list = ['rifampicin', 'isoniazid', 'ethambutol', 'pyrazinamide', 'streptomycin', 'fluoroquinolones', 'aminoglycosides', 'kanamycin', 'amikacin', 'capreomycin', 'ethionamide', 'para-aminosalicylic_acid', 'clofazimine', 'linezolid', 'bedaquiline', 'delamanid']
     OUT = open(prefix+".dr.indiv.itol.txt","w")
     dr_cols = {"Sensitive":"#80FF00","Drug-resistant":"#00FFFF","MDR":"#8000FF","XDR":"#FF0000"}
     legend_shapes = "\t".join(["2" for x in drug_list])
