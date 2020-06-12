@@ -25,13 +25,13 @@ conda config --add channels conda-forge
 
 Then you can install tb-profiler and all of its dependancies from the bioconda channel:
 
-**Linux**
+##### Linux
 
 ```text
 conda install -c bioconda tb-profiler
 ```
 
-**OSX**
+##### OSX
 
 ```text
 conda install -c bioconda tb-profiler samtools=1.9=h7c4ea83_11 ncurses=6.1=h0a44026_1002
@@ -64,7 +64,7 @@ tb-profiler profile -1 /path/to/reads_1.fastq.gz -2 /path/to/reads_2.fastq.gz -p
 
 The prefix is usefull when you need to run more that one sample. This will store BAM, VCF and result files in respective directories. Results are output in json and text format.
 
-**Example run**
+##### Example run
 
 ```text
 mkdir test_run; cd test_run
@@ -74,11 +74,11 @@ tb-profiler profile -1 ERR1664619_1.fastq.gz -2 ERR1664619_2.fastq.gz -t 4 -p ER
 cat results/ERR1664619.results.json
 ```
 
-**Running with an existing BAM file**
+##### Running with an existing BAM file
 
 By using the -a option you can specify to use an existing BAM file instead of fastq files. **Warning!!!**: The BAM files must have been created using the version of the genome as the database which can be downloaded [here](ftp://ftp.ensemblgenomes.org/pub/release-32/bacteria//fasta/bacteria_0_collection/mycobacterium_tuberculosis_h37rv/dna/Mycobacterium_tuberculosis_h37rv.ASM19595v2.dna.toplevel.fa.gz). Confusingly, this genome has multiple accession numbers \(ASM19595v2,NC\_000962.3,GCF\_000195955.2, etc...\). If you believe your reference to be the exact same sequence \(length should be 4411532\) then you can create a database with the same sequence name as used in your BAM file. For example if your sequence name is "NC\_000962.3" you can do this by either: 1. Creating the new database files using the `--seqname NC_000962.3` option from the `parse_db.py` script in the [tbdb repo](https://github.com/jodyphelan/tbdb). Then loading it using `tb-profiler load_library /path/to/lib`. 2. Or applying a quick fix to replace references to "Chromosome" in all existing database files e.g using ``sed -i 's/Chromosome/NC_000962.3/' `python -c "import sys;print(getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', sys.prefix)))"`/share/tbprofiler/tbdb* && samtools faidx `python -c "import sys;print(getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', sys.prefix)))"`/share/tbprofiler/tbdb.fasta``
 
-**Summarising runs**
+##### Summarising runs
 
 The results from numerous runs can be collated into one table using the following command:
 
@@ -88,7 +88,7 @@ tb-profiler collate
 
 This will automatically create a number of colled result files from all the individual result files in the _result_ directory. If you would like to generate this file for a subset of the runs you can provide a list with the run sames using the `--samples` flag. The prefix for the output files is _tbprofiler_ by default but this can be changed with the `--prefix` flag.
 
-**Writing your own summary scripts**
+##### Writing your own summary scripts
 
 The `collate` function extracts the drug-resistance mutations and lineage, however you may want to extract more features that are present in the individual json result files. I have created a little tutorial on how to do this [here](https://jodyphelan.gitbook.io/tb-profiler/writing-a-custom-collate-script).
 
