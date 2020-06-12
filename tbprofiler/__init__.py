@@ -5,4 +5,4 @@ from .collate import *
 from .utils import *
 import os
 _ROOT = os.path.abspath(os.path.dirname(__file__))
-_VERSION = "2.8.9"
+_VERSION = "2.8.10"
