@@ -39,7 +39,7 @@ conda install -c bioconda tb-profiler samtools=1.9=h7c4ea83_11 ncurses=6.1=h0a44
 
 #### Manually
 
-It is possible to install manually. The following pre-requisites will be needed at runtime: _trimmomatic \(&gt;=v0.38\), bwa \(&gt;=v0.7.17\), minimap2 \(&gt;=v2.16\), bowtie2 \(&gt;=v2.3.5\), samtools \(&gt;=v1.9\), bcftools \(&gt;=v1.9\), GATK \(&gt;=v4.1.4.0\), tqdm \(&gt;=v4.32.2\) and parallel \(&gt;=v20190522\)_. The pipeline should work and has been tested on the program versions indicated in parentheses.
+It is possible to install manually. The following pre-requisites will be needed at runtime: _trimmomatic \(&gt;=v0.38\), bwa \(&gt;=v0.7.17\), minimap2 \(&gt;=v2.16\), bowtie2 \(&gt;=v2.3.5\), samtools \(&gt;=v1.9\), bcftools \(&gt;=v1.9\), GATK \(&gt;=v4.1.4.0\), freebayes \(&gt;=v1.3.2\), tqdm \(&gt;=v4.32.2\) and parallel \(&gt;=v20190522\)_. The pipeline should work and has been tested on the program versions indicated in parentheses.
 
 To install the library run the following code:
 ```
@@ -104,9 +104,9 @@ It is possible run TBProfiler on another reference genome. Although there is cur
 
 ## Under the hood
 
-The pipeline searches for small variants and big deletions associated with drug resistance. It will also report the lineage. By default it uses Trimmomatic to trim the reads, BWA \(or minimap2 for nanopore\) to align to the reference genome and GATK \(open source v4\) to call variants.
+The pipeline searches for small variants and big deletions associated with drug resistance. It will also report the lineage. By default it uses Trimmomatic to trim the reads, BWA \(or minimap2 for nanopore\) to align to the reference genome and bcftools (or GATKv4/freebayes) to call variants. Here is an example schematic for illumina paried end data:
 
-![](https://github.com/jodyphelan/jodyphelan.github.io/raw/master/TBProfiler_pipeline.png)
+![](https://github.com/jodyphelan/jodyphelan.github.io/raw/master/tb-profiler_uml.svg)
 
 ## ITOL files
 
