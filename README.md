@@ -6,6 +6,10 @@ This repository contains a complete rewrite of the [web version of TBProfiler](h
 
 The pipeline aligns reads to the H37Rv reference using bowtie2, BWA or minimap2 and then calls variants using bcftools. These variants are then compared to a drug-resistance database. We also predict the number of reads supporting drug resistance variants as an insight into hetero-resistance \(not applicable for minION data\)
 
+### Documentation
+
+This page has all the info you need to get started, however additional (and more organised!) documentation is available [here](https://jodyphelan.gitbook.io/tb-profiler/).
+
 ### Using TBProfiler in your work
 
 #### Keeping up to date
@@ -76,7 +80,11 @@ cat results/ERR1664619.results.json
 
 ##### Running with an existing BAM file
 
-By using the -a option you can specify to use an existing BAM file instead of fastq files. **Warning!!!**: The BAM files must have been created using the version of the genome as the database which can be downloaded [here](ftp://ftp.ensemblgenomes.org/pub/release-32/bacteria//fasta/bacteria_0_collection/mycobacterium_tuberculosis_h37rv/dna/Mycobacterium_tuberculosis_h37rv.ASM19595v2.dna.toplevel.fa.gz). Confusingly, this genome has multiple accession numbers \(ASM19595v2,NC\_000962.3,GCF\_000195955.2, etc...\). If you believe your reference to be the exact same sequence \(length should be 4411532\) then you can create a database with the same sequence name as used in your BAM file. For example if your sequence name is "NC\_000962.3" you can do this by either: 1. Creating the new database files using the `--seqname NC_000962.3` option from the `parse_db.py` script in the [tbdb repo](https://github.com/jodyphelan/tbdb). Then loading it using `tb-profiler load_library /path/to/lib`. 2. Or applying a quick fix to replace references to "Chromosome" in all existing database files e.g using ``sed -i 's/Chromosome/NC_000962.3/' `python -c "import sys;print(getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', sys.prefix)))"`/share/tbprofiler/tbdb* && samtools faidx `python -c "import sys;print(getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', sys.prefix)))"`/share/tbprofiler/tbdb.fasta``
+By using the -a option you can specify to use an existing BAM file instead of fastq files. **Warning!!!**: The BAM files must have been created using the version of the genome as the database which can be downloaded [here](ftp://ftp.ensemblgenomes.org/pub/release-32/bacteria//fasta/bacteria_0_collection/mycobacterium_tuberculosis_h37rv/dna/Mycobacterium_tuberculosis_h37rv.ASM19595v2.dna.toplevel.fa.gz). Confusingly, this genome has multiple accession numbers \(ASM19595v2,NC\_000962.3,GCF\_000195955.2, etc...\). If you believe your reference to be the exact same sequence \(length should be 4411532\) then you can create a database with the same sequence name as used in your BAM file. For example if your sequence name is "NC\_000962.3" you can run
+
+```
+tb-profiler update_tbdb --seqname NC_000962.3
+```
 
 ##### Summarising runs
 
