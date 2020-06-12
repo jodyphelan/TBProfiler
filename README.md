@@ -4,7 +4,7 @@
 
 This repository contains a complete rewrite of the [web version of TBProfiler](http://tbdr.lshtm.ac.uk), described [here](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0650-x). It allows the use of profiling through a command line interface and contains some additional functionality such as the ability to process minION data.
 
-The pipeline aligns reads to the H37Rv reference using bowtie2, BWA or minimap2 and then calls variants using SAMtools. These variants are then compared to a drug-resistance database. We also predict the number of reads supporting drug resistance variants as an insight into hetero-resistance \(not applicable for minION data\)
+The pipeline aligns reads to the H37Rv reference using bowtie2, BWA or minimap2 and then calls variants using bcftools. These variants are then compared to a drug-resistance database. We also predict the number of reads supporting drug resistance variants as an insight into hetero-resistance \(not applicable for minION data\)
 
 ### Using TBProfiler in your work
 
@@ -87,6 +87,11 @@ tb-profiler collate
 ```
 
 This will automatically create a number of colled result files from all the individual result files in the _result_ directory. If you would like to generate this file for a subset of the runs you can provide a list with the run sames using the `--samples` flag. The prefix for the output files is _tbprofiler_ by default but this can be changed with the `--prefix` flag.
+
+**Writing your own summary scripts**
+
+The `collate` function extracts the drug-resistance mutations and lineage, however you may want to extract more features that are present in the individual json result files. I have created a little tutorial on how to do this [here](https://jodyphelan.gitbook.io/tb-profiler/writing-a-custom-collate-script).
+
 
 ## Mutation database
 
