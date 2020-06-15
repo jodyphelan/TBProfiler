@@ -20,10 +20,11 @@ class bam:
         else:
             return delly_bcf("%(prefix)s.delly.bcf" % vars(self))
 
-    def call_variants(self,ref_file,caller,bed_file=None,threads=1,calling_params=None):
+    def call_variants(self,ref_file,caller,bed_file=None,threads=1,calling_params=None,remove_missing=False):
         add_arguments_to_self(self, locals())
         filecheck(ref_file)
         self.caller = caller.lower()
+        self.missing_cmd = "" if remove_missing else "-S ."
         # Set up final vcf file name
         self.vcf_file = "%s.targets.vcf.gz" % (self.prefix) if bed_file else "%s.vcf.gz" % (self.prefix)
 
@@ -39,16 +40,16 @@ class bam:
         # if it is set the the wrong option
         if self.platform == "nanopore":
             self.calling_params = calling_params if calling_params else "-Bq8"
-            self.calling_cmd = "bcftools mpileup -f %(ref_file)s %(calling_params)s -a DP,AD -r {1} %(bam_file)s | bcftools call -mv | bcftools filter -e 'FMT/DP<10' -S . | bcftools filter -e 'IMF < 0.7' -S 0 -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
+            self.calling_cmd = "bcftools mpileup -f %(ref_file)s %(calling_params)s -a DP,AD -r {1} %(bam_file)s | bcftools call -mv | bcftools filter -e 'FMT/DP<10' %(missing_cmd)s | bcftools filter -e 'IMF < 0.7' -S 0 -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
         elif self.caller == "bcftools":
             self.calling_params = calling_params if calling_params else "-ABq8 -Q0"
-            self.calling_cmd = "bcftools mpileup -f %(ref_file)s %(calling_params)s -a DP,AD -r {1} %(bam_file)s | bcftools call -mv | bcftools norm -f %(ref_file)s | bcftools filter -e 'FMT/DP<10' -S . -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
+            self.calling_cmd = "bcftools mpileup -f %(ref_file)s %(calling_params)s -a DP,AD -r {1} %(bam_file)s | bcftools call -mv | bcftools norm -f %(ref_file)s | bcftools filter -e 'FMT/DP<10' %(missing_cmd)s -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
         elif self.caller == "gatk":
             self.calling_params = calling_params if calling_params else ""
             self.calling_cmd = "gatk HaplotypeCaller -R %(ref_file)s -I %(bam_file)s -O %(prefix)s.{2}.vcf.gz -L {1} %(calling_params)s" % vars(self)
         elif self.caller == "freebayes":
             self.calling_params = calling_params if calling_params else ""
-            self.calling_cmd = "freebayes -f %(ref_file)s -r {1} %(bam_file)s --haplotype-length 1 %(calling_params)s | bcftools view -c 1 | bcftools norm -f %(ref_file)s | bcftools filter -e 'FMT/DP<10' -S . -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
+            self.calling_cmd = "freebayes -f %(ref_file)s -r {1} %(bam_file)s --haplotype-length 1 %(calling_params)s | bcftools view -c 1 | bcftools norm -f %(ref_file)s | bcftools filter -e 'FMT/DP<10' %(missing_cmd)s -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
 
         run_cmd('%(windows_cmd)s | parallel -j %(threads)s --col-sep " " "%(calling_cmd)s"' % vars(self))
         run_cmd('%(windows_cmd)s | parallel -j %(threads)s --col-sep " " "bcftools index  %(prefix)s.{2}.vcf.gz"' % vars(self) )
