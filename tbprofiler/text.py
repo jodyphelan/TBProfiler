@@ -29,12 +29,19 @@ def dict_list2csv(l,columns = None, mappings = None):
     rows = []
     header = ",".join([mappings[x].title() if (mappings!=None and x in mappings) else x.title() for x in headings])
     for row in l:
-        r = ",".join(["%.3f" % row[x] if isinstance(row[x],float) else "\"%s\"" % str(row[x]).replace("_", " ") for x in headings])
+        r = ",".join([variable2string(row[x]) for x in headings])
         rows.append(r)
     str_rows = "\n".join(rows)
     return  "%s\n%s\n" % (header,str_rows)
 
 
+def variable2string(var):
+    if isinstance(var,float):
+        return "%.3f" % var
+    elif isinstance(var,dict):
+        return "\"%s\"" % ",".join(list(var))
+    else:
+        return "\"%s\"" % str(var).replace("_", " ")
 
 def load_text(text_strings):
     return r"""
@@ -164,19 +171,9 @@ def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0):
 
 
 
-
-
-
-
-def write_csv(json_results,conf,outfile,columns = None):
+def get_csv_strings(json_results,conf,columns=None):
     json_results = get_summary(json_results,conf,columns = columns)
     json_results["drug_table"] = [[y for y in json_results["drug_table"] if y["Drug"].upper()==d.upper()][0] for d in _DRUGS]
-    uniq_dr_variants = {}
-    for var in json_results["dr_variants"]:
-        if var["change"] in uniq_dr_variants:
-            uniq_dr_variants[var["change"]]["drug"] += ","+var["drug"]
-        else:
-            uniq_dr_variants[var["change"]] = var
     csv_strings = {}
     csv_strings["id"] = json_results["id"]
     csv_strings["date"] = time.ctime()
@@ -184,13 +181,18 @@ def write_csv(json_results,conf,outfile,columns = None):
     csv_strings["drtype"] = json_results["drtype"]
     csv_strings["dr_report"] = dict_list2csv(json_results["drug_table"],["Drug","Genotypic Resistance","Mutations"]+columns if columns else [])
     csv_strings["lineage_report"] = dict_list2csv(json_results["lineage"],["lin","frac","family","spoligotype","rd"],{"lin":"Lineage","frac":"Estimated fraction"})
-    csv_strings["dr_var_report"] = dict_list2csv(list(uniq_dr_variants.values()),["genome_pos","locus_tag","gene","change","freq","drug"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
+    csv_strings["dr_var_report"] = dict_list2csv(json_results["dr_variants"],["genome_pos","locus_tag","gene","change","freq","drugs"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
     csv_strings["other_var_report"] = dict_list2csv(json_results["other_variants"],["genome_pos","locus_tag","change","freq"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
     csv_strings["coverage_report"] = dict_list2csv(json_results["qc"]["gene_coverage"], ["gene","locus_tag","cutoff","fraction"]) if "gene_coverage" in json_results["qc"] else "NA"
     csv_strings["missing_report"] = dict_list2csv(json_results["qc"]["missing_positions"],["gene","locus_tag","position","position_type","drug_resistance_position"]) if "gene_coverage" in json_results["qc"] else "NA"
     csv_strings["pipeline"] = dict_list2csv(json_results["pipline_table"],["Analysis","Program"])
     csv_strings["version"] = json_results["tbprofiler_version"]
     csv_strings["db_version"] = "%s_%s_%s_%s" % (json_results["db_version"]["name"],json_results["db_version"]["commit"],json_results["db_version"]["Author"],json_results["db_version"]["Date"])
+    return csv_strings
+
+
+def write_csv(json_results,conf,outfile,columns = None):
+    csv_strings = get_csv_strings(json_results,conf,columns)
     o = open(outfile,"w")
     o.write(load_csv(csv_strings))
     o.close()

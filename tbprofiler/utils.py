@@ -1,7 +1,26 @@
 import json
 import re
 from collections import defaultdict
+import sys
+import pathogenprofiler as pp
 
+
+try:
+    sys.base_prefix
+except:
+    sys.base_prefix = getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', sys.prefix))
+
+def get_conf_dict_with_path(library_path):
+    files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
+    conf = {}
+    for key in files:
+        sys.stderr.write("Using %s file: %s\n" % (key,library_path+files[key]))
+        conf[key] = pp.filecheck(library_path+files[key])
+    return conf
+
+def get_conf_dict(library_prefix):
+    library_prefix = "%s/share/tbprofiler/%s" % (sys.base_prefix,library_prefix)
+    return get_conf_dict_with_path(library_prefix)
 
 def get_lt2drugs(bed_file):
     lt2drugs = {}

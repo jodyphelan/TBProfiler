@@ -21,13 +21,13 @@ def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=
     for key in columns:
         if key not in json_results["dr_variants"][0]: pp.log("%s not found in variant annotation, is this a valid column in the database CSV file? Exiting!" % key,True)
     for x in json_results["dr_variants"]:
-        d = x["drug"]
-        if float(x["freq"])<reporting_af:continue
-        if d not in results: results[d] = list()
-        results[d].append("%s %s (%.2f)" % (x["gene"],x["change"],x["freq"]))
-        if d not in annotation: annotation[d] = {key:[] for key in columns}
-        for key in columns:
-            annotation[d][key].append(x[key])
+        for d in x["drugs"]:
+            if float(x["freq"])<reporting_af:continue
+            if d not in results: results[d] = []
+            results[d].append("%s %s (%.2f)" % (x["gene"],x["change"],x["freq"]))
+            if d not in annotation: annotation[d] = {key:[] for key in columns}
+            for key in columns:
+                annotation[d][key].append(x["drugs"][d][key])
     for d in drugs:
         if d in results:
             results[d] = ", ".join(results[d]) if len(results[d])>0 else ""
@@ -123,29 +123,42 @@ def reformat_annotations(results,conf,reporting_af=0.1):
     for var in results["variants"]:
         var["_internal_change"] = var["change"]
         var["change"] = pp.reformat_mutations(var["change"],var["type"],var["locus_tag"],chr2gene_pos)
+    resistant_drugs = set()
     results["dr_variants"] = []
     for d in [x for x in results["variants"] if "annotation" in x]:
-        for drug in d["annotation"]["drugs"]:
-            tmp = d.copy()
-            tmp["drug"] = drug
-            for key in d["annotation"]["drugs"][drug]:
-                tmp[key] = d["annotation"]["drugs"][drug][key]
-            del tmp["annotation"]
-            results["dr_variants"].append(tmp)
+        print(d)
+        tmp = d.copy()
+        tmp["drugs"] = d["annotation"]["drugs"]
+        del tmp["annotation"]
+        if tmp["freq"]>=reporting_af:
+            for drug in tmp["drugs"]:
+                resistant_drugs.add(drug)
+        results["dr_variants"].append(tmp)
     results["other_variants"] = [x for x in results["variants"] if "annotation" not in x]
     del results["variants"]
-    dr_drugs = [x["drug"] for x in results["dr_variants"] if x["freq"]>=reporting_af]
-    MDR = "R" if ("isoniazid" in dr_drugs and "rifampicin" in dr_drugs) else ""
-    XDR = "R" if MDR=="R" and ( "amikacin" in dr_drugs or "kanamycin" in dr_drugs or "capreomycin" in dr_drugs ) and ( "fluoroquinolones" in dr_drugs) else ""
-    drtype = "Sensitive"
-    if XDR=="R":
-        drtype="XDR"
-    elif MDR=="R":
-        drtype="MDR"
-    elif len(dr_drugs)>0:
-        drtype="Drug-resistant"
-    results["XDR"] = XDR
-    results["MDR"] = MDR
+
+    FLQ_set = set(["moxifloxacin","levofloxacin","ciprofloxacin","ofloxacin"])
+    SLI_set = set(["amikacin","capreomycin","kanamycin"])
+
+    rif = "rifampicin" in resistant_drugs
+    inh = "isoniazid" in resistant_drugs
+    flq = len(FLQ_set.intersection(resistant_drugs)) > 0
+    sli = len(SLI_set.intersection(resistant_drugs)) > 0
+
+    if len(resistant_drugs)==0:
+        drtype = "Sensitive"
+    elif (rif and not inh) or (inh and not rif):
+        drtype = "Pre-MDR"
+    elif (rif and inh) and (not flq and not sli):
+        drtype = "MDR"
+    elif (rif and inh) and ( (flq and not sli) or (sli and not flq) ):
+        drtype = "Pre-XDR"
+    elif (rif and inh) and (flq and sli):
+        drtype = "XDR"
+    else:
+        drtype = "Other"
+
+
     results["drtype"] = drtype
     return results
 
