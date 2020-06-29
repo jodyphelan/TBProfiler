@@ -1,11 +1,12 @@
 from .reformat import get_summary
-from neo4j import GraphDatabase
+
 import json
 from urllib.request import urlopen
 from collections import defaultdict
 
 
 class get_neo4j_db:
+	from neo4j import GraphDatabase
 	def __init__(self):
 		self.driver = GraphDatabase.driver("neo4j://localhost:7687", auth=("neo4j","test"))
 	def close(self):
@@ -117,6 +118,11 @@ def write_neo4j_results(results, neo4j_db):
 def tbdr_get_mutation_info(gene,mutation):
 	data = json.loads(urlopen("http://localhost:5000/variants/json/%s/%s" % (gene,mutation)).read())
 	drtype = defaultdict(int)
+	lineage = defaultdict(int)
 	for row in data:
+		print(row)
 		drtype[row["Drug resistance"]] += row["Count"]
-	return {"drtype":drtype}
+		if row["Lineage"]==None: continue
+		if ";" in row["Lineage"]: continue
+		lineage[row["Lineage"]] += row["Count"]
+	return {"drtype":drtype,"lineage":lineage}

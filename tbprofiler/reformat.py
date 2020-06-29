@@ -126,7 +126,6 @@ def reformat_annotations(results,conf,reporting_af=0.1):
     resistant_drugs = set()
     results["dr_variants"] = []
     for d in [x for x in results["variants"] if "annotation" in x]:
-        print(d)
         tmp = d.copy()
         tmp["drugs"] = d["annotation"]["drugs"]
         del tmp["annotation"]
@@ -195,7 +194,21 @@ def reformat_missing_genome_pos(results,conf):
     return new_results
 
 
-def reformat(results,conf,reporting_af):
+def add_mutation_metadata(results):
+    from .neo4j import tbdr_get_mutation_info
+    for var in results["dr_variants"] + results["other_variants"]:
+        var["mutation_data"] = {}
+        tmp = tbdr_get_mutation_info(var["locus_tag"],var["change"])
+        for d in tmp:
+            if isinstance(tmp[d],dict):
+                var["mutation_data"][d] = ",".join(["%s:%s" % (k,v) for k,v in list(tmp[d].items())])
+            else:
+                var["mutation_data"][d] = tmp[d]
+    return results
+
+
+
+def reformat(results,conf,reporting_af,add_mutation_metadata=False):
     results["variants"] = dict_list_add_genes(results["variants"],conf)
     if "gene_coverage" in results["qc"]:
         results["qc"]["gene_coverage"] = dict_list_add_genes(results["qc"]["gene_coverage"],conf)
@@ -203,4 +216,6 @@ def reformat(results,conf,reporting_af):
     results = barcode2lineage(results)
     results = reformat_annotations(results,conf,reporting_af)
     results["db_version"] = json.load(open(conf["version"]))
+    if add_mutation_metadata:
+        results = add_mutation_metadata(results)
     return results

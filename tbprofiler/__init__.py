@@ -6,4 +6,4 @@ from .utils import *
 from .neo4j import *
 import os
 _ROOT = os.path.abspath(os.path.dirname(__file__))
-_VERSION = "2.8.10"
+_VERSION = "3.0.0"
