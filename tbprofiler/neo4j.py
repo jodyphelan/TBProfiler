@@ -58,9 +58,9 @@ def read_neo4j_results(sample_id, neo4j_db=None, summary=False, conf=None):
             "locus_tag": v["v"]["locusTag"],
             "change": v["v"]["change"],
             "type": v["v"]["type"],
-            "genome_pos": v["v"]["genomePos"],
-            "nucleotide_change": v["v"]["nucleotideChange"],
-            "_internal_change": v["v"]["internalChange"],
+            "genome_pos": v["c"]["genomePos"],
+            "nucleotide_change": v["c"]["nucleotideChange"],
+            "_internal_change": v["c"]["internalChange"],
             "freq": v["c"]["freq"],
         }
         if len(v["collect(d)"])>0:
@@ -92,6 +92,8 @@ def write_neo4j_results(results, neo4j_db):
         "REMOVE s:Processing"
     )
     for var in results["dr_variants"]+results["other_variants"]:
+        if "nucleotide_change" not in var:
+            var["nucleotide_change"] = "NA"
         neo4j_db.write(
             "MERGE (v:Variant {id:'%s_%s'})" % (var["gene"], var["change"]),
             "SET v.gene = '%s'" % (var["gene"]),
@@ -104,7 +106,7 @@ def write_neo4j_results(results, neo4j_db):
         )
         neo4j_db.write(
             "MATCH (s:Sample {id:'%s'}),(v:Variant {id:'%s_%s'}) " % (results["id"],var["gene"],var["change"]),
-            "CREATE (s) -[:CONTAINS {freq:%s}]-> (v)" % var["freq"]
+            "CREATE (s) -[:CONTAINS {freq:%(freq)s, genomePos:%(genome_pos)s, nucleotideChange:'%(nucleotide_change)s', internalChange:'%(_internal_change)s'}]-> (v)" % var
         )
         if "drugs" in var:
             for d in var["drugs"]:

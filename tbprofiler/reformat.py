@@ -22,12 +22,13 @@ def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=
         if key not in json_results["dr_variants"][0]: pp.log("%s not found in variant annotation, is this a valid column in the database CSV file? Exiting!" % key,True)
     for x in json_results["dr_variants"]:
         for d in x["drugs"]:
+            drug = d["drug"]
             if float(x["freq"])<reporting_af:continue
-            if d not in results: results[d] = []
+            if drug not in results: results[drug] = []
             results[d].append("%s %s (%.2f)" % (x["gene"],x["change"],x["freq"]))
-            if d not in annotation: annotation[d] = {key:[] for key in columns}
+            if drug not in annotation: annotation[drug] = {key:[] for key in columns}
             for key in columns:
-                annotation[d][key].append(x["drugs"][d][key])
+                annotation[drug][key].append(x["drugs"][drug][key])
     for d in drugs:
         if d in results:
             results[d] = ", ".join(results[d]) if len(results[d])>0 else ""
@@ -130,8 +131,8 @@ def reformat_annotations(results,conf,reporting_af=0.1):
         tmp["drugs"] = d["annotation"]["drugs"]
         del tmp["annotation"]
         if tmp["freq"]>=reporting_af:
-            for drug in tmp["drugs"]:
-                resistant_drugs.add(drug)
+            for d in tmp["drugs"]:
+                resistant_drugs.add(d["drug"])
         results["dr_variants"].append(tmp)
     results["other_variants"] = [x for x in results["variants"] if "annotation" not in x]
     del results["variants"]
