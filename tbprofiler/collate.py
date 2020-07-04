@@ -40,6 +40,7 @@ def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=Tr
     lt2drugs = get_lt2drugs(conf["bed"])
 
     for s in tqdm(samples):
+        dr_drugs[s] = set()
         temp = json.load(open("%s/%s.results.json" % (dir,s)))
 
         missing_drugs = set()
@@ -54,7 +55,9 @@ def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=Tr
                 dr_variants[x["gene"]][x["change"]][s] = x["freq"]
                 sample_dr_mutations_set[s].add((x["gene"],x["change"]))
                 dr_variants_set.add((x["gene"],x["change"]))
-                results[s][x["drug"]].add("%s_%s" % (x["gene"],x["change"]) if full_results else "R")
+                for d in x["drugs"]:
+                    dr_drugs[s].add(d["drug"])
+                    results[s][d["drug"]].add("%s_%s" % (x["gene"],x["change"]) if full_results else "R")
         for x in temp["other_variants"]:
             if x["freq"]>reporting_af:
                 sample_other_mutations_set[s].add((x["gene"],x["change"]))
@@ -65,9 +68,6 @@ def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=Tr
             results[s]["main_lin"] = temp["main_lin"]
             results[s]["sublin"] = temp["sublin"]
             results[s]["drtype"] = temp["drtype"]
-            results[s]["MDR"] = temp["MDR"]
-            results[s]["XDR"] = temp["XDR"]
-        dr_drugs[s] = [x["drug"] for x in temp["dr_variants"]]
     if full_variant_results:
 
         all_vars = json.load(open(conf["json_db"]))
@@ -86,9 +86,9 @@ def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=Tr
         VAR.close()
 
     OUT = open(prefix+".txt","w")
-    OUT.write("sample\tmain_lineage\tsub_lineage\tDR_type\tMDR\tXDR\tnum_dr_variants\tnum_other_variants\t%s" % "\t".join(drug_list)+"\n")
+    OUT.write("sample\tmain_lineage\tsub_lineage\tDR_type\tnum_dr_variants\tnum_other_variants\t%s" % "\t".join(drug_list)+"\n")
     for s in samples:
-        OUT.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" %(s,results[s]["main_lin"],results[s]["sublin"],results[s]["drtype"],results[s]["MDR"],results[s]["XDR"],len(sample_dr_mutations_set[s]),len(sample_other_mutations_set[s]),"\t".join([results[s][x] for x in drug_list])))
+        OUT.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" %(s,results[s]["main_lin"],results[s]["sublin"],results[s]["drtype"],len(sample_dr_mutations_set[s]),len(sample_other_mutations_set[s]),"\t".join([results[s][x] for x in drug_list])))
     OUT.close()
     json.dump(results,open(prefix+".json","w"))
     lineage_cols = {"lineage1":"#104577","lineage2":"#ab2323","lineage3":"#18a68c","lineage4":"#f68e51","lineage5":"#7cb5d2","lineage6":"#fde05e","lineage7":"#bc94b7","lineageBOV":"#f8e0c8","lineageOther":"#000000"}
