@@ -79,9 +79,12 @@ class bam:
         add_arguments_to_self(self, locals())
         results = defaultdict(lambda : defaultdict(dict))
         if caller == "gatk":
-            cmd = "gatk HaplotypeCaller -I %(bam_file)s -R %(ref_file)s -L %(bed_file)s -ERC BP_RESOLUTION -OVI false -O /dev/stdout | bcftools view -a | bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
+            cmd = "gatk HaplotypeCaller -I %(bam_file)s -R %(ref_file)s -L %(bed_file)s -OVI false -O /dev/stdout | bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
+        elif caller == "freebayes":
+            cmd = "freebayes -f %(ref_file)s -t %(bed_file)s %(bam_file)s| bcftools view -a | bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
         else:
-            cmd = "bcftools mpileup -f %(ref_file)s -R %(bed_file)s %(bam_file)s -BI -a AD | bcftools call -m | bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
+            cmd = "bcftools mpileup -f %(ref_file)s -R %(bed_file)s %(bam_file)s -BI -a AD | bcftools call -mv | bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
+
         for l in cmd_out(cmd):
             # Chromosome    4348079    0/0    51
             chrom, pos, ref, alt, gt, ad = l.rstrip().split()
@@ -89,18 +92,13 @@ class bam:
             d = {}
             alts = alt.split(",")
             ad = [int(x) for x in ad.split(",")]
-            if gt == "0/0":
-                d[ref] = ad[0]
-            elif gt == "./.":
-                d[ref] = 0
+            genotypes = list([ref]+alts)
+            if self.platform == "nanopore":
+                idx = ad.index(max(ad))
+                d[genotypes[idx]] = ad[idx]
             else:
-                genotypes = list([ref]+alts)
-                if self.platform == "nanopore":
-                    idx = ad.index(max(ad))
-                    d[genotypes[idx]] = ad[idx]
-                else:
-                    for i, a in enumerate(genotypes):
-                        d[a] = ad[i]
+                for i, a in enumerate(genotypes):
+                    d[a] = ad[i]
             results[chrom][pos] = d
         return results
 
