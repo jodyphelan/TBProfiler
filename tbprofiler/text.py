@@ -145,12 +145,9 @@ Database version,"%(db_version)s"
 def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0):
     json_results = get_summary(json_results,conf,columns = columns,reporting_af=reporting_af)
     json_results["drug_table"] = [[y for y in json_results["drug_table"] if y["Drug"].upper()==d.upper()][0] for d in _DRUGS]
-    uniq_dr_variants = {}
     for var in json_results["dr_variants"]:
-        if var["change"] in uniq_dr_variants:
-            uniq_dr_variants[var["change"]]["drug"] += ","+var["drug"]
-        else:
-            uniq_dr_variants[var["change"]] = var
+        var["drug"] = ", ".join([d["drug"] for d in var["drugs"]])
+
     text_strings = {}
     text_strings["id"] = json_results["id"]
     text_strings["date"] = time.ctime()
@@ -158,7 +155,7 @@ def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0):
     text_strings["drtype"] = json_results["drtype"]
     text_strings["dr_report"] = dict_list2text(json_results["drug_table"],["Drug","Genotypic Resistance","Mutations"]+columns if columns else [])
     text_strings["lineage_report"] = dict_list2text(json_results["lineage"],["lin","frac","family","spoligotype","rd"],{"lin":"Lineage","frac":"Estimated fraction"})
-    text_strings["dr_var_report"] = dict_list2text(list(uniq_dr_variants.values()),["genome_pos","locus_tag","gene","change","freq","drug"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
+    text_strings["dr_var_report"] = dict_list2text(json_results["dr_variants"],["genome_pos","locus_tag","gene","change","freq","drug"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
     text_strings["other_var_report"] = dict_list2text(json_results["other_variants"],["genome_pos","locus_tag","gene","change","freq"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
     text_strings["coverage_report"] = dict_list2text(json_results["qc"]["gene_coverage"], ["gene","locus_tag","cutoff","fraction"]) if "gene_coverage" in json_results["qc"] else "NA"
     text_strings["missing_report"] = dict_list2text(json_results["qc"]["missing_positions"],["gene","locus_tag","position","position_type","drug_resistance_position"]) if "gene_coverage" in json_results["qc"] else "NA"

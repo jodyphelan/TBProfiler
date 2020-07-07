@@ -87,7 +87,9 @@ class vcf:
                 continue
 
             for i in range(4,len(row)-4,5):
-                if row[i+1] == ".": continue
+                # if pos==1472723:
+                    # import pdb; pdb.set_trace()
+                # if row[i+1] == ".": continue
                 if row[i+1][0] == "@": continue
 
                 sample = row[i]
