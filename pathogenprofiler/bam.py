@@ -77,18 +77,22 @@ class bam:
 
     def get_bed_gt(self,bed_file,ref_file,caller):
         add_arguments_to_self(self, locals())
-        results = defaultdict(lambda : defaultdict(dict))
+        results = {}
         if caller == "gatk":
             cmd = "gatk HaplotypeCaller -I %(bam_file)s -R %(ref_file)s -L %(bed_file)s -OVI false -O /dev/stdout | bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
         elif caller == "freebayes":
-            cmd = "freebayes -f %(ref_file)s -t %(bed_file)s %(bam_file)s| bcftools view -a | bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
+            cmd = "freebayes -f %(ref_file)s -t %(bed_file)s %(bam_file)s| bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
         else:
             cmd = "bcftools mpileup -f %(ref_file)s -R %(bed_file)s %(bam_file)s -BI -a AD | bcftools call -mv | bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
 
         for l in cmd_out(cmd):
             # Chromosome    4348079    0/0    51
             chrom, pos, ref, alt, gt, ad = l.rstrip().split()
+            if chrom not in results:
+                results[chrom] = {}
             pos = int(pos)
+            if pos not in results[chrom]:
+                results[chrom][pos] = {}
             d = {}
             alts = alt.split(",")
             ad = [int(x) for x in ad.split(",")]
