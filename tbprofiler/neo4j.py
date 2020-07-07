@@ -6,8 +6,8 @@ from collections import defaultdict
 
 
 class get_neo4j_db:
-	from neo4j import GraphDatabase
 	def __init__(self):
+		from neo4j import GraphDatabase
 		self.driver = GraphDatabase.driver("neo4j://localhost:7687", auth=("neo4j","test"))
 	def close(self):
 		self.driver.close()
@@ -64,9 +64,11 @@ def read_neo4j_results(sample_id, neo4j_db=None, summary=False, conf=None):
             "freq": v["c"]["freq"],
         }
         if len(v["collect(d)"])>0:
-            var["drugs"] = {}
+            var["drugs"] = []
             for d in v["collect(d)"]:
-                var["drugs"][d["id"]] = {}
+                d = dict(d)
+                d["drug"] = d["id"]
+                var["drugs"].append(d)
             results["dr_variants"].append(var)
         else:
             results["other_variants"].append(var)
@@ -75,6 +77,8 @@ def read_neo4j_results(sample_id, neo4j_db=None, summary=False, conf=None):
         drug_order = ["isoniazid","rifampicin","ethambutol","pyrazinamide","streptomycin","ethionamide","fluoroquinolones","amikacin","capreomycin","kanamycin"]
         results = get_summary(results,conf,drug_order=drug_order)
 
+    results["dr_variants"] = sorted(results["dr_variants"],key=lambda x:x["genome_pos"])
+    results["other_variants"] = sorted(results["other_variants"],key=lambda x:x["genome_pos"])
     return results
 
 def write_neo4j_results(results, neo4j_db):
@@ -95,7 +99,7 @@ def write_neo4j_results(results, neo4j_db):
         if "nucleotide_change" not in var:
             var["nucleotide_change"] = "NA"
         neo4j_db.write(
-            "MERGE (v:Variant {id:'%s_%s'})" % (var["gene"], var["change"]),
+            "MERGE (v:Variant {id:'%s_%s'})" % (var["locus_tag"], var["change"]),
             "SET v.gene = '%s'" % (var["gene"]),
             "SET v.locusTag = '%s'" % (var["locus_tag"]),
             "SET v.change = '%s'" % (var["change"]),
@@ -105,14 +109,14 @@ def write_neo4j_results(results, neo4j_db):
             "SET v.internalChange = '%s'" % (var["_internal_change"]),
         )
         neo4j_db.write(
-            "MATCH (s:Sample {id:'%s'}),(v:Variant {id:'%s_%s'}) " % (results["id"],var["gene"],var["change"]),
+            "MATCH (s:Sample {id:'%s'}),(v:Variant {id:'%s_%s'}) " % (results["id"],var["locus_tag"],var["change"]),
             "CREATE (s) -[:CONTAINS {freq:%(freq)s, genomePos:%(genome_pos)s, nucleotideChange:'%(nucleotide_change)s', internalChange:'%(_internal_change)s'}]-> (v)" % var
         )
         if "drugs" in var:
             for d in var["drugs"]:
                 neo4j_db.write(
-                    "MATCH (v:Variant {id:'%s_%s'}) " % (var["gene"],var["change"]),
-                    "MERGE (d:Drug {id:'%s'})" % (d),
+                    "MATCH (v:Variant {id:'%s_%s'}) " % (var["locus_tag"],var["change"]),
+                    "MERGE (d:Drug {id:'%s'})" % (d["drug"]),
                     "MERGE (v) -[:CONFERS_RESISTANCE]-> (d)"
                 )
 

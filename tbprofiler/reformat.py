@@ -21,11 +21,13 @@ def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=
     for key in columns:
         if key not in json_results["dr_variants"][0]: pp.log("%s not found in variant annotation, is this a valid column in the database CSV file? Exiting!" % key,True)
     for x in json_results["dr_variants"]:
+        print(x)
         for d in x["drugs"]:
             drug = d["drug"]
+            print(drug)
             if float(x["freq"])<reporting_af:continue
             if drug not in results: results[drug] = []
-            results[d].append("%s %s (%.2f)" % (x["gene"],x["change"],x["freq"]))
+            results[d["drug"]].append("%s %s (%.2f)" % (x["gene"],x["change"],x["freq"]))
             if drug not in annotation: annotation[drug] = {key:[] for key in columns}
             for key in columns:
                 annotation[drug][key].append(x["drugs"][drug][key])

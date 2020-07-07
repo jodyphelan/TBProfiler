@@ -69,7 +69,7 @@ class bam:
 
     def bed_zero_cov_regions(self,bed_file):
         add_arguments_to_self(self, locals())
-        cmd = "bedtools coverage -b %(bam_file)s -a %(bed_file)s" % vars(self)
+        cmd = "bedtools coverage -sorted -b %(bam_file)s -a %(bed_file)s" % vars(self)
         results = []
         for l in cmd_out(cmd):
             results.append(l.split())
@@ -109,7 +109,7 @@ class bam:
         self.region_cov = defaultdict(list)
         self.region_fraction = []
         self.genome_coverage = []
-        for l in cmd_out("bedtools coverage -a %(bed_file)s -b %(bam_file)s -d" % vars(self)):
+        for l in cmd_out("bedtools coverage -a %(bed_file)s -b %(bam_file)s -sorted -d" % vars(self)):
             row = l.split()
             region = row[3]
             depth = int(row[-1])
