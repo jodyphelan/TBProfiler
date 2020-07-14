@@ -109,13 +109,18 @@ def main_profile(args):
     else:
         bam_file = args.bam
 
+    if args.min_depth<args.missing_cov_threshold:
+        sys.stderr.write(
+            "\nThe value of --min_depth (%s) is lower than than --missing_cov_threshold (%s). "
+            "This could result in variants called also being present missing_positions results.\n" % (args.min_depth,args.missing_cov_threshold)
+        )
     ### Run profiling module from pathogen-profiler ###
     results = pp.bam_profiler(
         conf=conf, bam_file=bam_file, prefix=files_prefix, platform=args.platform,
         caller=args.caller, threads=args.threads, no_flagstat=args.no_flagstat,
         run_delly = run_delly, calling_params=args.calling_params,
         coverage_fraction_threshold=args.coverage_fraction_threshold,
-        missing_cov_threshold=args.missing_cov_threshold
+        missing_cov_threshold=args.missing_cov_threshold, min_depth=args.min_depth
     )
 
     ### Reformat the results to TB-Profiler style ###
