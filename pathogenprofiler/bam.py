@@ -78,6 +78,7 @@ class bam:
     def get_bed_gt(self,bed_file,ref_file,caller):
         add_arguments_to_self(self, locals())
         results = defaultdict(lambda : defaultdict(dict))
+
         if caller == "gatk":
             cmd = "gatk HaplotypeCaller -I %(bam_file)s -R %(ref_file)s -L %(bed_file)s -ERC BP_RESOLUTION -OVI false -O /dev/stdout | bcftools view -a | bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
         else:
@@ -102,16 +103,34 @@ class bam:
                     for i, a in enumerate(genotypes):
                         d[a] = ad[i]
             results[chrom][pos] = d
+
+        ref_nt = {}
+        for l in cmd_out("bedtools getfasta -fi %s -bed %s" % (ref_file,bed_file)):
+            if l[0]==">":
+                tmp = l.strip().replace(">","").split(":")
+                tmp_chrom = tmp[0]
+                tmp_pos = int(tmp[1].split("-")[1])
+            else:
+                ref_nt[(tmp_chrom,tmp_pos)] = l.strip()
+
+        for l in cmd_out("bedtools coverage -a %s -b %s -d -sorted" % (bed_file,self.bam_file)):
+            row = l.strip().split()
+            chrom = row[0]
+            pos = int(row[2])
+            cov = int(row[-1])
+            if chrom not in results or pos not in results[chrom]:
+                results[chrom][pos] = {ref_nt[(chrom,pos)]:cov}
+
         return results
 
-    def get_region_coverage(self,bed_file,per_base=False,group_column=4,fraction_threshold=0):
+    def get_region_coverage(self,bed_file,per_base=False,group_column=4,fraction_threshold=0,region_column=3):
         add_arguments_to_self(self, locals())
         self.region_cov = defaultdict(list)
         self.region_fraction = []
         self.genome_coverage = []
-        for l in cmd_out("bedtools coverage -a %(bed_file)s -b %(bam_file)s -d" % vars(self)):
+        for l in cmd_out("bedtools coverage -a %(bed_file)s -b %(bam_file)s -d -sorted" % vars(self)):
             row = l.split()
-            region = row[3]
+            region = row[region_column]
             depth = int(row[-1])
             genomic_position = int(row[1]) + int(row[-2]) -1
             self.genome_coverage.append((genomic_position, depth))
