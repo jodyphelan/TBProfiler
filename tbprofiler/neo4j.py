@@ -6,28 +6,30 @@ from collections import defaultdict
 
 
 class get_neo4j_db:
-	def __init__(self):
-		from neo4j import GraphDatabase
-		self.driver = GraphDatabase.driver("neo4j://localhost:7687", auth=("neo4j","test"))
-	def close(self):
-		self.driver.close()
+    def __init__(self):
+        from neo4j import GraphDatabase
+        self.driver = GraphDatabase.driver("neo4j://localhost:7687", auth=("neo4j","test"))
+    def close(self):
+        self.driver.close()
 
-	def read(self,*args):
-		with self.driver.session() as session:
-			result = session.read_transaction(self._run_cmd,"\n".join(args))
-			return result
+    def read(self,*args):
+        with self.driver.session() as session:
+            result = session.read_transaction(self._run_cmd,"\n".join(args))
+            return result
 
-	def write(self,*args):
-		with self.driver.session() as session:
-			result = session.write_transaction(self._run_cmd,"\n".join(args))
+    def write(self,*args):
+        with self.driver.session() as session:
+            result = session.write_transaction(self._run_cmd,"\n".join(args))
 
-	@staticmethod
-	def _run_cmd(tx,cmd):
-		result = []
-		for record in tx.run(cmd):
-			result.append(dict(record))
-		return result
+    @staticmethod
+    def _run_cmd(tx,cmd):
+        result = []
+        for record in tx.run(cmd):
+            result.append(dict(record))
+        return result
 
+def dict2proerties(d):
+    return " ".join(["%s:%s" % (k,v) for k,v in d.items()])
 
 def read_neo4j_results(sample_id, neo4j_db=None, summary=False, conf=None):
     neo4j_db = neo4j_db if neo4j_db else get_neo4j_db()
@@ -108,9 +110,19 @@ def write_neo4j_results(results, neo4j_db):
             "SET v.nucleotideChange = '%s'" % (var.get("nucleotide_change","")),
             "SET v.internalChange = '%s'" % (var["_internal_change"]),
         )
+
+        tmp_dict = {
+            "freq": var["freq"], "genome_pos": var["genome_pos"],
+            "nucleotide_change": var["nucleotide_change"],
+            "internal_change": var["internal_change"]
+        }
+        for k,v in var["variant_annotations"]:
+            tmp_dict[k] = v
+
         neo4j_db.write(
+
             "MATCH (s:Sample {id:'%s'}),(v:Variant {id:'%s_%s'}) " % (results["id"],var["locus_tag"],var["change"]),
-            "CREATE (s) -[:CONTAINS {freq:%(freq)s, genomePos:%(genome_pos)s, nucleotideChange:'%(nucleotide_change)s', internalChange:'%(_internal_change)s'}]-> (v)" % var
+            "CREATE (s) -[:CONTAINS { %s }]-> (v)" % dict2proerties(tmp_dict)
         )
         if "drugs" in var:
             for d in var["drugs"]:
@@ -122,13 +134,13 @@ def write_neo4j_results(results, neo4j_db):
 
 
 def tbdr_get_mutation_info(gene,mutation):
-	data = json.loads(urlopen("http://localhost:5000/variants/json/%s/%s" % (gene,mutation)).read())
-	drtype = defaultdict(int)
-	lineage = defaultdict(int)
-	for row in data:
-		print(row)
-		drtype[row["Drug resistance"]] += row["Count"]
-		if row["Lineage"]==None: continue
-		if ";" in row["Lineage"]: continue
-		lineage[row["Lineage"]] += row["Count"]
-	return {"drtype":drtype,"lineage":lineage}
+    print("Getting mutation metadata")
+    data = json.loads(urlopen("http://localhost:5000/variants/json/%s/%s" % (gene,mutation)).read())
+    drtype = defaultdict(int)
+    lineage = defaultdict(int)
+    for row in data["sample_data"]:
+        drtype[row["Drug resistance"]] += row["Count"]
+        if row["Lineage"]==None: continue
+        if ";" in row["Lineage"]: continue
+        lineage[row["Lineage"]] += row["Count"]
+    return {"drtype":drtype,"lineage":lineage, "support":data["support"]}

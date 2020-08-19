@@ -25,8 +25,9 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
     ### Create bam object and call variants ###
     bam_obj = bam(bam_file, prefix, platform=platform, threads=threads)
     vcf_obj = bam_obj.call_variants(conf["ref"], caller=caller, bed_file=conf["bed"], threads=threads, calling_params=calling_params)
-    csq_vcf_obj = vcf_obj.csq(conf["ref"],conf["gff"])
-    csq = csq_vcf_obj.load_csq(ann_file=conf["ann"])
+    ann_vcf_obj = vcf_obj.add_annotations(conf["ref"],bam_obj.bam_file)
+    csq_vcf_obj = ann_vcf_obj.csq(conf["ref"],conf["gff"])
+    csq = csq_vcf_obj.load_csq(ann_file=conf["ann"],extract_ann=True)
 
     ### Get % and num reads mapping ###
     if no_flagstat:

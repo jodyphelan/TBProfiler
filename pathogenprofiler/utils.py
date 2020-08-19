@@ -347,6 +347,18 @@ def index_bcf(bcffile,threads=1,overwrite=False):
         elif os.path.getmtime(bcffile+".csi")<os.path.getmtime(bcffile) or overwrite:
             run_cmd(cmd)
 
+def tabix(bcffile,threads=1,overwrite=False):
+    """
+    Indexing a bam file
+    """
+    cmd = "bcftools index --threads %s -ft %s" % (threads,bcffile)
+    if filecheck(bcffile):
+        if nofile(bcffile+".tbi"):
+            run_cmd(cmd)
+        elif os.path.getmtime(bcffile+".tbi")<os.path.getmtime(bcffile) or overwrite:
+            run_cmd(cmd)
+
+
 def verify_fq(filename):
     """
     Return True if input is a valid fastQ file

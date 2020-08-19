@@ -52,17 +52,12 @@ def main(args):
             continue
         tmp = json.load(open("%s/%s.results.json" % (args.dir,s)))
         sample_dr_mutations = defaultdict(list)
-        tmp_store = set([json.dumps(x) for x in tmp["dr_variants"]])    # This step is only to remove duplicate
-        tmp["dr_variants"] = []                                            # mutations introduced by a bug that is
-        tmp["dr_variants"] = [json.loads(x) for x in tmp_store]            # now fixed
         for var in tmp["dr_variants"]:
             tmp_gene_name = var["gene"] if var["gene"]!="." else var["locus_tag"]
-            sample_dr_mutations[var["drug"]].append(tmp_gene_name+"_"+var[change_field])
+            for d in var["drugs"]:
+                sample_dr_mutations[d["drug"]].append(tmp_gene_name+"_"+var[change_field])
         if args.non_dr:
             sample_other_mutations = defaultdict(list)
-            tmp_store = set([json.dumps(x) for x in tmp["other_variants"]])    # This step is only to remove duplicate
-            tmp["other_variants"] = []                                        # mutations introduced by a bug that is
-            tmp["other_variants"] = [json.loads(x) for x in tmp_store]        # now fixed
             for var in tmp["other_variants"]:
                 for d in gene2drugs[var["locus_tag"]]:
                     tmp_gene_name = var["gene"] if var["gene"]!="." else var["locus_tag"]

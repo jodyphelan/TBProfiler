@@ -43,18 +43,19 @@ class bam:
             self.calling_cmd = "bcftools mpileup -f %(ref_file)s %(calling_params)s -a DP,AD -r {1} %(bam_file)s | bcftools call -mv | bcftools filter -e 'FMT/DP<10' %(missing_cmd)s | bcftools filter -e 'IMF < 0.7' -S 0 -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
         elif self.caller == "bcftools":
             self.calling_params = calling_params if calling_params else "-ABq8 -Q0"
-            self.calling_cmd = "bcftools mpileup -f %(ref_file)s %(calling_params)s -a DP,AD -r {1} %(bam_file)s | bcftools call -mv | bcftools norm -f %(ref_file)s | bcftools filter -e 'FMT/DP<10' %(missing_cmd)s -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
+            self.calling_cmd = "samtools view -h %(bam_file)s {1} | samclip --ref %(ref_file)s | samtools view -b > %(prefix)s.{2}.tmp.bam && samtools index %(prefix)s.{2}.tmp.bam && bcftools mpileup -f %(ref_file)s %(calling_params)s -a DP,AD -r {1} %(prefix)s.{2}.tmp.bam | bcftools call -mv | bcftools norm -f %(ref_file)s | bcftools filter -e 'FMT/DP<10' %(missing_cmd)s -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
         elif self.caller == "gatk":
             self.calling_params = calling_params if calling_params else ""
-            self.calling_cmd = "gatk HaplotypeCaller -R %(ref_file)s -I %(bam_file)s -O %(prefix)s.{2}.vcf.gz -L {1} %(calling_params)s" % vars(self)
+            self.calling_cmd = "samtools view -h %(bam_file)s {1} | samclip --ref %(ref_file)s | samtools view -b > %(prefix)s.{2}.tmp.bam && samtools index %(prefix)s.{2}.tmp.bam && gatk HaplotypeCaller -R %(ref_file)s -I %(prefix)s.{2}.tmp.bam -O %(prefix)s.{2}.vcf.gz -L {1} %(calling_params)s" % vars(self)
         elif self.caller == "freebayes":
             self.calling_params = calling_params if calling_params else ""
-            self.calling_cmd = "freebayes -f %(ref_file)s -r {1} %(bam_file)s --haplotype-length -1 %(calling_params)s | bcftools view -c 1 | bcftools norm -f %(ref_file)s | bcftools filter -e 'FMT/DP<10' %(missing_cmd)s -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
+            self.calling_cmd = "samtools view -h %(bam_file)s {1} | samclip --ref %(ref_file)s | samtools view -b > %(prefix)s.{2}.tmp.bam && samtools index %(prefix)s.{2}.tmp.bam && freebayes -f %(ref_file)s -r {1} --haplotype-length -1 %(calling_params)s %(prefix)s.{2}.tmp.bam | bcftools view -c 1 | bcftools norm -f %(ref_file)s | bcftools filter -e 'FMT/DP<10' %(missing_cmd)s -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
 
         run_cmd('%(windows_cmd)s | parallel -j %(threads)s --col-sep " " "%(calling_cmd)s"' % vars(self))
         run_cmd('%(windows_cmd)s | parallel -j %(threads)s --col-sep " " "bcftools index  %(prefix)s.{2}.vcf.gz"' % vars(self) )
         run_cmd("bcftools concat -aD -Oz -o %(vcf_file)s `%(windows_cmd)s | awk '{print \"%(prefix)s.\"$2\".vcf.gz\"}'`" % vars(self))
         run_cmd("rm `%(windows_cmd)s | awk '{print \"%(prefix)s.\"$2\".vcf.gz*\"}'`" % vars(self))
+        run_cmd("rm `%(windows_cmd)s | awk '{print \"%(prefix)s.\"$2\".tmp.bam*\"}'`" % vars(self))
 
         return vcf(self.vcf_file)
 
@@ -77,7 +78,8 @@ class bam:
 
     def get_bed_gt(self,bed_file,ref_file,caller):
         add_arguments_to_self(self, locals())
-        results = {}
+        results = defaultdict(lambda : defaultdict(dict))
+
         if caller == "gatk":
             cmd = "gatk HaplotypeCaller -I %(bam_file)s -R %(ref_file)s -L %(bed_file)s -OVI false -O /dev/stdout | bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
         elif caller == "freebayes":
@@ -88,22 +90,41 @@ class bam:
         for l in cmd_out(cmd):
             # Chromosome    4348079    0/0    51
             chrom, pos, ref, alt, gt, ad = l.rstrip().split()
-            if chrom not in results:
-                results[chrom] = {}
             pos = int(pos)
-            if pos not in results[chrom]:
-                results[chrom][pos] = {}
             d = {}
             alts = alt.split(",")
             ad = [int(x) for x in ad.split(",")]
-            genotypes = list([ref]+alts)
-            if self.platform == "nanopore":
-                idx = ad.index(max(ad))
-                d[genotypes[idx]] = ad[idx]
+            if gt == "0/0":
+                d[ref] = ad[0]
+            elif gt == "./.":
+                d[ref] = 0
             else:
-                for i, a in enumerate(genotypes):
-                    d[a] = ad[i]
+                genotypes = list([ref]+alts)
+                if self.platform == "nanopore":
+                    idx = ad.index(max(ad))
+                    d[genotypes[idx]] = ad[idx]
+                else:
+                    for i, a in enumerate(genotypes):
+                        d[a] = ad[i]
             results[chrom][pos] = d
+
+        ref_nt = {}
+        for l in cmd_out("bedtools getfasta -fi %s -bed %s" % (ref_file,bed_file)):
+            if l[0]==">":
+                tmp = l.strip().replace(">","").split(":")
+                tmp_chrom = tmp[0]
+                tmp_pos = int(tmp[1].split("-")[1])
+            else:
+                ref_nt[(tmp_chrom,tmp_pos)] = l.strip()
+
+        for l in cmd_out("bedtools coverage -a %s -b %s -d -sorted" % (bed_file,self.bam_file)):
+            row = l.strip().split()
+            chrom = row[0]
+            pos = int(row[2])
+            cov = int(row[-1])
+            if chrom not in results or pos not in results[chrom]:
+                results[chrom][pos] = {ref_nt[(chrom,pos)]:cov}
+
         return results
 
     def get_region_coverage(self,bed_file,per_base=False,group_column=4,fraction_threshold=0):

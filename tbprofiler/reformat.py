@@ -211,7 +211,7 @@ def add_mutation_metadata(results):
 
 
 
-def reformat(results,conf,reporting_af,add_mutation_metadata=False):
+def reformat(results,conf,reporting_af,mutation_metadata=False):
     results["variants"] = dict_list_add_genes(results["variants"],conf)
     if "gene_coverage" in results["qc"]:
         results["qc"]["gene_coverage"] = dict_list_add_genes(results["qc"]["gene_coverage"],conf)
@@ -219,6 +219,6 @@ def reformat(results,conf,reporting_af,add_mutation_metadata=False):
     results = barcode2lineage(results)
     results = reformat_annotations(results,conf,reporting_af)
     results["db_version"] = json.load(open(conf["version"]))
-    if add_mutation_metadata:
+    if mutation_metadata:
         results = add_mutation_metadata(results)
     return results

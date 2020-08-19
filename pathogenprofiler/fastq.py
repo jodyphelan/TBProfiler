@@ -79,6 +79,7 @@ class fastq:
 
             if self.paired:
                 run_cmd("samtools merge -@ %(threads)s -f %(bam_unsort_file)s %(bam_pair_file)s %(bam_single_file)s" % vars(self))
-                run_cmd("samtools sort -@ %(threads)s -o %(bam_file)s %(bam_unsort_file)s" % vars(self))
+                # run_cmd("samtools sort -@ %(threads)s -o %(bam_file)s %(bam_unsort_file)s" % vars(self))
+                run_cmd("samtools sort -n -@ %(threads)s  %(bam_unsort_file)s | samtools fixmate -@ %(threads)s -m - - | samtools sort -@ %(threads)s - | samtools markdup -@ %(threads)s - %(bam_file)s" % vars(self))
                 run_cmd("rm %(bam_single_file)s %(bam_pair_file)s %(bam_unsort_file)s" % vars(self))
         return bam(self.bam_file,self.prefix,self.platform,threads=threads)
