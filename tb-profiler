@@ -119,7 +119,7 @@ def main_profile(args):
     )
 
     ### Reformat the results to TB-Profiler style ###
-    results = tbp.reformat(results, conf, reporting_af=args.reporting_af, mutation_metadata=args.add_mutation_metadata)
+    results = tbp.reformat(results, conf, reporting_af=args.reporting_af)
     results["id"] = args.prefix
     results["tbprofiler_version"] = tbp._VERSION
     results["pipeline"] = {"mapper":args.mapper if not args.bam else "N/A","variant_caller":args.caller}
@@ -379,7 +379,6 @@ if __name__=="__main__":
     parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
     parser_sub.add_argument('--no_flagstat',action="store_true",help="Don't collect flagstats")
     parser_sub.add_argument('--no_delly',action="store_true",help="Don't run delly")
-    parser_sub.add_argument('--add_mutation_metadata',action="store_true",help="Add mutation data from the tbdr database")
     parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
     parser_sub.set_defaults(func=main_profile)
 
