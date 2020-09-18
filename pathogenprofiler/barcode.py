@@ -82,13 +82,11 @@ def db_compare(mutations,db_file):
                 db_var_match = db[var["gene_id"]]["large_deletion"]
             if db_var_match:
                 if "annotation" not in annotated_results["variants"][i]:
-                    annotated_results["variants"][i]["annotation"] = {"drugs":[]}
-                for drug in db_var_match["drugs"]:
-                    obj = db_var_match["drugs"][drug]
-                    obj["drug"] = drug
-                    annotated_results["variants"][i]["annotation"]["drugs"].append(obj)
-                for key in db_var_match:
-                    if key=="drugs": continue
-                    annotated_results["variants"][i]["annotation"][key] = db_var_match[key]
+                    annotated_results["variants"][i]["annotation"] = []
+                for ann in db_var_match["annotations"]:
+                    annotated_results["variants"][i]["annotation"].append(ann)
+                # for key in db_var_match:
+                    # if key=="drugs": continue
+                    # annotated_results["variants"][i]["annotation"][key] = db_var_match[key]
 
     return annotated_results

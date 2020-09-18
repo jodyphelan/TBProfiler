@@ -128,15 +128,27 @@ def reformat_annotations(results,conf,reporting_af=0.1):
         var["change"] = pp.reformat_mutations(var["change"],var["type"],var["locus_tag"],chr2gene_pos)
     resistant_drugs = set()
     results["dr_variants"] = []
-    for d in [x for x in results["variants"] if "annotation" in x]:
-        tmp = d.copy()
-        tmp["drugs"] = d["annotation"]["drugs"]
-        del tmp["annotation"]
-        if tmp["freq"]>=reporting_af:
-            for d in tmp["drugs"]:
-                resistant_drugs.add(d["drug"])
-        results["dr_variants"].append(tmp)
-    results["other_variants"] = [x for x in results["variants"] if "annotation" not in x]
+    results["other_variants"] = []
+    for var in results["variants"]:
+        if "annotation" in var:
+            tmp = var.copy()
+            drvar = any([x["type"]=="drug" for x in var["annotation"]])
+            phylovar = any([x["type"]=="phylogenetic" for x in var["annotation"]])
+            if drvar:
+                tmp["drugs"] = var["annotation"]
+                del tmp["annotation"]
+                if tmp["freq"]>=reporting_af:
+                    for d in tmp["drugs"]:
+                        resistant_drugs.add(d["drug"])
+                results["dr_variants"].append(tmp)
+
+            elif phylovar:
+                print(var)
+                var["lineage_variant"] = var["annotation"][0]["lineage"]
+                del var["annotation"]
+                results["other_variants"].append(var)
+        else:
+            results["other_variants"].append(var)
     del results["variants"]
 
     FLQ_set = set(["moxifloxacin","levofloxacin","ciprofloxacin","ofloxacin"])
