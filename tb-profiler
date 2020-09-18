@@ -109,22 +109,17 @@ def main_profile(args):
     else:
         bam_file = args.bam
 
-    if args.min_depth<args.missing_cov_threshold:
-        sys.stderr.write(
-            "\nThe value of --min_depth (%s) is lower than than --missing_cov_threshold (%s). "
-            "This could result in variants called also being present missing_positions results.\n" % (args.min_depth,args.missing_cov_threshold)
-        )
     ### Run profiling module from pathogen-profiler ###
     results = pp.bam_profiler(
         conf=conf, bam_file=bam_file, prefix=files_prefix, platform=args.platform,
         caller=args.caller, threads=args.threads, no_flagstat=args.no_flagstat,
         run_delly = run_delly, calling_params=args.calling_params,
         coverage_fraction_threshold=args.coverage_fraction_threshold,
-        missing_cov_threshold=args.missing_cov_threshold, min_depth=args.min_depth
+        missing_cov_threshold=args.missing_cov_threshold
     )
 
     ### Reformat the results to TB-Profiler style ###
-    results = tbp.reformat(results, conf, reporting_af=args.reporting_af)
+    results = tbp.reformat(results, conf, reporting_af=args.reporting_af, mutation_metadata=args.add_mutation_metadata)
     results["id"] = args.prefix
     results["tbprofiler_version"] = tbp._VERSION
     results["pipeline"] = {"mapper":args.mapper if not args.bam else "N/A","variant_caller":args.caller}
@@ -198,13 +193,27 @@ def main_lineage(args):
     bam = pp.bam(args.bam,args.bam,conf["ref"])
     mutations = bam.get_bed_gt(conf["barcode"],conf["ref"],args.caller)
     if args.snps:
+        dp = {}
+        for l in pp.cmd_out("bedtools coverage -a %s  -b %s -sorted -d" % (conf["barcode"], args.bam)):
+            row = l.strip().split("\t")
+            dp[int(row[2])] = int(row[9])
+
         with open("%s.lineage.snps.txt" % (args.prefix),"w") as OUT:
             barcode_bed = pp.load_bed(conf["barcode"],[1,2,3,4,5],3)
             for snp in sorted(list(barcode_bed.values()),key=lambda x:x[3]):
-                tmp = mutations[snp[0]][int(snp[2])]
-                lineage_reads = tmp[snp[4]] if snp[4] in tmp else 0
-                not_lineage_reads = sum(tmp.values()) - lineage_reads
-                fraction = lineage_reads/(lineage_reads+not_lineage_reads) if (sum(tmp.values())>0) else  "NA"
+                if snp[0] in mutations and int(snp[2]) in mutations[snp[0]]:
+                    tmp = mutations[snp[0]][int(snp[2])]
+                    lineage_reads = tmp[snp[4]] if snp[4] in tmp else 0
+                    not_lineage_reads = sum(tmp.values()) - lineage_reads
+                    fraction = lineage_reads/(lineage_reads+not_lineage_reads) if (sum(tmp.values())>0) else  "NA"
+                elif int(snp[2]) in dp:
+                    lineage_reads = 0
+                    not_lineage_reads = dp[int(snp[2])]
+                    fraction = 0
+                else:
+                    lineage_reads = "NA"
+                    not_lineage_reads = "NA"
+                    fraction = "NA"
                 OUT.write("%s\t%s\t%s\t%s\t%s\n" % (snp[2],snp[3],lineage_reads,not_lineage_reads,fraction))
 
     results = {}
@@ -307,7 +316,10 @@ def main_vcf_profile(args):
         args.sample_name = sample_name
         files_prefix = args.dir+"/"+sample_name
         args.tmp_vcf = pp.get_random_file()
-        pp.run_cmd("bcftools view -s %(sample_name)s -c 1 %(vcf)s | bcftools view -i 'sum(AD)>0' | bcftools +fixploidy -Oz -o %(tmp_vcf)s " % vars(args))
+        if args.reporting_af>0:
+            pp.run_cmd("bcftools view -s %(sample_name)s -c 1 %(vcf)s | bcftools view -i 'sum(AD)>0' | bcftools +fixploidy -Oz -o %(tmp_vcf)s " % vars(args))
+        else:
+            pp.run_cmd("bcftools view -s %(sample_name)s -c 1 %(vcf)s | bcftools +fixploidy -Oz -o %(tmp_vcf)s " % vars(args))
         results = pp.vcf_profiler(conf, files_prefix, sample_name, args.tmp_vcf)
         results = tbp.reformat(results,conf,reporting_af=args.reporting_af)
         results["id"] = sample_name
@@ -367,6 +379,7 @@ if __name__=="__main__":
     parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
     parser_sub.add_argument('--no_flagstat',action="store_true",help="Don't collect flagstats")
     parser_sub.add_argument('--no_delly',action="store_true",help="Don't run delly")
+    parser_sub.add_argument('--add_mutation_metadata',action="store_true",help="Add mutation data from the tbdr database")
     parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
     parser_sub.set_defaults(func=main_profile)
 
@@ -434,7 +447,7 @@ if __name__=="__main__":
     parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
     parser_sub.add_argument('--outfmt',default='json',choices=["json","txt"],type=str,help="Output format")
     parser_sub.add_argument('--snps',action="store_true",help='Sample prefix')
-    parser_sub.add_argument('--caller',default='bcftools',choices=["bcftools","gatk"],type=str,help="Variant caller")
+    parser_sub.add_argument('--caller',default='bcftools',choices=["bcftools","freebayes","gatk"],type=str,help="Variant caller")
     parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
     parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
     parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
