@@ -192,32 +192,33 @@ def main_lineage(args):
     pp.filecheck(args.bam)
     bam = pp.bam(args.bam,args.bam,conf["ref"])
     mutations = bam.get_bed_gt(conf["barcode"],conf["ref"],args.caller)
-    if args.snps:
-        dp = {}
-        for l in pp.cmd_out("bedtools coverage -a %s  -b %s -sorted -d" % (conf["barcode"], args.bam)):
-            row = l.strip().split("\t")
-            dp[int(row[2])] = int(row[9])
-
-        with open("%s.lineage.snps.txt" % (args.prefix),"w") as OUT:
-            barcode_bed = pp.load_bed(conf["barcode"],[1,2,3,4,5],3)
-            for snp in sorted(list(barcode_bed.values()),key=lambda x:x[3]):
-                if snp[0] in mutations and int(snp[2]) in mutations[snp[0]]:
-                    tmp = mutations[snp[0]][int(snp[2])]
-                    lineage_reads = tmp[snp[4]] if snp[4] in tmp else 0
-                    not_lineage_reads = sum(tmp.values()) - lineage_reads
-                    fraction = lineage_reads/(lineage_reads+not_lineage_reads) if (sum(tmp.values())>0) else  "NA"
-                elif int(snp[2]) in dp:
-                    lineage_reads = 0
-                    not_lineage_reads = dp[int(snp[2])]
-                    fraction = 0
-                else:
-                    lineage_reads = "NA"
-                    not_lineage_reads = "NA"
-                    fraction = "NA"
-                OUT.write("%s\t%s\t%s\t%s\t%s\n" % (snp[2],snp[3],lineage_reads,not_lineage_reads,fraction))
+    # if args.snps:
+    #     dp = {}
+    #     for l in pp.cmd_out("bedtools coverage -a %s  -b %s -sorted -d" % (conf["barcode"], args.bam)):
+    #         row = l.strip().split("\t")
+    #         dp[int(row[2])] = int(row[9])
+    #
+    #     with open("%s.lineage.snps.txt" % (args.prefix),"w") as OUT:
+    #         barcode_bed = pp.load_bed(conf["barcode"],[1,2,3,4,5],3)
+    #         for snp in sorted(list(barcode_bed.values()),key=lambda x:x[3]):
+    #             print(snp)
+    #             if snp[0] in mutations and int(snp[2]) in mutations[snp[0]]:
+    #                 tmp = mutations[snp[0]][int(snp[2])]
+    #                 lineage_reads = tmp[snp[4]] if snp[4] in tmp else 0
+    #                 not_lineage_reads = sum(tmp.values()) - lineage_reads
+    #                 fraction = lineage_reads/(lineage_reads+not_lineage_reads) if (sum(tmp.values())>0) else  "NA"
+    #             elif int(snp[2]) in dp:
+    #                 lineage_reads = 0
+    #                 not_lineage_reads = dp[int(snp[2])]
+    #                 fraction = 0
+    #             else:
+    #                 lineage_reads = "NA"
+    #                 not_lineage_reads = "NA"
+    #                 fraction = "NA"
+    #             OUT.write("%s\t%s\t%s\t%s\t%s\n" % (snp[2],snp[3],lineage_reads,not_lineage_reads,fraction))
 
     results = {}
-    results["barcode"] = pp.barcode(mutations,conf["barcode"])
+    results["barcode"] = pp.barcode(mutations,conf["barcode"],snps_file=args.prefix+".snps.txt")
     tbp.barcode2lineage(results)
     outfile = "%s.lineage.%s" % (args.prefix,args.outfmt)
     O = open(outfile,"w")

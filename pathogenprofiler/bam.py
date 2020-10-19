@@ -4,6 +4,8 @@ from .vcf import vcf, delly_bcf
 from tqdm import tqdm
 from collections import defaultdict
 import sys
+
+
 class bam:
     """
     A class to perform operations on BAM files such as SNP calling
@@ -20,7 +22,7 @@ class bam:
         else:
             return delly_bcf("%(prefix)s.delly.bcf" % vars(self))
 
-    def call_variants(self,ref_file,caller,bed_file=None,threads=1,calling_params=None,remove_missing=False):
+    def call_variants(self,ref_file,caller,bed_file=None,threads=1,calling_params=None,remove_missing=False, samclip=False):
         add_arguments_to_self(self, locals())
         filecheck(ref_file)
         self.caller = caller.lower()
@@ -35,6 +37,7 @@ class bam:
         else:
             self.windows_cmd = "bedtools makewindows -g %(ref_file)s.fai -n %(threads)s | awk '{print $1\":\"$2+1\"-\"$3\" \"$1\"_\"$2+1\"_\"$3}'" % vars(self)
 
+        self.samclip_cmd = "| samclip --ref %(ref_file)s" % vars(self) if samclip else ""
         # Run through different options. Start with nanopore because it should
         # only be run with bcftools and will not even take caller into account
         # if it is set the the wrong option
@@ -43,17 +46,17 @@ class bam:
             self.calling_cmd = "bcftools mpileup -f %(ref_file)s %(calling_params)s -a DP,AD -r {1} %(bam_file)s | bcftools call -mv | bcftools filter -e 'FMT/DP<10' %(missing_cmd)s | bcftools filter -e 'IMF < 0.7' -S 0 -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
         elif self.caller == "bcftools":
             self.calling_params = calling_params if calling_params else "-ABq8 -Q0"
-            self.calling_cmd = "samtools view -h %(bam_file)s {1} | samclip --ref %(ref_file)s | samtools view -b > %(prefix)s.{2}.tmp.bam && samtools index %(prefix)s.{2}.tmp.bam && bcftools mpileup -f %(ref_file)s %(calling_params)s -a DP,AD -r {1} %(prefix)s.{2}.tmp.bam | bcftools call -mv | bcftools norm -f %(ref_file)s | bcftools filter -e 'FMT/DP<10' %(missing_cmd)s -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
+            self.calling_cmd = "samtools view -h %(bam_file)s {1} %(samclip_cmd)s | samtools view -b > %(prefix)s.{2}.tmp.bam && samtools index %(prefix)s.{2}.tmp.bam && bcftools mpileup -f %(ref_file)s %(calling_params)s -a DP,AD -r {1} %(prefix)s.{2}.tmp.bam | bcftools call -mv | bcftools norm -f %(ref_file)s | bcftools filter -e 'FMT/DP<10' %(missing_cmd)s -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
         elif self.caller == "gatk":
             self.calling_params = calling_params if calling_params else ""
-            self.calling_cmd = "samtools view -h %(bam_file)s {1} | samclip --ref %(ref_file)s | samtools view -b > %(prefix)s.{2}.tmp.bam && samtools index %(prefix)s.{2}.tmp.bam && gatk HaplotypeCaller -R %(ref_file)s -I %(prefix)s.{2}.tmp.bam -O %(prefix)s.{2}.vcf.gz -L {1} %(calling_params)s" % vars(self)
+            self.calling_cmd = "samtools view -h %(bam_file)s {1} %(samclip_cmd)s | samtools view -b > %(prefix)s.{2}.tmp.bam && samtools index %(prefix)s.{2}.tmp.bam && gatk HaplotypeCaller -R %(ref_file)s -I %(prefix)s.{2}.tmp.bam -O %(prefix)s.{2}.vcf.gz -L {1} %(calling_params)s" % vars(self)
         elif self.caller == "freebayes":
             self.calling_params = calling_params if calling_params else ""
-            self.calling_cmd = "samtools view -h %(bam_file)s {1} | samclip --ref %(ref_file)s | samtools view -b > %(prefix)s.{2}.tmp.bam && samtools index %(prefix)s.{2}.tmp.bam && freebayes -f %(ref_file)s -r {1} --haplotype-length -1 %(calling_params)s %(prefix)s.{2}.tmp.bam | bcftools view -c 1 | bcftools norm -f %(ref_file)s | bcftools filter -e 'FMT/DP<10' %(missing_cmd)s -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
+            self.calling_cmd = "samtools view -h %(bam_file)s {1} %(samclip_cmd)s | samtools view -b > %(prefix)s.{2}.tmp.bam && samtools index %(prefix)s.{2}.tmp.bam && freebayes -f %(ref_file)s -r {1} --haplotype-length -1 %(calling_params)s %(prefix)s.{2}.tmp.bam | bcftools view -c 1 | bcftools norm -f %(ref_file)s | bcftools filter -e 'FMT/DP<10' %(missing_cmd)s -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
 
         run_cmd('%(windows_cmd)s | parallel -j %(threads)s --col-sep " " "%(calling_cmd)s"' % vars(self))
         run_cmd('%(windows_cmd)s | parallel -j %(threads)s --col-sep " " "bcftools index  %(prefix)s.{2}.vcf.gz"' % vars(self) )
-        run_cmd("bcftools concat -aD -Oz -o %(vcf_file)s `%(windows_cmd)s | awk '{print \"%(prefix)s.\"$2\".vcf.gz\"}'`" % vars(self))
+        run_cmd("bcftools concat -aD `%(windows_cmd)s | awk '{print \"%(prefix)s.\"$2\".vcf.gz\"}'` | bcftools view -c1 -a -Oz -o %(vcf_file)s" % vars(self))
         run_cmd("rm `%(windows_cmd)s | awk '{print \"%(prefix)s.\"$2\".vcf.gz*\"}'`" % vars(self))
         run_cmd("rm `%(windows_cmd)s | awk '{print \"%(prefix)s.\"$2\".tmp.bam*\"}'`" % vars(self))
 
