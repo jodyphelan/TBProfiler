@@ -115,7 +115,7 @@ def main_profile(args):
         caller=args.caller, threads=args.threads, no_flagstat=args.no_flagstat,
         run_delly = run_delly, calling_params=args.calling_params,
         coverage_fraction_threshold=args.coverage_fraction_threshold,
-        missing_cov_threshold=args.missing_cov_threshold
+        missing_cov_threshold=args.missing_cov_threshold, samclip=True
     )
 
     ### Reformat the results to TB-Profiler style ###
@@ -218,7 +218,9 @@ def main_lineage(args):
     #             OUT.write("%s\t%s\t%s\t%s\t%s\n" % (snp[2],snp[3],lineage_reads,not_lineage_reads,fraction))
 
     results = {}
-    results["barcode"] = pp.barcode(mutations,conf["barcode"],snps_file=args.prefix+".snps.txt")
+    snps_file = args.prefix+"lineage.snps.txt" if args.snps else None
+
+    results["barcode"] = pp.barcode(mutations,conf["barcode"],snps_file=snps_file)
     tbp.barcode2lineage(results)
     outfile = "%s.lineage.%s" % (args.prefix,args.outfmt)
     O = open(outfile,"w")
