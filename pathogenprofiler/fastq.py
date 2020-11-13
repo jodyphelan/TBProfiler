@@ -63,26 +63,36 @@ class fastq:
         else:
             if aligner=="bwa" and self.paired:
                 run_cmd("%(bwa_prefix)s %(ref_file)s %(r1)s %(r2)s | samtools sort -@ %(threads)s -o %(bam_pair_file)s -" % vars(self))
-                run_cmd("%(bwa_prefix)s %(ref_file)s %(r3)s | samtools sort -@ %(threads)s -o %(bam_single_file)s -" % vars(self))
+                if self.r3:
+                    run_cmd("%(bwa_prefix)s %(ref_file)s %(r3)s | samtools sort -@ %(threads)s -o %(bam_single_file)s -" % vars(self))
             elif aligner=="bwa" and not self.paired:
                 run_cmd("%(bwa_prefix)s %(ref_file)s %(r1)s | samtools sort -@ %(threads)s -o %(bam_file)s -" % vars(self))
             elif aligner=="bowtie2" and self.paired:
                 run_cmd("%(bowtie2_prefix)s -x %(ref_file)s -1 %(r1)s -2 %(r2)s | samtools sort -@ %(threads)s -o %(bam_pair_file)s -" % vars(self))
-                run_cmd("%(bowtie2_prefix)s -x %(ref_file)s -U %(r3)s | samtools sort -@ %(threads)s -o %(bam_single_file)s" % vars(self))
+                if self.r3:
+                    run_cmd("%(bowtie2_prefix)s -x %(ref_file)s -U %(r3)s | samtools sort -@ %(threads)s -o %(bam_single_file)s" % vars(self))
             elif aligner=="bowtie2" and not self.paired:
                 run_cmd("%(bowtie2_prefix)s  -x %(ref_file)s -1 %(r1)s | samtools sort -@ %(threads)s -o %(bam_file)s -" % vars(self))
             elif aligner=="minimap2" and self.paired:
                 run_cmd("%(minimap2_prefix)s -ax sr %(ref_file)s %(r1)s %(r2)s | samtools sort -@ %(threads)s -o %(bam_pair_file)s -" % vars(self))
-                run_cmd("%(minimap2_prefix)s -ax sr %(ref_file)s %(r3)s| samtools sort -@ %(threads)s -o %(bam_single_file)s -" % vars(self))
+                if self.r3:
+                    run_cmd("%(minimap2_prefix)s -ax sr %(ref_file)s %(r3)s| samtools sort -@ %(threads)s -o %(bam_single_file)s -" % vars(self))
             elif aligner=="minimap2" and not self.paired:
                 run_cmd("%(minimap2_prefix)s -ax sr %(ref_file)s %(r1)s| samtools sort -@ %(threads)s -o %(bam_file)s -" % vars(self))
 
             if self.paired:
-                run_cmd("samtools merge -@ %(threads)s -f %(bam_unsort_file)s %(bam_pair_file)s %(bam_single_file)s" % vars(self))
+                if self.r3:
+                    run_cmd("samtools merge -@ %(threads)s -f %(bam_unsort_file)s %(bam_pair_file)s %(bam_single_file)s" % vars(self))
+                else:
+                    self.bam_unsort_file = self.bam_pair_file
                 # run_cmd("samtools sort -@ %(threads)s -o %(bam_file)s %(bam_unsort_file)s" % vars(self))
                 if markdup:
                     run_cmd("samtools sort -n -@ %(threads)s  %(bam_unsort_file)s | samtools fixmate -@ %(threads)s -m - - | samtools sort -@ %(threads)s - | samtools markdup -@ %(threads)s - %(bam_file)s" % vars(self))
                 else:
                     run_cmd("samtools sort -@ %(threads)s -o %(bam_file)s %(bam_unsort_file)s" % vars(self))
-                run_cmd("rm %(bam_single_file)s %(bam_pair_file)s %(bam_unsort_file)s" % vars(self))
+                if self.r3:
+                    run_cmd("rm %(bam_single_file)s %(bam_pair_file)s %(bam_unsort_file)s" % vars(self))
+                else:
+                    run_cmd("rm %(bam_pair_file)s" % vars(self))
+
         return bam(self.bam_file,self.prefix,self.platform,threads=threads)

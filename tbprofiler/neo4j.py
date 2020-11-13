@@ -29,17 +29,19 @@ class get_neo4j_db:
         return result
 
 def dict2proerties(d):
-    return " ".join(["%s:%s" % (k,v) for k,v in d.items()])
+    return ", ".join(['%s:"%s"' % (k,v) for k,v in d.items()])
 
 def read_neo4j_results(sample_id, neo4j_db=None, summary=False, conf=None):
     neo4j_db = neo4j_db if neo4j_db else get_neo4j_db()
     data = neo4j_db.read(
-        "MATCH (s:Sample {id:'%s'}) -[c:CONTAINS]-> (v:Variant)" % sample_id,
+        "MATCH (s:Sample {id:'%s'})" % sample_id,
+        "OPTIONAL MATCH (s) -[c:CONTAINS]-> (v:Variant)",
         "OPTIONAL MATCH (v) -[:CONFERS_RESISTANCE]-> (d:Drug)",
         "RETURN s,v,c,collect(d)"
     )
 
     results = {}
+    print(data)
     results["id"] = data[0]["s"]["id"]
     results["sample_name"] = data[0]["s"]["sampleName"]
     results["lineage"] = json.loads(data[0]["s"]["lineageInfo"])
@@ -55,25 +57,26 @@ def read_neo4j_results(sample_id, neo4j_db=None, summary=False, conf=None):
     results["other_variants"] = []
 
     for v in data:
-        var = {
-            "gene": v["v"]["gene"],
-            "locus_tag": v["v"]["locusTag"],
-            "change": v["v"]["change"],
-            "type": v["v"]["type"],
-            "genome_pos": v["c"]["genomePos"],
-            "nucleotide_change": v["c"]["nucleotideChange"],
-            "_internal_change": v["c"]["internalChange"],
-            "freq": v["c"]["freq"],
-        }
-        if len(v["collect(d)"])>0:
-            var["drugs"] = []
-            for d in v["collect(d)"]:
-                d = dict(d)
-                d["drug"] = d["id"]
-                var["drugs"].append(d)
-            results["dr_variants"].append(var)
-        else:
-            results["other_variants"].append(var)
+        if v["v"]:
+            var = {
+                "gene": v["v"]["gene"],
+                "locus_tag": v["v"]["locus_tag"],
+                "change": v["v"]["change"],
+                "type": v["v"]["type"],
+                "genome_pos": v["c"]["genome_pos"],
+                "nucleotide_change": v["c"]["nucleotideChange"],
+                "_internal_change": v["c"]["internalChange"],
+                "freq": float(v["c"]["freq"]),
+            }
+            if len(v["collect(d)"])>0:
+                var["drugs"] = []
+                for d in v["collect(d)"]:
+                    d = dict(d)
+                    d["drug"] = d["id"]
+                    var["drugs"].append(d)
+                results["dr_variants"].append(var)
+            else:
+                results["other_variants"].append(var)
 
     if summary:
         drug_order = ["isoniazid","rifampicin","ethambutol","pyrazinamide","streptomycin","ethionamide","fluoroquinolones","amikacin","capreomycin","kanamycin"]
@@ -98,25 +101,26 @@ def write_neo4j_results(results, neo4j_db):
         "REMOVE s:Processing"
     )
     for var in results["dr_variants"]+results["other_variants"]:
+        print(var)
         if "nucleotide_change" not in var:
             var["nucleotide_change"] = "NA"
         neo4j_db.write(
             "MERGE (v:Variant {id:'%s_%s'})" % (var["locus_tag"], var["change"]),
             "SET v.gene = '%s'" % (var["gene"]),
-            "SET v.locusTag = '%s'" % (var["locus_tag"]),
+            "SET v.locus_tag = '%s'" % (var["locus_tag"]),
             "SET v.change = '%s'" % (var["change"]),
             "SET v.type = '%s'" % (var["type"]),
-            "SET v.genomePos = '%s'" % (var["genome_pos"]),
-            "SET v.nucleotideChange = '%s'" % (var.get("nucleotide_change","")),
-            "SET v.internalChange = '%s'" % (var["_internal_change"]),
+            # "SET v.genomePos = '%s'" % (var["genome_pos"]),
+            # "SET v.nucleotideChange = '%s'" % (var.get("nucleotide_change","")),
+            # "SET v.internalChange = '%s'" % (var["_internal_change"]),
         )
 
         tmp_dict = {
             "freq": var["freq"], "genome_pos": var["genome_pos"],
             "nucleotide_change": var["nucleotide_change"],
-            "internal_change": var["internal_change"]
+            "internal_change": var["_internal_change"]
         }
-        for k,v in var["variant_annotations"]:
+        for k,v in var["variant_annotations"].items():
             tmp_dict[k] = v
 
         neo4j_db.write(

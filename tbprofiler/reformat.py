@@ -27,7 +27,7 @@ def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=
             print(drug)
             if float(x["freq"])<reporting_af:continue
             if drug not in results: results[drug] = []
-            results[d["drug"]].append("%s %s (%.2f)" % (x["gene"],x["change"],x["freq"]))
+            results[d["drug"]].append("%s %s (%.2f)" % (x["gene"],x["change"],float(x["freq"])))
             if drug not in annotation: annotation[drug] = {key:[] for key in columns}
             for key in columns:
                 annotation[drug][key].append(x["drugs"][drug][key])
@@ -126,6 +126,7 @@ def reformat_annotations(results,conf,reporting_af=0.1):
     for var in results["variants"]:
         var["_internal_change"] = var["change"]
         var["change"] = pp.reformat_mutations(var["change"],var["type"],var["locus_tag"],chr2gene_pos)
+        print(var["_internal_change"])
     resistant_drugs = set()
     results["dr_variants"] = []
     results["other_variants"] = []
