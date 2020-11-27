@@ -66,7 +66,7 @@ class vcf:
         annotations_types = self.get_gatk_annotations() if extract_ann else []
         annotation_extract_string = "\t%s" % "\\t".join(["%%%s" % x for x in annotations_types]) if extract_ann else ""
         csq_start_column = 4 + len(annotations_types)
-        for line in cmd_out("bcftools query -u -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT%s[\\t%%SAMPLE\\t%%TBCSQ\\t%%TGT\\t%%AD]\\n' %s" % (annotation_extract_string,self.filename)):
+        for line in cmd_out("bcftools query -u -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT\\t%s[\\t%%SAMPLE\\t%%TBCSQ\\t%%TGT\\t%%AD]\\n' %s" % (annotation_extract_string,self.filename)):
 
             if debug:
                 sys.stderr.write(line+"\n")
