@@ -64,10 +64,10 @@ class vcf:
         nuc_variants = self.load_variants()
         variants = {s:[] for s in self.samples}
         annotations_types = self.get_gatk_annotations() if extract_ann else []
-        annotation_extract_string = "\t%s" % "\\t".join(["%%%s" % x for x in annotations_types]) if extract_ann else ""
+        annotation_extract_string = "%s" % "\\t".join(["%%%s" % x for x in annotations_types]) if extract_ann else ""
         csq_start_column = 4 + len(annotations_types)
         for line in cmd_out("bcftools query -u -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT\\t%s[\\t%%SAMPLE\\t%%TBCSQ\\t%%TGT\\t%%AD]\\n' %s" % (annotation_extract_string,self.filename)):
-
+            print(line)
             if debug:
                 sys.stderr.write(line+"\n")
             row = line.split()
@@ -132,7 +132,7 @@ class vcf:
                 if info[0] == "coding_sequence":
                     cng = "%s%s>%s" % (ann_pos,call1,call2)
                     variants[sample].append({"sample":sample,"gene_id":ann_gene,"chr":chrom,"genome_pos":pos,"type":"non_coding","change":cng,"freq":adr[call2], "nucleotide_change":cng, "variant_annotations":annotations})
-                elif  "missense" in info[0] or "start_lost" in info[0] or "stop_gained" in info[0]:
+                elif  ("missense" in info[0] or "start_lost" in info[0] or "stop_gained" in info[0]) and "frame" not in info[0]:
                     variants[sample].append({"sample":sample,"gene_id":gene_id,"gene_name":gene_name,"chr":chrom,"genome_pos":pos,"type":info[0],"change":info[5],"freq":adr[call2], "nucleotide_change":info[6], "variant_annotations":annotations})
                 elif "frame" in info[0] or "stop_lost" in info[0]:
                     if len(info)<6:
