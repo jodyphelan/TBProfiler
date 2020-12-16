@@ -110,16 +110,16 @@ DATA
     OUT.close()
 
     OUT = open(prefix+".dr.itol.txt","w")
-    dr_cols = {"Sensitive":"#80FF00","Drug-resistant":"#00FFFF","MDR":"#8000FF","XDR":"#FF0000"}
+    dr_cols = {"Sensitive":"#28a745","Pre-MDR":"#007bff","MDR":"#ffc107","Pre-XDR":"#dc3545","XDR":"#343a40","Other":"#f8f9fa"}
     OUT.write("""DATASET_COLORSTRIP
 SEPARATOR TAB
 DATASET_LABEL\tDrug-Resistance
 COLOR\t#ff0000
 
 LEGEND_TITLE\tDrug resistance
-LEGEND_SHAPES\t1\t1\t1\t1
-LEGEND_COLORS\t#80FF00\t#00FFFF\t#8000FF\t#FF0000
-LEGEND_LABELS\tSensitive\tDrug-resisant\tMDR\tXDR
+LEGEND_SHAPES\t1\t1\t1\t1\t1\t1
+LEGEND_COLORS\t#28a745\t#007bff\t#ffc107\t#dc3545\t#343a40\t#f8f9fa
+LEGEND_LABELS\tSensitive\tPre-MDR\tMDR\tPre-XDR\tXDR\tOther
 
 DATA
 """)
