@@ -252,5 +252,5 @@ class delly_bcf(vcf):
                 set_region_pos = set(range(int(bed[region][1]),int(bed[region][2])))
                 intersect = set_call_pos.intersection(set_region_pos)
                 if len(intersect)>1:
-                    results.append({"chr":call[0],"region":region,"start":min(intersect),"end":max(intersect)})
+                    results.append({"chr":call[0],"region":region,"start":int(call[1]),"end":int(call[2])})
         return results
