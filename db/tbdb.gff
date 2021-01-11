@@ -3552,8 +3552,8 @@ Chromosome	ena	mRNA	778477	778905	.	-	.	ID=transcript:Rv0677c;Parent=gene:Rv0677
 Chromosome	ena	exon	778477	778905	.	-	.	Parent=transcript:Rv0677c;Name=Rv0677c-1;constitutive=1;ensembl_end_phase=0;ensembl_phase=0;exon_id=Rv0677c-1;rank=1
 Chromosome	ena	CDS	778477	778905	.	-	0	ID=CDS:Rv0677c;Parent=transcript:Rv0677c;protein_id=Rv0677c
 ###
-Chromosome	ena	gene	778990	779487	.	+	.	ID=gene:Rv0678;biotype=protein_coding;description=Conserved protein;gene_id=Rv0678;logic_name=ena
-Chromosome	ena	mRNA	778990	779487	.	+	.	ID=transcript:Rv0678;Parent=gene:Rv0678;biotype=protein_coding;transcript_id=Rv0678
+Chromosome	ena	gene	778990	779487	.	+	.	ID=gene:Rv0678;Name=mmpR5;biotype=protein_coding;description=Conserved protein;gene_id=Rv0678;logic_name=ena
+Chromosome	ena	mRNA	778990	779487	.	+	.	ID=transcript:Rv0678;Parent=gene:Rv0678;Name=mmpR5-1;biotype=protein_coding;transcript_id=Rv0678
 Chromosome	ena	exon	778990	779487	.	+	.	Parent=transcript:Rv0678;Name=Rv0678-1;constitutive=1;ensembl_end_phase=0;ensembl_phase=0;exon_id=Rv0678-1;rank=1
 Chromosome	ena	CDS	778990	779487	.	+	0	ID=CDS:Rv0678;Parent=transcript:Rv0678;protein_id=Rv0678
 ###
@@ -15663,8 +15663,8 @@ Chromosome	ena	mRNA	3337995	3338999	.	-	.	ID=transcript:Rv2982c;Parent=gene:Rv29
 Chromosome	ena	exon	3337995	3338999	.	-	.	Parent=transcript:Rv2982c;Name=Rv2982c-1;constitutive=1;ensembl_end_phase=0;ensembl_phase=0;exon_id=Rv2982c-1;rank=1
 Chromosome	ena	CDS	3337995	3338999	.	-	0	ID=CDS:Rv2982c;Parent=transcript:Rv2982c;protein_id=Rv2982c
 ###
-Chromosome	ena	gene	3339118	3339762	.	+	.	ID=gene:Rv2983;biotype=protein_coding;description=Conserved hypothetical alanine rich protein;gene_id=Rv2983;logic_name=ena
-Chromosome	ena	mRNA	3339118	3339762	.	+	.	ID=transcript:Rv2983;Parent=gene:Rv2983;biotype=protein_coding;transcript_id=Rv2983
+Chromosome	ena	gene	3339118	3339762	.	+	.	ID=gene:Rv2983;Name=fbiD;biotype=protein_coding;description=Conserved hypothetical alanine rich protein;gene_id=Rv2983;logic_name=ena
+Chromosome	ena	mRNA	3339118	3339762	.	+	.	ID=transcript:Rv2983;Parent=gene:Rv2983;Name=fbiD-1;biotype=protein_coding;transcript_id=Rv2983
 Chromosome	ena	exon	3339118	3339762	.	+	.	Parent=transcript:Rv2983;Name=Rv2983-1;constitutive=1;ensembl_end_phase=0;ensembl_phase=0;exon_id=Rv2983-1;rank=1
 Chromosome	ena	CDS	3339118	3339762	.	+	0	ID=CDS:Rv2983;Parent=transcript:Rv2983;protein_id=Rv2983
 ###

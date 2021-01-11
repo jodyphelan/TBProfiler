@@ -1,4 +1,4 @@
-from .tex import *
+# from .tex import *
 from .text import *
 from .reformat import *
 from .collate import *

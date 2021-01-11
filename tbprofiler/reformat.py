@@ -21,10 +21,8 @@ def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=
     for key in columns:
         if key not in json_results["dr_variants"][0]: pp.log("%s not found in variant annotation, is this a valid column in the database CSV file? Exiting!" % key,True)
     for x in json_results["dr_variants"]:
-        print(x)
         for d in x["drugs"]:
             drug = d["drug"]
-            print(drug)
             if float(x["freq"])<reporting_af:continue
             if drug not in results: results[drug] = []
             results[d["drug"]].append("%s %s (%.2f)" % (x["gene"],x["change"],float(x["freq"])))
@@ -126,7 +124,6 @@ def reformat_annotations(results,conf,reporting_af=0.1):
     for var in results["variants"]:
         var["_internal_change"] = var["change"]
         var["change"] = pp.reformat_mutations(var["change"],var["type"],var["locus_tag"],chr2gene_pos)
-        print(var["_internal_change"])
     resistant_drugs = set()
     results["dr_variants"] = []
     results["other_variants"] = []
@@ -144,7 +141,6 @@ def reformat_annotations(results,conf,reporting_af=0.1):
                 results["dr_variants"].append(tmp)
 
             elif phylovar:
-                print(var)
                 var["lineage_variant"] = var["annotation"][0]["lineage"]
                 del var["annotation"]
                 results["other_variants"].append(var)
@@ -177,6 +173,8 @@ def reformat_annotations(results,conf,reporting_af=0.1):
     results["drtype"] = drtype
     return results
 
+unlist = lambda t: [item for sublist in t for item in sublist]
+
 def reformat_missing_genome_pos(results,conf):
     rv2gene = rv2genes(conf["bed"])
     dr_associated_genome_pos = get_genome_positions_from_json_db(conf["json_db"],conf["ann"])
@@ -205,7 +203,9 @@ def reformat_missing_genome_pos(results,conf):
     for gene in tmp_results:
         for pos in tmp_results[gene]:
             genome_positions = tmp_results[gene][pos]
-            dr_position = "DR" if any([x in dr_associated_genome_pos for x in genome_positions]) else ""
+            # dr_position = ["DR"] if any([x in dr_associated_genome_pos for x in genome_positions]) else []
+            dr_position = list(set(unlist([unlist([y[2] for y in dr_associated_genome_pos[x]]) for x in genome_positions if x in dr_associated_genome_pos])))
+
             new_results.append({"locus_tag":gene, "gene": rv2gene[gene], "genome_positions": genome_positions , "position":pos, "position_type":"codon" if (gene[:2]=="Rv" and pos>=0) else "gene", "drug_resistance_position": dr_position})
     return new_results
 

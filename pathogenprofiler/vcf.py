@@ -67,7 +67,6 @@ class vcf:
         annotation_extract_string = "%s" % "\\t".join(["%%%s" % x for x in annotations_types]) if extract_ann else ""
         csq_start_column = 4 + len(annotations_types)
         for line in cmd_out("bcftools query -u -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT\\t%s[\\t%%SAMPLE\\t%%TBCSQ\\t%%TGT\\t%%AD]\\n' %s" % (annotation_extract_string,self.filename)):
-            print(line)
             if debug:
                 sys.stderr.write(line+"\n")
             row = line.split()
@@ -78,7 +77,10 @@ class vcf:
             alleles = [ref]+alts
             annotations = {}
             for i,j in enumerate(range(4,csq_start_column)):
-                annotations[annotations_types[i]] = row[j]
+                try:
+                    annotations[annotations_types[i]] = float(row[j])
+                except:
+                    annotations[annotations_types[i]] = None
             if chrom in ann and pos in ann[chrom]:
                 ann_pos = int(ann[chrom][pos][1])
                 ann_gene = ann[chrom][pos][0]

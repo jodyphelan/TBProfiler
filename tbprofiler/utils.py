@@ -54,18 +54,19 @@ def get_genome_positions_from_json_db(json_file,ann_file):
     for gene in db:
         for _var in db[gene]:
             var = db[gene][_var]["hgvs_mutation"]
+            drugs = tuple([x["drug"] for x in db[gene][_var]["annotations"]])
             if var[0]=="p":
                 #p.Thr40Ile
                 re_obj = re.match("p.[A-Za-z]+([0-9]+)[A-Za-z\*]",var)
                 codon_pos = int(re_obj.group(1))
                 for pos in codon_ann[(gene,codon_pos)]:
-                    genome_positions[pos].add((gene,var))
+                    genome_positions[pos].add((gene,var,drugs))
             elif var[0]=="c":
                 if "ins" in var:
                     #c.192_193insG
                     re_obj = re.match("c.([0-9]+)_([0-9]+)ins[A-Za-z]+",var)
                     gene_pos = int(re_obj.group(1))
-                    genome_positions[gene_ann[(gene,gene_pos)]].add((gene,var))
+                    genome_positions[gene_ann[(gene,gene_pos)]].add((gene,var,drugs))
 
                 elif "del" in var:
                     if "_" in var:
@@ -79,19 +80,19 @@ def get_genome_positions_from_json_db(json_file,ann_file):
                         gene_pos_from = int(re_obj.group(1))
                         gene_pos_to = gene_pos_from
                     for i in range(gene_pos_from,gene_pos_to+1):
-                        genome_positions[gene_ann[(gene,i)]].add((gene,var))
+                        genome_positions[gene_ann[(gene,i)]].add((gene,var,drugs))
 
                 else:
                     #c.-16C>T
                     re_obj = re.match("c.(-[0-9]+)[A-Z]>[A-Z]", var)
                     gene_pos = int(re_obj.group(1))
-                    genome_positions[gene_ann[(gene,gene_pos)]].add((gene,var))
+                    genome_positions[gene_ann[(gene,gene_pos)]].add((gene,var,drugs))
 
             elif var[0]=="r":
                 #rrl r.2814g>t
                 re_obj = re.match("r.([0-9]+)[A-Za-z]+>[A-Za-z]+",var)
                 gene_pos = int(re_obj.group(1))
-                genome_positions[gene_ann[(gene,gene_pos)]].add((gene,var))
+                genome_positions[gene_ann[(gene,gene_pos)]].add((gene,var,drugs))
 
 
             elif var=="frameshift":
@@ -101,9 +102,8 @@ def get_genome_positions_from_json_db(json_file,ann_file):
             elif var[:19]=="any_missense_codon_":
                 codon_pos = int(var.replace("any_missense_codon_",""))
                 for pos in codon_ann[(gene,codon_pos)]:
-                    genome_positions[pos].add((gene,var))
+                    genome_positions[pos].add((gene,var,drugs))
             else:
-                print(gene,var)
                 quit()
 
     return genome_positions
