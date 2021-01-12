@@ -1,5 +1,5 @@
-Chromosome	4998	7267	Rv0005	gyrB	moxifloxacin,levofloxacin,ciprofloxacin,fluoroquinolones,ofloxacin
-Chromosome	7268	9818	Rv0006	gyrA	moxifloxacin,levofloxacin,ciprofloxacin,fluoroquinolones,ofloxacin
+Chromosome	4998	7267	Rv0005	gyrB	ciprofloxacin,levofloxacin,ofloxacin,moxifloxacin,fluoroquinolones
+Chromosome	7268	9818	Rv0006	gyrA	ciprofloxacin,levofloxacin,ofloxacin,moxifloxacin,fluoroquinolones
 Chromosome	490706	491785	Rv0407	fgd1	delamanid
 Chromosome	575301	576786	Rv0486	mshA	ethionamide
 Chromosome	759310	763325	Rv0667	rpoB	rifampicin
@@ -10,7 +10,7 @@ Chromosome	800793	801461	Rv0701	rplC	linezolid
 Chromosome	1302682	1305501	Rv1173	fbiC	delamanid
 Chromosome	1416181	1417657	Rv1267c	embR	ethambutol
 Chromosome	1460997	1461290	Rv1305	atpE	bedaquiline
-Chromosome	1471743	1473382	rrs	rrs	amikacin,capreomycin,kanamycin,aminoglycosides,streptomycin
+Chromosome	1471743	1473382	rrs	rrs	amikacin,kanamycin,capreomycin,aminoglycosides,streptomycin
 Chromosome	1473383	1476795	rrl	rrl	linezolid
 Chromosome	1673300	1674183	Rv1483	fabG1	isoniazid,ethionamide
 Chromosome	1674184	1675011	Rv1484	inhA	isoniazid,ethionamide
