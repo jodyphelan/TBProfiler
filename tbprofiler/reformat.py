@@ -203,7 +203,6 @@ def reformat_missing_genome_pos(results,conf):
     for gene in tmp_results:
         for pos in tmp_results[gene]:
             genome_positions = tmp_results[gene][pos]
-            # dr_position = ["DR"] if any([x in dr_associated_genome_pos for x in genome_positions]) else []
             dr_position = list(set(unlist([unlist([y[2] for y in dr_associated_genome_pos[x]]) for x in genome_positions if x in dr_associated_genome_pos])))
 
             new_results.append({"locus_tag":gene, "gene": rv2gene[gene], "genome_positions": genome_positions , "position":pos, "position_type":"codon" if (gene[:2]=="Rv" and pos>=0) else "gene", "drug_resistance_position": dr_position})

@@ -6,6 +6,8 @@ import json
 import tbprofiler as tbp
 import os
 import csv
+from datetime import datetime
+
 
 try:
     sys.base_prefix
@@ -130,16 +132,15 @@ def main_profile(args):
     results["pipeline"] = {"mapper":args.mapper if not args.bam else "N/A","variant_caller":args.caller}
 
     json_output = args.dir+"/results/"+args.prefix+".results.json"
-    tex_output = args.dir+"/results/"+args.prefix+".results.tex"
     text_output = args.dir+"/results/"+args.prefix+".results.txt"
     csv_output = args.dir+"/results/"+args.prefix+".results.csv"
+    pdf_output = args.dir+"/results/"+args.prefix+".results.pdf"
 
+    results["timestamp"] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
     json.dump(results,open(json_output,"w"))
     extra_columns = [x.lower() for x in args.add_columns.split(",")] if args.add_columns else []
-    # if args.pdf:
-    #     tbp.write_tex(results,conf,tex_output,extra_columns)
-    #     pp.run_cmd("pdflatex %s"%tex_output,verbose=1)
-    #     pp.rm_files([tex_output, args.dir+"/"+args.prefix+".results.aux",args.dir+"/"+args.prefix+".results.log"])
+    if args.pdf:
+        tbp.write_pdf(results,conf,pdf_output)
     if args.txt:
         tbp.write_text(results,conf,text_output,extra_columns,reporting_af=args.reporting_af)
     if args.csv:
@@ -379,7 +380,7 @@ if __name__=="__main__":
     parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
     parser_sub.add_argument('--txt',action="store_true",help="Add text output")
     parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
-    # parser_sub.add_argument('--pdf',action="store_true",help="Add PDF output. This requires pdflatex to be installed")
+    parser_sub.add_argument('--pdf',action="store_true",help="Add PDF output. This requires pdflatex to be installed")
     parser_sub.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and csv results")
     parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
     parser_sub.add_argument('--add_mutation_metadata',action="store_true",help="Add mutation data from the tbdr database (not currently functional)")

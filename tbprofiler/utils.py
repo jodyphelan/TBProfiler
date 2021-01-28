@@ -29,6 +29,12 @@ def get_lt2drugs(bed_file):
         lt2drugs[row[3]] = row[5].split(",")
     return lt2drugs
 
+def get_gene2drugs(bed_file):
+    lt2drugs = {}
+    for l in open(bed_file):
+        row = l.strip().split()
+        lt2drugs[row[4]] = row[5].split(",")
+    return lt2drugs
 
 def get_genome_positions_from_json_db(json_file,ann_file):
     codon_ann = defaultdict(set)
