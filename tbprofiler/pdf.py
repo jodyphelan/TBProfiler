@@ -134,7 +134,7 @@ html_text = """
 
     <div class="card border-dark">
         <div class="card-header"><b>Other Mutations:</b> This table reports
-            mutations found in candidate resistance genes which have not been
+            non-synonymous mutations found in candidate resistance genes which have not been
             associated with drug resistance</div>
         <div class="card-body">
             <table class="table">
@@ -235,7 +235,7 @@ def write_pdf(results,conf,outfile):
         dr_variants.append(var)
 
     other_variants = []
-    for var in results["dr_variants"]:
+    for var in results["other_variants"]:
         if "synonymous" in var["type"] or "stop_retained" in var["type"]:
             continue
         other_variants.append(var)
