@@ -45,7 +45,7 @@ conda install -c bioconda tb-profiler samtools=1.9=h7c4ea83_11 ncurses=6.1=h0a44
 
 #### Manually
 
-It is possible to install manually. The following pre-requisites will be needed at runtime: _trimmomatic \(&gt;=v0.38\), bwa \(&gt;=v0.7.17\), minimap2 \(&gt;=v2.16\), bowtie2 \(&gt;=v2.3.5\), samtools \(&gt;=v1.9\), bcftools \(&gt;=v1.9\), GATK \(&gt;=v4.1.4.0\), freebayes \(&gt;=v1.3.2\), tqdm \(&gt;=v4.32.2\) parallel \(&gt;=v20190522\) and weasyprint \(&gt;=v52.2\)_. The pipeline should work and has been tested on the program versions indicated in parentheses.
+It is possible to install manually. The following pre-requisites will be needed at runtime: _trimmomatic \(&gt;=v0.38\), bwa \(&gt;=v0.7.17\), minimap2 \(&gt;=v2.16\), bowtie2 \(&gt;=v2.3.5\), samtools \(&gt;=v1.9\), bcftools \(&gt;=v1.9\), GATK \(&gt;=v4.1.4.0\), freebayes \(&gt;=v1.3.2\), tqdm \(&gt;=v4.32.2\) parallel \(&gt;=v20190522\) and samclip \(&gt;=v0.4.0\)_. The pipeline should work and has been tested on the program versions indicated in parentheses.
 
 To install the library run the following code:
 ```

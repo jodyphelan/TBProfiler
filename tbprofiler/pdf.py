@@ -1,7 +1,3 @@
-from jinja2 import Environment, FileSystemLoader
-from weasyprint import HTML, CSS
-
-
 
 
 css_text = """
@@ -220,6 +216,9 @@ html_text = """
 
 
 def write_pdf(results,conf,outfile):
+    from jinja2 import Environment, FileSystemLoader
+    from weasyprint import HTML, CSS
+
     env = Environment(loader=FileSystemLoader('.'))
     template = env.from_string(html_text)
 
