@@ -2,7 +2,6 @@ from .utils import filecheck, log, run_cmd
 from .bam import bam
 from .barcode import barcode, db_compare
 from .fastq import fastq
-from .abi import abi
 from .vcf import vcf,delly_bcf
 from .fasta import fasta
 import re
@@ -122,18 +121,4 @@ def vcf_profiler(conf, prefix, sample_name, vcf_file):
     results["barcode"] = barcode(mutations,conf["barcode"])
     results = db_compare(db_file=conf["json_db"], mutations=results)
     run_cmd("rm %s* %s*" % (vcf_targets_file,vcf_csq_obj.filename))
-    return results
-
-def abi_profiler(conf,prefix,filenames):
-    files = filenames.split(",")
-    for f in conf:
-        filecheck(conf[f])
-    for f in files:
-        filecheck(f)
-    abi_obj = abi(files,prefix)
-    vcf_obj = abi_obj.get_variants_vcf(conf["ref"],conf["gff"])
-    csq = vcf_obj.load_csq(ann_file=conf["ann"])
-    results = {"variants":[]}
-    for sample in csq:
-        results["variants"]  = csq[sample]
     return results
