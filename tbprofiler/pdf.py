@@ -92,9 +92,9 @@ html_text = """
             associated with drug resistance
         </div>
         <div class="card-body">
-            {% if result["qc"]["gene_coverage"]|length==0 %}
+            {% if result["dr_variants"]|length==0 %}
                 <div class="">
-                    All genes have sufficient coverage
+                    No mutations found
                 </div>
             {% else %}
                 <table class="table">
@@ -139,9 +139,9 @@ html_text = """
             non-synonymous mutations found in candidate resistance genes which have not been
             associated with drug resistance</div>
         <div class="card-body">
-            {% if result["qc"]["gene_coverage"]|length==0 %}
+            {% if result["other_variants"]|length==0 %}
                 <div class="">
-                    All genes have sufficient coverage
+                    No mutations found
                 </div>
             {% else %}
                 <table class="table">
