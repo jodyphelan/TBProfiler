@@ -92,29 +92,35 @@ html_text = """
             associated with drug resistance
         </div>
         <div class="card-body">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th scope="col">Gene</th>
-                        <th scope="col">Mutation</th>
-                        <th scope="col">Type</th>
-                        <th scope="col">Drugs</th>
-                        <th scope="col">Estimated frequency (%)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for var in result["dr_variants"] %}
-                    {% set percent = var["freq"] * 100 %}
-                    <tr>
-                        <td>{{ var["gene"] }}</td>
-                        <td>{{ var["change"] }}</td>
-                        <td>{{ var["type"] }}</td>
-                        <td>{{ var["drugs"] }}</td>
-                        <td>{{ percent|int }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+            {% if result["qc"]["gene_coverage"]|length==0 %}
+                <div class="">
+                    All genes have sufficient coverage
+                </div>
+            {% else %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Gene</th>
+                            <th scope="col">Mutation</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Drugs</th>
+                            <th scope="col">Estimated frequency (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for var in result["dr_variants"] %}
+                        {% set percent = var["freq"] * 100 %}
+                        <tr>
+                            <td>{{ var["gene"] }}</td>
+                            <td>{{ var["change"] }}</td>
+                            <td>{{ var["type"] }}</td>
+                            <td>{{ var["drugs"] }}</td>
+                            <td>{{ percent|int }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
         </div>
     </div>
 
@@ -133,27 +139,33 @@ html_text = """
             non-synonymous mutations found in candidate resistance genes which have not been
             associated with drug resistance</div>
         <div class="card-body">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th scope="col">Gene</th>
-                        <th scope="col">Mutation</th>
-                        <th scope="col">Type</th>
-                        <th scope="col">Estimated frequency (%)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for var in result["other_variants"] %}
-                    {% set percent = var["freq"] * 100 %}
-                    <tr>
-                        <td>{{ var["gene"] }}</td>
-                        <td>{{ var["change"] }}</td>
-                        <td>{{ var["type"] }}</td>
-                        <td>{{ percent|int }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+            {% if result["qc"]["gene_coverage"]|length==0 %}
+                <div class="">
+                    All genes have sufficient coverage
+                </div>
+            {% else %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Gene</th>
+                            <th scope="col">Mutation</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Estimated frequency (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for var in result["other_variants"] %}
+                        {% set percent = var["freq"] * 100 %}
+                        <tr>
+                            <td>{{ var["gene"] }}</td>
+                            <td>{{ var["change"] }}</td>
+                            <td>{{ var["type"] }}</td>
+                            <td>{{ percent|int }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
         </div>
     </div>
 
