@@ -133,7 +133,7 @@ class vcf:
                 gene_id = info[2] if info[2]!="" else gene_name
                 if info[0] == "coding_sequence":
                         cng = "%s%s>%s" % (ann_pos,call1,call2)
-                        variants[sample].append({"sample":sample,"gene_id":ann_gene,"chr":chrom,"genome_pos":pos,"type":"non_coding","change":cng,"freq":adr[call2], "nucleotide_change":cng, "variant_annotations":annotations})
+                        variants[sample].append({"sample":sample,"gene_id":ann_gene,gene_name:None,"chr":chrom,"genome_pos":pos,"type":"non_coding","change":cng,"freq":adr[call2], "nucleotide_change":cng, "variant_annotations":annotations})
                 elif info[0]=="start_lost":
                     cng = "%s%s>%s" % (ann_pos,call1,call2)
                     variants[sample].append({"sample":sample,"gene_id":ann_gene,"chr":chrom,"genome_pos":pos,"type":"start_lost","change":cng,"freq":adr[call2], "nucleotide_change":cng, "variant_annotations":annotations})

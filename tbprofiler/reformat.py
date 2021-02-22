@@ -57,6 +57,7 @@ def dict_list_add_genes(dict_list,conf):
         d["locus_tag"] = d["gene_id"]
         d["gene"] = rv2gene[d["gene_id"]]
         del d["gene_id"]
+        del d["gene_name"]
     return dict_list
 
 def add_genes(results,conf):
