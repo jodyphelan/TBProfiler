@@ -131,9 +131,12 @@ class vcf:
                 if info[-1] == "pseudogene": continue
                 gene_name = info[1]
                 gene_id = info[2] if info[2]!="" else gene_name
-                if info[0] == "coding_sequence" or info[0]=="start_lost":
+                if info[0] == "coding_sequence"
+                        cng = "%s%s>%s" % (ann_pos,call1,call2)
+                        variants[sample].append({"sample":sample,"gene_id":ann_gene,"chr":chrom,"genome_pos":pos,"type":"non_coding","change":cng,"freq":adr[call2], "nucleotide_change":cng, "variant_annotations":annotations})
+                elif info[0]=="start_lost":
                     cng = "%s%s>%s" % (ann_pos,call1,call2)
-                    variants[sample].append({"sample":sample,"gene_id":ann_gene,"chr":chrom,"genome_pos":pos,"type":"non_coding","change":cng,"freq":adr[call2], "nucleotide_change":cng, "variant_annotations":annotations})
+                    variants[sample].append({"sample":sample,"gene_id":ann_gene,"chr":chrom,"genome_pos":pos,"type":"start_lost","change":cng,"freq":adr[call2], "nucleotide_change":cng, "variant_annotations":annotations})
                 elif  ("missense" in info[0] or "stop_gained" in info[0]) and "frame" not in info[0]:
                     variants[sample].append({"sample":sample,"gene_id":gene_id,"gene_name":gene_name,"chr":chrom,"genome_pos":pos,"type":info[0],"change":info[5],"freq":adr[call2], "nucleotide_change":info[6], "variant_annotations":annotations})
                 elif "frame" in info[0] or "stop_lost" in info[0]:
