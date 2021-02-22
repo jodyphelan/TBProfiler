@@ -87,8 +87,8 @@ def get_main_lineage(lineage_dict_list,max_node_skip=1):
     lin_freqs = {}
     pool = []
     for l in lineage_dict_list:
-        pool.append(l["lin"])
-        lin_freqs[l["lin"]] = float(l["frac"])
+        pool.append(l["lin"].replace("M.","M_"))
+        lin_freqs[l["lin"].replace("M.","M_")] = float(l["frac"])
     routes = [";".join(derive_path(x)) for x in pool]
     paths = collapse_paths(routes)
     path_mean_freq = {}
@@ -98,9 +98,8 @@ def get_main_lineage(lineage_dict_list,max_node_skip=1):
         if nodes_skipped>max_node_skip: continue
         freqs = [lin_freqs[n] for n in nodes if n in lin_freqs]
         path_mean_freq[nodes] = sum(freqs)/len(freqs)
-
-    main_lin = ";".join(sorted(list(set([x[0] for x in path_mean_freq]))))
-    sublin = ";".join([x[-1] for x in path_mean_freq])
+    main_lin = ";".join(sorted(list(set([x[0] for x in path_mean_freq])))).replace("_",".")
+    sublin = ";".join([x[-1] for x in path_mean_freq]).replace("_",".")
     return (main_lin,sublin)
 
 def barcode2lineage(results,max_node_skip=1):
