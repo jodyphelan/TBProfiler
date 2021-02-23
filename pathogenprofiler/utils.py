@@ -159,7 +159,7 @@ def cmd_out(cmd,verbose=1):
             yield l.decode().rstrip()
     except:
         sys.stderr.write("Command Failed! Please Check!")
-        exit(1)
+        raise Exception
     stderr.close()
 
 def get_random_file(prefix = None,extension=None):
@@ -314,8 +314,8 @@ def run_cmd(cmd,verbose=1,target=None,terminate_on_error=True):
     stdout,stderr = p.communicate()
 
     if terminate_on_error is True and p.returncode!=0:
-        sys.stderr.write("Command Failed! Please Check!")
-        exit(1)
+        sys.stderr.write("Command Failed! Please Check!sdadwds")
+        raise ValueError("Command Failed: %s" % cmd)
 
     if verbose>1:
         sys.stdout.write(stdout)

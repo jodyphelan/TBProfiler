@@ -57,20 +57,9 @@ def dict_list_add_genes(dict_list,conf):
         d["locus_tag"] = d["gene_id"]
         d["gene"] = rv2gene[d["gene_id"]]
         del d["gene_id"]
-        del d["gene_name"]
+        if "gene_name" in d:
+            del d["gene_name"]
     return dict_list
-
-def add_genes(results,conf):
-
-    rv2gene = {}
-    for l in open(conf["bed"]):
-        row = l.rstrip().split()
-        rv2gene[row[3]] = row[4]
-    for d in results["variants"]:
-        d["locus_tag"] = d["gene_id"]
-        d["gene"] = rv2gene[d["gene_id"]]
-        del d["gene_id"]
-    return results
 
 def get_main_lineage(lineage_dict_list,max_node_skip=1):
     def collapse_paths(paths):

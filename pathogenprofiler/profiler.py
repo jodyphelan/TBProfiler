@@ -68,6 +68,7 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
             for deletion in deletions:
                 tmp = {
                     "genome_pos": deletion["start"], "gene_id": deletion["region"],
+                    "gene_name": None, "nucleotide_change": None,"variant_annotations":{},
                     "chr": deletion["chr"], "freq": 1, "type": "large_deletion",
                     "change": "%(chr)s_%(start)s_%(end)s" % deletion
                     }

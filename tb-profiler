@@ -29,6 +29,8 @@ def cleanup():
             O.write("Program call: %s\n" % vars(args))
             O.write("\nTraceback:\n")
             traceback.print_tb(sys.last_traceback,file=O)
+            O.write("\nValue:\n")
+            O.write("%s\n" % sys.last_value)
         sys.stderr.write("""\n
 ################################# ERROR #######################################
 
@@ -90,6 +92,7 @@ def main_profile(args):
     #### Setup conf dictionary ###
     if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
         pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+    global conf
     if args.external_db:
         conf = tbp.get_conf_dict_with_path(args.external_db)
     else:
@@ -155,7 +158,7 @@ def main_profile(args):
         run_delly = run_delly, calling_params=args.calling_params,
         coverage_fraction_threshold=args.coverage_fraction_threshold,
         missing_cov_threshold=args.missing_cov_threshold, samclip=True,
-        min_depth=args.min_depth
+        min_depth=args.min_depth,delly_bcf_file=args.delly_bcf
     )
 
     ### Reformat the results to TB-Profiler style ###
@@ -431,7 +434,7 @@ output.add_argument('--add_mutation_metadata',action="store_true",help="Add muta
 
 algorithm=parser_sub.add_argument_group("Algorithm options")
 algorithm.add_argument('--mapper',default="bwa", choices=["bwa","minimap2","bowtie2"],help="Mapping tool to use. If you are using nanopore data it will default to minimap2",type=str)
-algorithm.add_argument('--caller',default="freebayes", choices=["bcftools","gatk","freebayes"],help="Variant calling tool to use.",type=str)
+algorithm.add_argument('--caller',default="bcftools", choices=["bcftools","gatk","freebayes"],help="Variant calling tool to use.",type=str)
 algorithm.add_argument('--calling_params',type=str,help='Override default parameters for variant calling')
 algorithm.add_argument('--min_depth',default=10,type=int,help='Minimum depth required to call variant. Bases with depth below this cutoff will be marked as missing')
 algorithm.add_argument('--af',default=0.1,type=float,help='Minimum allele frequency to call variants')
@@ -446,6 +449,7 @@ algorithm.add_argument('--threads','-t',default=1,help='Threads to use',type=int
 other=parser_sub.add_argument_group("Other options")
 other.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
 other.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
+other.add_argument('--delly_bcf',help=argparse.SUPPRESS)
 parser_sub.set_defaults(func=main_profile)
 
 
