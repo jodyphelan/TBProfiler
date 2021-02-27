@@ -159,7 +159,7 @@ def cmd_out(cmd,verbose=1):
             yield l.decode().rstrip()
     except:
         sys.stderr.write("Command Failed! Please Check!")
-        exit(1)
+        raise Exception
     stderr.close()
 
 def get_random_file(prefix = None,extension=None):
@@ -293,6 +293,14 @@ def bowtie_index(ref):
         cmd = "bowtie2-build %s %s" % (ref,ref)
         run_cmd(cmd)
 
+def bwa2_index(ref):
+    """
+    Create BWA index for a reference
+    """
+    if nofile("%s.bwt.2bit.64"%ref):
+        cmd = "bwa-mem2 index %s" % ref
+        run_cmd(cmd)
+
 def bwa_index(ref):
     """
     Create BWA index for a reference
@@ -314,8 +322,7 @@ def run_cmd(cmd,verbose=1,target=None,terminate_on_error=True):
     stdout,stderr = p.communicate()
 
     if terminate_on_error is True and p.returncode!=0:
-        sys.stderr.write("Command Failed! Please Check!")
-        exit(1)
+        raise ValueError("Command Failed:\n%s\nstderr:\n%s" % (cmd,stderr.decode()))
 
     if verbose>1:
         sys.stdout.write(stdout)
@@ -346,6 +353,18 @@ def index_bcf(bcffile,threads=1,overwrite=False):
             run_cmd(cmd)
         elif os.path.getmtime(bcffile+".csi")<os.path.getmtime(bcffile) or overwrite:
             run_cmd(cmd)
+
+def tabix(bcffile,threads=1,overwrite=False):
+    """
+    Indexing a bam file
+    """
+    cmd = "bcftools index --threads %s -ft %s" % (threads,bcffile)
+    if filecheck(bcffile):
+        if nofile(bcffile+".tbi"):
+            run_cmd(cmd)
+        elif os.path.getmtime(bcffile+".tbi")<os.path.getmtime(bcffile) or overwrite:
+            run_cmd(cmd)
+
 
 def verify_fq(filename):
     """

@@ -4,6 +4,8 @@ from .vcf import vcf, delly_bcf
 from tqdm import tqdm
 from collections import defaultdict
 import sys
+
+
 class bam:
     """
     A class to perform operations on BAM files such as SNP calling
@@ -20,7 +22,7 @@ class bam:
         else:
             return delly_bcf("%(prefix)s.delly.bcf" % vars(self))
 
-    def call_variants(self,ref_file,caller,bed_file=None,threads=1,calling_params=None,remove_missing=False,min_depth=10):
+    def call_variants(self,ref_file,caller,bed_file=None,threads=1,calling_params=None,remove_missing=False, samclip=False,min_dp=10):
         add_arguments_to_self(self, locals())
         filecheck(ref_file)
         self.caller = caller.lower()
@@ -35,26 +37,30 @@ class bam:
         else:
             self.windows_cmd = "bedtools makewindows -g %(ref_file)s.fai -n %(threads)s | awk '{print $1\":\"$2+1\"-\"$3\" \"$1\"_\"$2+1\"_\"$3}'" % vars(self)
 
+        self.samclip_cmd = "| samclip --ref %(ref_file)s" % vars(self) if samclip else ""
         # Run through different options. Start with nanopore because it should
         # only be run with bcftools and will not even take caller into account
         # if it is set the the wrong option
         if self.platform == "nanopore":
             self.calling_params = calling_params if calling_params else "-Bq8"
-            self.calling_cmd = "bcftools mpileup -f %(ref_file)s %(calling_params)s -a DP,AD -r {1} %(bam_file)s | bcftools call -mv | bcftools filter -e 'FMT/DP<%(min_depth)s' %(missing_cmd)s | bcftools filter -e 'IMF < 0.7' -S 0 -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
+            self.calling_cmd = "bcftools mpileup -f %(ref_file)s %(calling_params)s -a DP,AD -r {1} %(bam_file)s | bcftools call -mv | bcftools filter -e 'FMT/DP<%(min_dp)s' %(missing_cmd)s | bcftools filter -e 'IMF < 0.7' -S 0 -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
         elif self.caller == "bcftools":
             self.calling_params = calling_params if calling_params else "-ABq8 -Q0"
-            self.calling_cmd = "bcftools mpileup -f %(ref_file)s %(calling_params)s -a DP,AD -r {1} %(bam_file)s | bcftools call -mv | bcftools norm -f %(ref_file)s | bcftools filter -e 'FMT/DP<%(min_depth)s' %(missing_cmd)s -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
+            self.calling_cmd = "samtools view -T %(ref_file)s -h %(bam_file)s {1} %(samclip_cmd)s | samtools view -b > %(prefix)s.{2}.tmp.bam && samtools index %(prefix)s.{2}.tmp.bam && bcftools mpileup -f %(ref_file)s %(calling_params)s -a DP,AD -r {1} %(prefix)s.{2}.tmp.bam | bcftools call -mv | bcftools norm -f %(ref_file)s | bcftools filter -t {1} -e 'FMT/DP<%(min_dp)s' %(missing_cmd)s -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
         elif self.caller == "gatk":
             self.calling_params = calling_params if calling_params else ""
-            self.calling_cmd = "gatk HaplotypeCaller -R %(ref_file)s -I %(bam_file)s -O %(prefix)s.{2}.vcf.gz -L {1} %(calling_params)s" % vars(self)
+            self.calling_cmd = "samtools view -T %(ref_file)s -h %(bam_file)s {1} %(samclip_cmd)s | samtools view -b > %(prefix)s.{2}.tmp.bam && samtools index %(prefix)s.{2}.tmp.bam && gatk HaplotypeCaller -R %(ref_file)s -I %(prefix)s.{2}.tmp.bam -O /dev/stdout -L {1} %(calling_params)s -OVI false | bcftools norm -f %(ref_file)s | bcftools filter -t {1} -e 'FMT/DP<%(min_dp)s' %(missing_cmd)s -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
         elif self.caller == "freebayes":
             self.calling_params = calling_params if calling_params else ""
-            self.calling_cmd = "freebayes -f %(ref_file)s -r {1} %(bam_file)s --haplotype-length 1 %(calling_params)s | bcftools view -c 1 | bcftools norm -f %(ref_file)s | bcftools filter -e 'FMT/DP<%(min_depth)s' %(missing_cmd)s -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
+            self.calling_cmd = "samtools view -T %(ref_file)s -h %(bam_file)s {1} %(samclip_cmd)s | samtools view -b > %(prefix)s.{2}.tmp.bam && samtools index %(prefix)s.{2}.tmp.bam && freebayes -f %(ref_file)s -r {1} --haplotype-length -1 %(calling_params)s %(prefix)s.{2}.tmp.bam | bcftools view -c 1 | bcftools norm -f %(ref_file)s | bcftools filter -t {1} -e 'FMT/DP<%(min_dp)s' %(missing_cmd)s -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
+
 
         run_cmd('%(windows_cmd)s | parallel -j %(threads)s --col-sep " " "%(calling_cmd)s"' % vars(self))
         run_cmd('%(windows_cmd)s | parallel -j %(threads)s --col-sep " " "bcftools index  %(prefix)s.{2}.vcf.gz"' % vars(self) )
-        run_cmd("bcftools concat -aD -Oz -o %(vcf_file)s `%(windows_cmd)s | awk '{print \"%(prefix)s.\"$2\".vcf.gz\"}'`" % vars(self))
+        run_cmd("bcftools concat -aD `%(windows_cmd)s | awk '{print \"%(prefix)s.\"$2\".vcf.gz\"}'` | bcftools view -c1 -a -Oz -o %(vcf_file)s" % vars(self))
         run_cmd("rm `%(windows_cmd)s | awk '{print \"%(prefix)s.\"$2\".vcf.gz*\"}'`" % vars(self))
+        if self.platform!="nanopore":
+            run_cmd("rm `%(windows_cmd)s | awk '{print \"%(prefix)s.\"$2\".tmp.bam*\"}'`" % vars(self))
 
         return vcf(self.vcf_file)
 
@@ -69,7 +75,7 @@ class bam:
 
     def bed_zero_cov_regions(self,bed_file):
         add_arguments_to_self(self, locals())
-        cmd = "bedtools coverage -b %(bam_file)s -a %(bed_file)s" % vars(self)
+        cmd = "bedtools coverage -sorted -b %(bam_file)s -a %(bed_file)s" % vars(self)
         results = []
         for l in cmd_out(cmd):
             results.append(l.split())
@@ -80,9 +86,12 @@ class bam:
         results = defaultdict(lambda : defaultdict(dict))
 
         if caller == "gatk":
-            cmd = "gatk HaplotypeCaller -I %(bam_file)s -R %(ref_file)s -L %(bed_file)s -ERC BP_RESOLUTION -OVI false -O /dev/stdout | bcftools view -a | bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
+            cmd = "gatk HaplotypeCaller -I %(bam_file)s -R %(ref_file)s -L %(bed_file)s -OVI false -O /dev/stdout | bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
+        elif caller == "freebayes":
+            cmd = "freebayes -f %(ref_file)s -t %(bed_file)s %(bam_file)s --haplotype-length -1 | bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
         else:
-            cmd = "bcftools mpileup -f %(ref_file)s -R %(bed_file)s %(bam_file)s -BI -a AD | bcftools call -m | bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
+            cmd = "bcftools mpileup -f %(ref_file)s -R %(bed_file)s %(bam_file)s -BI -a AD | bcftools call -mv | bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
+
         for l in cmd_out(cmd):
             # Chromosome    4348079    0/0    51
             chrom, pos, ref, alt, gt, ad = l.rstrip().split()
@@ -128,7 +137,9 @@ class bam:
         self.region_cov = defaultdict(list)
         self.region_fraction = []
         self.genome_coverage = []
-        for l in cmd_out("bedtools coverage -a %(bed_file)s -b %(bam_file)s -d -sorted" % vars(self)):
+
+        for l in cmd_out("bedtools coverage -a %(bed_file)s -b %(bam_file)s -sorted -d" % vars(self)):
+
             row = l.split()
             region = row[region_column]
             depth = int(row[-1])

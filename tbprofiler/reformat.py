@@ -21,13 +21,14 @@ def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=
     for key in columns:
         if key not in json_results["dr_variants"][0]: pp.log("%s not found in variant annotation, is this a valid column in the database CSV file? Exiting!" % key,True)
     for x in json_results["dr_variants"]:
-        d = x["drug"]
-        if float(x["freq"])<reporting_af:continue
-        if d not in results: results[d] = list()
-        results[d].append("%s %s (%.2f)" % (x["gene"],x["change"],x["freq"]))
-        if d not in annotation: annotation[d] = {key:[] for key in columns}
-        for key in columns:
-            annotation[d][key].append(x[key])
+        for d in x["drugs"]:
+            drug = d["drug"]
+            if float(x["freq"])<reporting_af:continue
+            if drug not in results: results[drug] = []
+            results[d["drug"]].append("%s %s (%.2f)" % (x["gene"],x["change"],float(x["freq"])))
+            if drug not in annotation: annotation[drug] = {key:[] for key in columns}
+            for key in columns:
+                annotation[drug][key].append(x["drugs"][drug][key])
     for d in drugs:
         if d in results:
             results[d] = ", ".join(results[d]) if len(results[d])>0 else ""
@@ -56,19 +57,9 @@ def dict_list_add_genes(dict_list,conf):
         d["locus_tag"] = d["gene_id"]
         d["gene"] = rv2gene[d["gene_id"]]
         del d["gene_id"]
+        if "gene_name" in d:
+            del d["gene_name"]
     return dict_list
-
-def add_genes(results,conf):
-
-    rv2gene = {}
-    for l in open(conf["bed"]):
-        row = l.rstrip().split()
-        rv2gene[row[3]] = row[4]
-    for d in results["variants"]:
-        d["locus_tag"] = d["gene_id"]
-        d["gene"] = rv2gene[d["gene_id"]]
-        del d["gene_id"]
-    return results
 
 def get_main_lineage(lineage_dict_list,max_node_skip=1):
     def collapse_paths(paths):
@@ -86,8 +77,8 @@ def get_main_lineage(lineage_dict_list,max_node_skip=1):
     lin_freqs = {}
     pool = []
     for l in lineage_dict_list:
-        pool.append(l["lin"])
-        lin_freqs[l["lin"]] = float(l["frac"])
+        pool.append(l["lin"].replace("M.","M_"))
+        lin_freqs[l["lin"].replace("M.","M_")] = float(l["frac"])
     routes = [";".join(derive_path(x)) for x in pool]
     paths = collapse_paths(routes)
     path_mean_freq = {}
@@ -97,9 +88,8 @@ def get_main_lineage(lineage_dict_list,max_node_skip=1):
         if nodes_skipped>max_node_skip: continue
         freqs = [lin_freqs[n] for n in nodes if n in lin_freqs]
         path_mean_freq[nodes] = sum(freqs)/len(freqs)
-
-    main_lin = ";".join(sorted(list(set([x[0] for x in path_mean_freq]))))
-    sublin = ";".join([x[-1] for x in path_mean_freq])
+    main_lin = ";".join(sorted(list(set([x[0] for x in path_mean_freq])))).replace("_",".")
+    sublin = ";".join([x[-1] for x in path_mean_freq]).replace("_",".")
     return (main_lin,sublin)
 
 def barcode2lineage(results,max_node_skip=1):
@@ -123,31 +113,55 @@ def reformat_annotations(results,conf,reporting_af=0.1):
     for var in results["variants"]:
         var["_internal_change"] = var["change"]
         var["change"] = pp.reformat_mutations(var["change"],var["type"],var["locus_tag"],chr2gene_pos)
+    resistant_drugs = set()
     results["dr_variants"] = []
-    for d in [x for x in results["variants"] if "annotation" in x]:
-        for drug in d["annotation"]["drugs"]:
-            tmp = d.copy()
-            tmp["drug"] = drug
-            for key in d["annotation"]["drugs"][drug]:
-                tmp[key] = d["annotation"]["drugs"][drug][key]
-            del tmp["annotation"]
-            results["dr_variants"].append(tmp)
-    results["other_variants"] = [x for x in results["variants"] if "annotation" not in x]
+    results["other_variants"] = []
+    for var in results["variants"]:
+        if "annotation" in var:
+            tmp = var.copy()
+            drvar = any([x["type"]=="drug" for x in var["annotation"]])
+            phylovar = any([x["type"]=="phylogenetic" for x in var["annotation"]])
+            if drvar:
+                tmp["drugs"] = var["annotation"]
+                del tmp["annotation"]
+                if tmp["freq"]>=reporting_af:
+                    for d in tmp["drugs"]:
+                        resistant_drugs.add(d["drug"])
+                results["dr_variants"].append(tmp)
+            elif phylovar:
+                var["lineage_variant"] = var["annotation"][0]["lineage"]
+                del var["annotation"]
+                results["other_variants"].append(var)
+        else:
+            results["other_variants"].append(var)
     del results["variants"]
-    dr_drugs = [x["drug"] for x in results["dr_variants"] if x["freq"]>=reporting_af]
-    MDR = "R" if ("isoniazid" in dr_drugs and "rifampicin" in dr_drugs) else ""
-    XDR = "R" if MDR=="R" and ( "amikacin" in dr_drugs or "kanamycin" in dr_drugs or "capreomycin" in dr_drugs ) and ( "fluoroquinolones" in dr_drugs) else ""
-    drtype = "Sensitive"
-    if XDR=="R":
-        drtype="XDR"
-    elif MDR=="R":
-        drtype="MDR"
-    elif len(dr_drugs)>0:
-        drtype="Drug-resistant"
-    results["XDR"] = XDR
-    results["MDR"] = MDR
+
+    FLQ_set = set(["moxifloxacin","levofloxacin","ciprofloxacin","ofloxacin"])
+    SLI_set = set(["amikacin","capreomycin","kanamycin"])
+
+    rif = "rifampicin" in resistant_drugs
+    inh = "isoniazid" in resistant_drugs
+    flq = len(FLQ_set.intersection(resistant_drugs)) > 0
+    sli = len(SLI_set.intersection(resistant_drugs)) > 0
+
+    if len(resistant_drugs)==0:
+        drtype = "Sensitive"
+    elif (rif and not inh) or (inh and not rif):
+        drtype = "Pre-MDR"
+    elif (rif and inh) and (not flq and not sli):
+        drtype = "MDR"
+    elif (rif and inh) and ( (flq and not sli) or (sli and not flq) ):
+        drtype = "Pre-XDR"
+    elif (rif and inh) and (flq and sli):
+        drtype = "XDR"
+    else:
+        drtype = "Other"
+
+
     results["drtype"] = drtype
     return results
+
+unlist = lambda t: [item for sublist in t for item in sublist]
 
 def reformat_missing_genome_pos(results,conf):
     rv2gene = rv2genes(conf["bed"])
@@ -177,12 +191,14 @@ def reformat_missing_genome_pos(results,conf):
     for gene in tmp_results:
         for pos in tmp_results[gene]:
             genome_positions = tmp_results[gene][pos]
-            dr_position = "DR" if any([x in dr_associated_genome_pos for x in genome_positions]) else ""
+            dr_position = list(set(unlist([unlist([y[2] for y in dr_associated_genome_pos[x]]) for x in genome_positions if x in dr_associated_genome_pos])))
+
             new_results.append({"locus_tag":gene, "gene": rv2gene[gene], "genome_positions": genome_positions , "position":pos, "position_type":"codon" if (gene[:2]=="Rv" and pos>=0) else "gene", "drug_resistance_position": dr_position})
     return new_results
 
 
-def reformat(results,conf,reporting_af):
+
+def reformat(results,conf,reporting_af,mutation_metadata=False):
     results["variants"] = dict_list_add_genes(results["variants"],conf)
     if "gene_coverage" in results["qc"]:
         results["qc"]["gene_coverage"] = dict_list_add_genes(results["qc"]["gene_coverage"],conf)
@@ -190,4 +206,6 @@ def reformat(results,conf,reporting_af):
     results = barcode2lineage(results)
     results = reformat_annotations(results,conf,reporting_af)
     results["db_version"] = json.load(open(conf["version"]))
+    if mutation_metadata:
+        results = add_mutation_metadata(results)
     return results

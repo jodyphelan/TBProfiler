@@ -12,7 +12,6 @@ def main_lineage(args):
 	mutations = bcf.get_bed_gt(conf["barcode"],conf["ref"])
 	results = {}
 	results["barcode"] = pp.barcode(mutations,conf["barcode"])
-	print(results["barcode"])
 	tbp.barcode2lineage(results)
 	if args.prefix:
 		outfile = "%s.lineage.%s" % (args.prefix,args.outfmt)

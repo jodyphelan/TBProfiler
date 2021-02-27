@@ -2,6 +2,8 @@
 
 [![Anaconda-Server Badge](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](https://bioconda.github.io/recipes/tb-profiler/README.html) [![Anaconda-Server Badge](https://img.shields.io/github/license/jodyphelan/TBProfiler.svg)](https://anaconda.org/bioconda/tb-profiler) [![Anaconda-Server Badge](https://img.shields.io/github/last-commit/jodyphelan/TBProfiler.svg)](https://github.com/jodyphelan/TBProfiler) [:brazil:](https://jodyphelan.gitbook.io/tb-profiler/translations/portugues)[:netherlands:](https://jodyphelan.gitbook.io/tb-profiler/translations/nederlands)
 
+![TB Profiler Logo](https://raw.githubusercontent.com/jodyphelan/jodyphelan.github.io/master/img/tb-profiler-logo-rectangle.png)
+
 This repository contains a complete rewrite of the [web version of TBProfiler](http://tbdr.lshtm.ac.uk), described [here](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0650-x). It allows the use of profiling through a command line interface and contains some additional functionality such as the ability to process minION data.
 
 The pipeline aligns reads to the H37Rv reference using bowtie2, BWA or minimap2 and then calls variants using bcftools. These variants are then compared to a drug-resistance database. We also predict the number of reads supporting drug resistance variants as an insight into hetero-resistance \(not applicable for minION data\)
@@ -43,7 +45,7 @@ conda install -c bioconda tb-profiler samtools=1.9=h7c4ea83_11 ncurses=6.1=h0a44
 
 #### Manually
 
-It is possible to install manually. The following pre-requisites will be needed at runtime: _trimmomatic \(&gt;=v0.38\), bwa \(&gt;=v0.7.17\), minimap2 \(&gt;=v2.16\), bowtie2 \(&gt;=v2.3.5\), samtools \(&gt;=v1.9\), bcftools \(&gt;=v1.9\), GATK \(&gt;=v4.1.4.0\), freebayes \(&gt;=v1.3.2\), tqdm \(&gt;=v4.32.2\) and parallel \(&gt;=v20190522\)_. The pipeline should work and has been tested on the program versions indicated in parentheses.
+It is possible to install manually. The following pre-requisites will be needed at runtime: _trimmomatic \(&gt;=v0.38\), bwa \(&gt;=v0.7.17\), minimap2 \(&gt;=v2.16\), bowtie2 \(&gt;=v2.3.5\), samtools \(&gt;=v1.9\), bcftools \(&gt;=v1.9\), GATK \(&gt;=v4.1.4.0\), freebayes \(&gt;=v1.3.2\), tqdm \(&gt;=v4.32.2\) parallel \(&gt;=v20190522\) and samclip \(&gt;=v0.4.0\)_. The pipeline should work and has been tested on the program versions indicated in parentheses.
 
 To install the library run the following code:
 ```
