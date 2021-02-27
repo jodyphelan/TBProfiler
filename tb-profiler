@@ -379,7 +379,10 @@ def main_vcf_profile(args):
         args.sample_name = sample_name
         files_prefix = args.dir+"/"+sample_name
         args.tmp_vcf = pp.get_random_file()
-        pp.run_cmd("bcftools view -s %(sample_name)s -c 1 %(vcf)s | bcftools view -i 'sum(AD)>0' | bcftools +fixploidy -Oz -o %(tmp_vcf)s " % vars(args))
+        if args.reporting_af>0:
+            pp.run_cmd("bcftools view -s %(sample_name)s -c 1 %(vcf)s | bcftools view -i 'sum(AD)>0' | bcftools +fixploidy -Oz -o %(tmp_vcf)s " % vars(args))
+        else:
+            pp.run_cmd("bcftools view -s %(sample_name)s -c 1 %(vcf)s | bcftools +fixploidy -Oz -o %(tmp_vcf)s " % vars(args))
         results = pp.vcf_profiler(conf, files_prefix, sample_name, args.tmp_vcf)
         results = tbp.reformat(results,conf,reporting_af=args.reporting_af)
         results["id"] = sample_name
@@ -402,12 +405,13 @@ def main_vcf_profile(args):
         if args.csv:
             tbp.write_csv(results,conf,csv_output,extra_columns)
         pp.run_cmd("rm %(tmp_vcf)s*" % vars(args))
-        if args.lofreq_sample_name:
-            pp.run_cmd("rm %(vcf)s*" % vars(args))
+
+    if args.lofreq_sample_name:
+        pp.run_cmd("rm %(vcf)s*" % vars(args))
+
 
 def main_test(args):
     pp.run_cmd("tb-profiler profile -1 %s" % (sys.base_prefix+"/share/tbprofiler/tbprofiler.test.fq.gz"),verbose=2)
-
 
 #### Argument Parsing ####
 
@@ -555,11 +559,6 @@ parser_sub = subparsers.add_parser('update_tbdb', help='Pull the latest tbdb lib
 parser_sub.add_argument('--seqname',default='Chromosome',help='Mutation panel name')
 parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
 parser_sub.set_defaults(func=main_update_tbdb)
-
-
-
-
-
 
 parser_sub = subparsers.add_parser('version', help='Output program version and exit', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_sub.set_defaults(func=main_version)

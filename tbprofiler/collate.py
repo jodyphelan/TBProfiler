@@ -123,9 +123,11 @@ DATASET_LABEL\tDrug-Resistance
 COLOR\t#ff0000
 
 LEGEND_TITLE\tDrug resistance
+
 LEGEND_SHAPES\t%s
 LEGEND_LABELS\t%s
 LEGEND_COLORS\t%s
+
 
 DATA
 """ % ("\t".join(["1" for _ in dr_cols]),"\t".join(list(dr_cols.keys())), "\t".join(list(dr_cols.values()))))

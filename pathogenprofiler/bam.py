@@ -54,6 +54,7 @@ class bam:
             self.calling_params = calling_params if calling_params else ""
             self.calling_cmd = "samtools view -T %(ref_file)s -h %(bam_file)s {1} %(samclip_cmd)s | samtools view -b > %(prefix)s.{2}.tmp.bam && samtools index %(prefix)s.{2}.tmp.bam && freebayes -f %(ref_file)s -r {1} --haplotype-length -1 %(calling_params)s %(prefix)s.{2}.tmp.bam | bcftools view -c 1 | bcftools norm -f %(ref_file)s | bcftools filter -t {1} -e 'FMT/DP<%(min_dp)s' %(missing_cmd)s -Oz -o %(prefix)s.{2}.vcf.gz" % vars(self)
 
+
         run_cmd('%(windows_cmd)s | parallel -j %(threads)s --col-sep " " "%(calling_cmd)s"' % vars(self))
         run_cmd('%(windows_cmd)s | parallel -j %(threads)s --col-sep " " "bcftools index  %(prefix)s.{2}.vcf.gz"' % vars(self) )
         run_cmd("bcftools concat -aD `%(windows_cmd)s | awk '{print \"%(prefix)s.\"$2\".vcf.gz\"}'` | bcftools view -c1 -a -Oz -o %(vcf_file)s" % vars(self))
@@ -131,14 +132,16 @@ class bam:
 
         return results
 
-    def get_region_coverage(self,bed_file,per_base=False,group_column=4,fraction_threshold=0):
+    def get_region_coverage(self,bed_file,per_base=False,group_column=4,fraction_threshold=0,region_column=3):
         add_arguments_to_self(self, locals())
         self.region_cov = defaultdict(list)
         self.region_fraction = []
         self.genome_coverage = []
+
         for l in cmd_out("bedtools coverage -a %(bed_file)s -b %(bam_file)s -sorted -d" % vars(self)):
+
             row = l.split()
-            region = row[3]
+            region = row[region_column]
             depth = int(row[-1])
             genomic_position = int(row[1]) + int(row[-2]) -1
             self.genome_coverage.append((genomic_position, depth))

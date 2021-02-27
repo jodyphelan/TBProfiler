@@ -4,6 +4,7 @@ import setuptools
 setuptools.setup(
 
 	name="tbprofiler",
+
 	version="3.0.0",
 	packages=["tbprofiler","pathogenprofiler"],
 	license="MIT",

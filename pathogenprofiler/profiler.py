@@ -8,8 +8,8 @@ import re
 
 
 
-def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagstat=False, run_delly=True, calling_params=None, delly_bcf_file=None, run_coverage=True, coverage_fraction_threshold=0, missing_cov_threshold=10, samclip=False, min_depth=10, variant_annotations = False):
 
+def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagstat=False, run_delly=True, calling_params=None, delly_bcf_file=None, run_coverage=True, coverage_fraction_threshold=0, missing_cov_threshold=10, samclip=False, variant_annotations = False):
     log("Using %s\n\nPlease ensure that this BAM was made using the same reference as in the database.\nIf you are not sure what reference was used it is best to remap the reads." % bam_file)
 
     ### Put user specified arguments to lower case ###
@@ -23,6 +23,7 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
 
     ### Create bam object and call variants ###
     bam_obj = bam(bam_file, prefix, platform=platform, threads=threads)
+
     vcf_obj = bam_obj.call_variants(conf["ref"], caller=caller, bed_file=conf["bed"], threads=threads, calling_params=calling_params, samclip = samclip, min_dp=missing_cov_threshold)
     if variant_annotations:
         ann_vcf_obj = vcf_obj.add_annotations(conf["ref"],bam_obj.bam_file)
@@ -30,6 +31,7 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
     else:
         csq_vcf_obj = vcf_obj.csq(conf["ref"],conf["gff"])
     csq = csq_vcf_obj.load_csq(ann_file=conf["ann"],extract_ann=True)
+
 
     ### Get % and num reads mapping ###
     if no_flagstat:
