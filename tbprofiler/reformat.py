@@ -128,7 +128,6 @@ def reformat_annotations(results,conf,reporting_af=0.1):
                     for d in tmp["drugs"]:
                         resistant_drugs.add(d["drug"])
                 results["dr_variants"].append(tmp)
-
             elif phylovar:
                 var["lineage_variant"] = var["annotation"][0]["lineage"]
                 del var["annotation"]
@@ -196,19 +195,6 @@ def reformat_missing_genome_pos(results,conf):
 
             new_results.append({"locus_tag":gene, "gene": rv2gene[gene], "genome_positions": genome_positions , "position":pos, "position_type":"codon" if (gene[:2]=="Rv" and pos>=0) else "gene", "drug_resistance_position": dr_position})
     return new_results
-
-
-def add_mutation_metadata(results):
-    from .neo4j import tbdr_get_mutation_info
-    for var in results["dr_variants"] + results["other_variants"]:
-        var["mutation_data"] = {}
-        tmp = tbdr_get_mutation_info(var["locus_tag"],var["change"])
-        for d in tmp:
-            if isinstance(tmp[d],dict):
-                var["mutation_data"][d] = ",".join(["%s:%s" % (k,v) for k,v in list(tmp[d].items())])
-            else:
-                var["mutation_data"][d] = tmp[d]
-    return results
 
 
 

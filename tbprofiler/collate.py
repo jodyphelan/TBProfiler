@@ -91,7 +91,11 @@ def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=Tr
         OUT.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" %(s,results[s]["main_lin"],results[s]["sublin"],results[s]["drtype"],len(sample_dr_mutations_set[s]),len(sample_other_mutations_set[s]),"\t".join([results[s][x] for x in drug_list])))
     OUT.close()
     json.dump(results,open(prefix+".json","w"))
-    lineage_cols = {"lineage1":"#104577","lineage2":"#ab2323","lineage3":"#18a68c","lineage4":"#f68e51","lineage5":"#7cb5d2","lineage6":"#fde05e","lineage7":"#bc94b7","lineageBOV":"#f8e0c8","lineageOther":"#000000"}
+    lineage_cols = {"lineage1":"#104577","lineage2":"#ab2323","lineage3":"#18a68c","lineage4":"#f68e51","lineage5":"#7cb5d2","lineage6":"#fde05e","lineage7":"#bc94b7","lineage8":"#ccc9e7","lineage9":"#bd9391","Animal strains":"#f8e0c8","Other":"#000000"}
+    lineage_aggregation = {"M.caprae":"Animal strains","M.bovis":"Animal strains","M.orygis":"Animal strains"}
+    lineages_present = set([lineage_aggregation.get(results[s]["main_lin"],results[s]["main_lin"]) if ";" not in results[s]["main_lin"] else "Other" for s in samples])
+    lineage_cols = {key:val for key,val in lineage_cols.items() if key in lineages_present}
+    print(lineage_cols)
     OUT = open(prefix+".lineage.itol.txt","w")
     OUT.write("""DATASET_COLORSTRIP
 SEPARATOR TAB
@@ -99,30 +103,32 @@ DATASET_LABEL\tLineage
 COLOR\t#ff0000
 
 LEGEND_TITLE\tLineage
-LEGEND_SHAPES\t1\t1\t1\t1\t1\t1\t1\t1\t1
-LEGEND_COLORS\t%(lineage1)s\t%(lineage2)s\t%(lineage3)s\t%(lineage4)s\t%(lineage5)s\t%(lineage6)s\t%(lineage7)s\t%(lineageBOV)s\t%(lineageOther)s
-LEGEND_LABELS\tLineage1\tLineage2\tLineage3\tLineage4\tLineage5\tLineage6\tLineage7\tBovis\tOther
+LEGEND_SHAPES\t%s
+LEGEND_LABELS\t%s
+LEGEND_COLORS\t%s
 
 DATA
-""" % lineage_cols)
+""" % ("\t".join(["1" for _ in lineage_cols]),"\t".join(list([x.title() for x in lineage_cols.keys()])), "\t".join(list(lineage_cols.values()))))
     for s in samples:
-        OUT.write("%s\t%s\n" % (s,lineage_cols.get(results[s]["main_lin"],"#000000")))
+        OUT.write("%s\t%s\n" % (s,lineage_cols.get(lineage_aggregation.get(results[s]["main_lin"],results[s]["main_lin"]),"#000000")))
     OUT.close()
 
     OUT = open(prefix+".dr.itol.txt","w")
     dr_cols = {"Sensitive":"#28a745","Pre-MDR":"#007bff","MDR":"#ffc107","Pre-XDR":"#dc3545","XDR":"#343a40","Other":"#f8f9fa"}
+    drtypes_present = set([results[s]["drtype"] for s in samples])
+    dr_cols = {key:val for key,val in dr_cols.items() if key in drtypes_present}
     OUT.write("""DATASET_COLORSTRIP
 SEPARATOR TAB
 DATASET_LABEL\tDrug-Resistance
 COLOR\t#ff0000
 
 LEGEND_TITLE\tDrug resistance
-LEGEND_SHAPES\t1\t1\t1\t1\t1\t1
-LEGEND_COLORS\t#28a745\t#007bff\t#ffc107\t#dc3545\t#343a40\t#f8f9fa
-LEGEND_LABELS\tSensitive\tPre-MDR\tMDR\tPre-XDR\tXDR\tOther
+LEGEND_SHAPES\t%s
+LEGEND_LABELS\t%s
+LEGEND_COLORS\t%s
 
 DATA
-""")
+""" % ("\t".join(["1" for _ in dr_cols]),"\t".join(list(dr_cols.keys())), "\t".join(list(dr_cols.values()))))
     for s in samples:
         OUT.write("%s\t%s\n" % (s,dr_cols.get(results[s]["drtype"],"#000000")))
     OUT.close()

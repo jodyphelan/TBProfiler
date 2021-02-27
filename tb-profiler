@@ -16,7 +16,7 @@ conf = None
 @atexit.register
 def cleanup():
     if "last_traceback" in vars(sys):
-        if files_prefix:
+        if files_prefix and not args.no_cleanup:
             sys.stderr.write("Cleaning up after failed run\n")
             for f in glob.glob(files_prefix+"*"):
                 os.remove(f)
@@ -205,14 +205,8 @@ def main_profile(args):
     for file,target in result_files.items():
         if os.path.isfile(file):
             os.rename(file,target)
-    # if not args.bam:
-    #     for f in
-    #     pp.run_cmd("mv %(dir)s/%(tmp_prefix)s.bam* %(dir)s/bam/" % vars(args))
-    #     if not args.no_trim:
-    #         pp.run_cmd("rm -f %s" % " ".join(fastq_obj.files))
-    # pp.run_cmd("mv -f %(dir)s/%(prefix)s*.vcf.gz* %(dir)s/vcf/" % vars(args))
-    # if run_delly and results["delly"]=="success":
-    #     pp.run_cmd("mv -f %(dir)s/%(prefix)s.delly.bcf* %(dir)s/vcf/" % vars(args))
+
+    pp.run_cmd("rm %(tmp_prefix)s.*" % vars(args))
 
     pp.log("Profiling finished sucessfully!")
 
@@ -458,6 +452,7 @@ algorithm.add_argument('--threads','-t',default=1,help='Threads to use',type=int
 other=parser_sub.add_argument_group("Other options")
 other.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
 other.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
+other.add_argument('--no_cleanup',action="store_true",help="Don't remove temporary files on error")
 other.add_argument('--delly_bcf',help=argparse.SUPPRESS)
 parser_sub.set_defaults(func=main_profile)
 

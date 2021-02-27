@@ -114,7 +114,7 @@ html_text = """
                             <td>{{ var["gene"] }}</td>
                             <td>{{ var["change"] }}</td>
                             <td>{{ var["type"] }}</td>
-                            <td>{{ var["drugs"] }}</td>
+                            <td>{{ var["drug"] }}</td>
                             <td>{{ percent|int }}</td>
                         </tr>
                     {% endfor %}
@@ -242,7 +242,7 @@ def write_pdf(results,conf,outfile):
 
     dr_variants = []
     for var in results["dr_variants"]:
-        var["drugs"] = ", ".join([d["drug"] for d in var["drugs"]])
+        var["drug"] = ", ".join([d["drug"] for d in var["drugs"]])
         dr_variants.append(var)
 
     other_variants = []

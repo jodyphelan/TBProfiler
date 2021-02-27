@@ -297,7 +297,7 @@ def bwa2_index(ref):
     """
     Create BWA index for a reference
     """
-    if nofile("%s.0123"%ref):
+    if nofile("%s.bwt.2bit.64"%ref):
         cmd = "bwa-mem2 index %s" % ref
         run_cmd(cmd)
 
