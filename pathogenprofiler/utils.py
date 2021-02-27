@@ -293,6 +293,14 @@ def bowtie_index(ref):
         cmd = "bowtie2-build %s %s" % (ref,ref)
         run_cmd(cmd)
 
+def bwa2_index(ref):
+    """
+    Create BWA index for a reference
+    """
+    if nofile("%s.0123"%ref):
+        cmd = "bwa-mem2 index %s" % ref
+        run_cmd(cmd)
+
 def bwa_index(ref):
     """
     Create BWA index for a reference
@@ -314,8 +322,7 @@ def run_cmd(cmd,verbose=1,target=None,terminate_on_error=True):
     stdout,stderr = p.communicate()
 
     if terminate_on_error is True and p.returncode!=0:
-        sys.stderr.write("Command Failed! Please Check!sdadwds")
-        raise ValueError("Command Failed: %s" % cmd)
+        raise ValueError("Command Failed:\n%s\nstderr:\n%s" % (cmd,stderr.decode()))
 
     if verbose>1:
         sys.stdout.write(stdout)

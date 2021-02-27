@@ -22,15 +22,24 @@ def cleanup():
                 os.remove(f)
         import traceback
         with open(args.prefix+".errlog", "w") as O:
-            O.write("#### tb-profiler error report ####\n\n")
-            O.write("OS: %s\n" % sys.platform)
-            O.write("Program version: %s\n" % tbp._VERSION)
-            O.write("Database version: %s\n" % json.load(open(conf["version"]))["commit"])
-            O.write("Program call: %s\n" % vars(args))
-            O.write("\nTraceback:\n")
+            O.write("# tb-profiler error report\n\n")
+            O.write("* OS: %s\n" % sys.platform)
+            O.write("* Program version: %s\n" % tbp._VERSION)
+            O.write("* Database version: %s\n" % json.load(open(conf["version"]))["commit"])
+            O.write("* Program call:\n")
+            O.write("```\n")
+            O.write("%s\n" % vars(args))
+            O.write("```\n")
+
+            O.write("## Traceback:\n")
+            O.write("```\n")
             traceback.print_tb(sys.last_traceback,file=O)
-            O.write("\nValue:\n")
-            O.write("%s\n" % sys.last_value)
+            O.write("```\n")
+
+            O.write("## Value:\n")
+            O.write("```\n")
+            O.write("%s" % sys.last_value)
+            O.write("```\n")
         sys.stderr.write("""\n
 ################################# ERROR #######################################
 
@@ -433,7 +442,7 @@ output.add_argument('--add_columns',default=None,type=str,help="Add additional c
 output.add_argument('--add_mutation_metadata',action="store_true",help="Add mutation data from the tbdr database (not currently functional)")
 
 algorithm=parser_sub.add_argument_group("Algorithm options")
-algorithm.add_argument('--mapper',default="bwa", choices=["bwa","minimap2","bowtie2"],help="Mapping tool to use. If you are using nanopore data it will default to minimap2",type=str)
+algorithm.add_argument('--mapper',default="bwa", choices=["bwa","minimap2","bowtie2","bwa-mem2"],help="Mapping tool to use. If you are using nanopore data it will default to minimap2",type=str)
 algorithm.add_argument('--caller',default="bcftools", choices=["bcftools","gatk","freebayes"],help="Variant calling tool to use.",type=str)
 algorithm.add_argument('--calling_params',type=str,help='Override default parameters for variant calling')
 algorithm.add_argument('--min_depth',default=10,type=int,help='Minimum depth required to call variant. Bases with depth below this cutoff will be marked as missing')
