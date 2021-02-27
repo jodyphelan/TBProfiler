@@ -95,7 +95,6 @@ def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=Tr
     lineage_aggregation = {"M.caprae":"Animal strains","M.bovis":"Animal strains","M.orygis":"Animal strains"}
     lineages_present = set([lineage_aggregation.get(results[s]["main_lin"],results[s]["main_lin"]) if ";" not in results[s]["main_lin"] else "Other" for s in samples])
     lineage_cols = {key:val for key,val in lineage_cols.items() if key in lineages_present}
-    print(lineage_cols)
     OUT = open(prefix+".lineage.itol.txt","w")
     OUT.write("""DATASET_COLORSTRIP
 SEPARATOR TAB
