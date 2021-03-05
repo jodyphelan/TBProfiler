@@ -100,7 +100,7 @@ def parse_mutation(mut,gene,fasta_dict,gene_info):
         seq_ins = re_obj.group(3)
         strand = gene_info[gene]["strand"]
         if strand == "-":
-            chr_start_nt = gene_info[gene]["end"] + gene_info[gene]["gene_end"] - gene_start_nt + 1
+            chr_start_nt = gene_info[gene]["end"] + gene_info[gene]["gene_end"] - gene_start_nt
             seq_ins = revcom(seq_ins)
         else:
             chr_start_nt = gene_info[gene]["start"] - gene_info[gene]["gene_start"] + gene_start_nt - 1
