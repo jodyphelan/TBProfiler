@@ -31,7 +31,7 @@ def dict_list2text(l,columns = None, mappings = None):
     rows = []
     header = "\t".join([mappings[x].title() if (mappings!=None and x in mappings) else x.title() for x in headings])
     for row in l:
-        r = ",".join([variable2string(return_fields(row,x)) for x in headings])
+        r = "\t".join([variable2string(return_fields(row,x)) for x in headings])
         rows.append(r)
     str_rows = "\n".join(rows)
     return  "%s\n%s\n" % (header,str_rows)
