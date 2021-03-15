@@ -130,7 +130,7 @@ html_text = """
 <article class="">
     <header>
         <div class="">
-          <img id="logo" src="https://raw.githubusercontent.com/jodyphelan/jodyphelan.github.io/master/img/tb-profiler-logo-rectangle.png" alt="error"></img>
+          <img id="logo" src="https://raw.githubusercontent.com/jodyphelan/jodyphelan_github_io_old/master/img/tb-profiler-logo-rectangle.png" alt="error"></img>
         </div>
     </header>
 
@@ -175,7 +175,7 @@ html_text = """
 <article>
     <header>
         <div class="">
-          <img id="logo" src="https://raw.githubusercontent.com/jodyphelan/jodyphelan.github.io/master/img/tb-profiler-logo-rectangle.png" alt="error"></img>
+          <img id="logo" src="https://raw.githubusercontent.com/jodyphelan/jodyphelan_github_io_old/master/img/tb-profiler-logo-rectangle.png" alt="error"></img>
         </div>
     </header>
     <div class="card border-dark">
