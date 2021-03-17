@@ -197,16 +197,16 @@ def main_profile(args):
 
     ### Move files to respective directories ###
     result_files = {
-        "%s.delly.bcf" % args.tmp_prefix: "%s/vcf/%s.delly.bcf" % (args.dir,args.prefix),
-        "%s.targets.csq.vcf.gz" % args.tmp_prefix: "%s/vcf/%s.targets.csq.vcf.gz" % (args.dir,args.prefix),
-        "%s.bam" % args.tmp_prefix: "%s/bam/%s.bam" % (args.dir,args.prefix),
-        "%s.bam.bai" % args.tmp_prefix: "%s/bam/%s.bam.bai" % (args.dir,args.prefix),
+        "%s.delly.bcf" % files_prefix: "%s/vcf/%s.delly.bcf" % (args.dir,args.prefix),
+        "%s.targets.csq.vcf.gz" % files_prefix: "%s/vcf/%s.targets.csq.vcf.gz" % (args.dir,args.prefix),
+        "%s.bam" % files_prefix: "%s/bam/%s.bam" % (args.dir,args.prefix),
+        "%s.bam.bai" % files_prefix: "%s/bam/%s.bam.bai" % (args.dir,args.prefix),
     }
     for file,target in result_files.items():
         if os.path.isfile(file):
             os.rename(file,target)
 
-    pp.run_cmd("rm %(tmp_prefix)s.*" % vars(args))
+    pp.run_cmd("rm %s*" % files_prefix)
 
     pp.log("Profiling finished sucessfully!")
 
