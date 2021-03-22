@@ -2,6 +2,8 @@ from .utils import *
 from .fasta import fasta
 from collections import defaultdict
 import re
+from uuid import uuid4
+
 re_seq = re.compile("([0-9\-]*)([A-Z\*]+)")
 re_I = re.compile("([A-Z\*]+)")
 number_re = re.compile("[0-9\-]+")
@@ -38,10 +40,21 @@ class vcf:
             tabix(filename,threads)
         for l in cmd_out("bcftools query -l %(filename)s" % vars(self)):
             self.samples.append(l.rstrip())
-    def csq(self,ref_file,gff_file):
+    def csq(self,ref_file,gff_file,split_indels=True):
         add_arguments_to_self(self,locals())
         self.vcf_csq_file = self.prefix+".csq.vcf.gz"
-        run_cmd("bcftools csq -p m -f %(ref_file)s -g %(gff_file)s %(filename)s -Oz -o %(vcf_csq_file)s" % vars(self))
+        if split_indels:
+            self.tmp_file1 = "%s.vcf" % uuid4()
+            self.tmp_file2 = "%s.vcf" % uuid4()
+
+            run_cmd("bcftools view -v snps %(filename)s | bcftools csq -p m -f %(ref_file)s -g %(gff_file)s -o %(tmp_file1)s" % vars(self))
+            run_cmd("bcftools view -v indels %(filename)s | bcftools csq -p m -f %(ref_file)s -g %(gff_file)s -o %(tmp_file2)s" % vars(self))
+            run_cmd("bcftools concat %(tmp_file1)s %(tmp_file2)s | bcftools sort -Oz -o %(vcf_csq_file)s" % vars(self))
+            rm_files([self.tmp_file1, self.tmp_file2])
+
+
+        else :
+            run_cmd("bcftools csq -p m -f %(ref_file)s -g %(gff_file)s %(filename)s -Oz -o %(vcf_csq_file)s" % vars(self))
         return vcf(self.vcf_csq_file,self.prefix)
 
     def add_annotations(self,ref_file,bam_file):
