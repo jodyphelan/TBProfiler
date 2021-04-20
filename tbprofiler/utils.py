@@ -55,6 +55,23 @@ def get_gene2drugs(bed_file):
         lt2drugs[row[4]] = row[5].split(",")
     return lt2drugs
 
+def get_drugs2lt(bed_file):
+    tmp = get_lt2drugs(bed_file)
+    results = defaultdict(list)
+    for gene in tmp:
+        for drug in tmp[gene]:
+            results[drug].append(gene)
+    return dict(results)
+
+def get_drugs2gene(bed_file):
+    tmp = get_gene2drugs(bed_file)
+    results = defaultdict(list)
+    for gene in tmp:
+        for drug in tmp[gene]:
+            results[drug].append(gene)
+    return dict(results)
+
+    
 def get_genome_positions_from_json_db(json_file,ann_file):
     codon_ann = defaultdict(set)
     gene_ann = {}
