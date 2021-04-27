@@ -28,13 +28,15 @@ class bam:
         self.caller = caller.lower()
         self.missing_cmd = "" if remove_missing else "-S ."
         # Set up final vcf file name
-        self.vcf_file = "%s.targets.vcf.gz" % (self.prefix) if bed_file else "%s.vcf.gz" % (self.prefix)
+        
 
         # Make the windows for parallel calling based on chunking the whole
         # genome or by providing a bed file
         if bed_file:
+            self.vcf_file = "%s.targets.vcf.gz" % (self.prefix) if bed_file else "%s.vcf.gz" % (self.prefix)
             self.windows_cmd = "cat %(bed_file)s | awk '{print $1\":\"$2\"-\"$3\" \"$1\"_\"$2\"_\"$3}'" % vars(self)
         else:
+            self.vcf_file = "%s.vcf.gz" % (self.prefix) if bed_file else "%s.vcf.gz" % (self.prefix)
             self.windows_cmd = "bedtools makewindows -g %(ref_file)s.fai -n %(threads)s | awk '{print $1\":\"$2+1\"-\"$3\" \"$1\"_\"$2+1\"_\"$3}'" % vars(self)
 
         self.samclip_cmd = "| samclip --ref %(ref_file)s" % vars(self) if samclip else ""

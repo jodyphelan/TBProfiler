@@ -40,6 +40,12 @@ class vcf:
             tabix(filename,threads)
         for l in cmd_out("bcftools query -l %(filename)s" % vars(self)):
             self.samples.append(l.rstrip())
+    def view_regions(self,bed_file):
+        self.bed_file = bed_file
+        self.newfile = "%(prefix)s.targets.vcf.gz" % vars(self)
+        run_cmd("bcftools view -R %(bed_file)s %(filename)s -Oz -o %(newfile)s" % vars(self))
+        return vcf(self.newfile)
+
     def csq(self,ref_file,gff_file,split_indels=True):
         add_arguments_to_self(self,locals())
         self.vcf_csq_file = self.prefix+".csq.vcf.gz"
