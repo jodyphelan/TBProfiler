@@ -7,6 +7,8 @@ import argparse
 import sys
 
 
+sp.call("git clone https://github.com/jodyphelan/tb-profiler-test-data.git",shell=True)
+
 
 por5_dr_variants = [
     ('rpoB', 'p.Ser450Leu'),
@@ -20,7 +22,7 @@ por5_dr_variants = [
 
     
 def test_vcf():
-    sp.call("tb-profiler vcf_profile /home/jody/tbprofiler_test_data/por5A1.vcf.gz",shell=True)
+    sp.call("tb-profiler vcf_profile tb-profiler-test-data/por5A1.vcf.gz",shell=True)
     results = json.load(open("results/por5_vcf.results.json"))
     assert results["sublin"] == "lineage4.3.4.2"
     assert results["main_lin"] == "lineage4"
@@ -29,12 +31,12 @@ def test_vcf():
 
 
 def illumina_fastq(caller,mapper):
-    sp.call(f"tb-profiler profile -1 /home/jody/tbprofiler_test_data/por5A.reduced_1.fastq.gz -2 /home/jody/tbprofiler_test_data/por5A.reduced_2.fastq.gz --mapper {mapper} --caller {caller} -p por5A_illumina_{caller} -t 3 --txt --csv --pdf",shell=True)
+    sp.call(f"tb-profiler profile -1 tb-profiler-test-data/por5A.reduced_1.fastq.gz -2 tb-profiler-test-data/por5A.reduced_2.fastq.gz --mapper {mapper} --caller {caller} -p por5A_illumina_{caller} -t 3 --txt --csv --pdf",shell=True)
     results = json.load(open(f"results/por5A_illumina_{caller}.results.json"))
     return results
 
 def illumina_fastq_single(caller,mapper):
-    sp.call(f"tb-profiler profile -1 /home/jody/tbprofiler_test_data/por5A.reduced_1.fastq.gz --mapper {mapper} --caller {caller} -p por5A_illumina_{caller} -t 3 --txt --csv --pdf",shell=True)
+    sp.call(f"tb-profiler profile -1 tb-profiler-test-data/por5A.reduced_1.fastq.gz --mapper {mapper} --caller {caller} -p por5A_illumina_{caller} -t 3 --txt --csv --pdf",shell=True)
     results = json.load(open(f"results/por5A_illumina_{caller}.results.json"))
     return results
 
@@ -81,7 +83,7 @@ def test_minimap2_freebayes():
     assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
 
 def test_nanopore():
-    sp.call(f"tb-profiler profile -1 /home/jody/tbprofiler_test_data/por5A.nanopore_reduced.fastq.gz --platform nanopore -p por5A_illumina_nanopore",shell=True)
+    sp.call(f"tb-profiler profile -1 tb-profiler-test-data/por5A.nanopore_reduced.fastq.gz --platform nanopore -p por5A_illumina_nanopore",shell=True)
     results = json.load(open(f"results/por5A_illumina_nanopore.results.json"))
     assert results["sublin"] == "lineage4.3.4.2"
     assert results["main_lin"] == "lineage4"
