@@ -167,7 +167,7 @@ def main_profile(args):
         run_delly = run_delly, calling_params=args.calling_params,
         coverage_fraction_threshold=args.coverage_fraction_threshold,
         missing_cov_threshold=args.missing_cov_threshold, samclip=True,
-        min_depth=args.min_depth,delly_bcf_file=args.delly_bcf,call_wg=args.call_wg
+        min_depth=args.min_depth,delly_bcf_file=args.delly_bcf,call_wg=args.call_whole_genome
     )
 
     ### Reformat the results to TB-Profiler style ###
@@ -439,7 +439,7 @@ output.add_argument('--txt',action="store_true",help="Add text output")
 output.add_argument('--pdf',action="store_true",help="Add PDF output. This requires pdflatex to be installed")
 output.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and csv results")
 output.add_argument('--add_mutation_metadata',action="store_true",help="Add mutation data from the tbdr database (not currently functional)")
-output.add_argument('--call_wg',action="store_true",help="Call whole genome")
+output.add_argument('--call_whole_genome',action="store_true",help="Call whole genome")
 
 algorithm=parser_sub.add_argument_group("Algorithm options")
 algorithm.add_argument('--mapper',default="bwa", choices=["bwa","minimap2","bowtie2","bwa-mem2"],help="Mapping tool to use. If you are using nanopore data it will default to minimap2",type=str)
