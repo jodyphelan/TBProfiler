@@ -62,7 +62,7 @@ def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=Tr
             if x["freq"]>reporting_af:
                 sample_other_mutations_set[s].add((x["gene"],x["change"]))
         for d in drug_list:
-            results[s][d] = ", ".join(results[s][d]) if len(results[s][d])>0 else "-"
+            results[s][d] = ", ".join(sorted(results[s][d])) if len(results[s][d])>0 else "-"
             if mark_missing and d in missing_drugs:
                 results[s][d] = "*%s" % results[s][d]
             results[s]["main_lin"] = temp["main_lin"]
