@@ -2,10 +2,9 @@ import csv
 import json
 import re
 from collections import defaultdict
-import subprocess
-import os.path
 import sys
 from datetime import datetime
+from pathogenprofiler import run_cmd, cmd_out
 
 chr_name = "Chromosome"
 
@@ -237,7 +236,7 @@ def create_db(args):
 
     version = {"name":args.prefix}
     if not args.custom:
-        for l in subprocess.Popen("git log | head -4", shell=True, stdout=subprocess.PIPE).stdout:
+        for l in cmd_out("git log | head -4"):
             row = l.decode().strip().split()
             if row == []: continue
             version[row[0].replace(":","")] = " ".join(row[1:])
@@ -250,8 +249,8 @@ def create_db(args):
 
     json.dump(version,open(version_file,"w"))
     open(genome_file,"w").write(">%s\n%s\n" % (chr_name,fasta_dict["Chromosome"]))
-    subprocess.call("sed 's/Chromosome/%s/g' genome.gff > %s" % (chr_name,gff_file),shell=True)
-    subprocess.call("sed 's/Chromosome/%s/g' barcode.bed > %s" % (chr_name,barcode_file),shell=True)
+    run_cmd("sed 's/Chromosome/%s/g' genome.gff > %s" % (chr_name,gff_file))
+    run_cmd("sed 's/Chromosome/%s/g' barcode.bed > %s" % (chr_name,barcode_file))
     write_gene_pos("genes.txt",list(locus_tag_to_drug_dict.keys()),ann_file)
     write_bed(locus_tag_to_drug_dict,gene_info,bed_file,chr_name)
     json.dump(db,open(json_file,"w"))

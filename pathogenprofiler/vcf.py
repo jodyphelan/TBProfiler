@@ -99,7 +99,7 @@ class vcf:
             for i,j in enumerate(range(4,csq_start_column)):
                 try:
                     annotations[annotations_types[i]] = float(row[j])
-                except:
+                except ValueError:
                     annotations[annotations_types[i]] = None
             if chrom in ann and pos in ann[chrom]:
                 ann_pos = int(ann[chrom][pos][1])
