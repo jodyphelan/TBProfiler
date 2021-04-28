@@ -25,7 +25,7 @@ def test_revcom():
     
 
 def test_db():
-    run_cmd("tbdb update_tbdb")
+    run_cmd("tb-profiler update_tbdb")
 
 
 def test_vcf():
