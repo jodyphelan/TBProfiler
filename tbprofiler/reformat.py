@@ -1,4 +1,3 @@
-import re
 import pathogenprofiler as pp
 import json
 from collections import defaultdict

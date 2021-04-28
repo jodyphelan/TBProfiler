@@ -231,7 +231,7 @@ def write_pdf(results,conf,outfile):
     from jinja2 import Environment, FileSystemLoader
     from weasyprint import HTML, CSS
 
-    env = Environment(loader=FileSystemLoader('.'))
+    env = Environment(loader=FileSystemLoader('.'),autoescape=True )
     template = env.from_string(html_text)
 
     gene_cov = []
