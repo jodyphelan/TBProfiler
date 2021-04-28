@@ -1,8 +1,7 @@
-# TBProfiler
+![TB Profiler Logo](https://raw.githubusercontent.com/jodyphelan/jodyphelan_github_io_old/master/img/tb-profiler-logo-rectangle.png)
 
 [![Anaconda-Server Badge](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](https://bioconda.github.io/recipes/tb-profiler/README.html) [![Anaconda-Server Badge](https://img.shields.io/github/license/jodyphelan/TBProfiler.svg)](https://anaconda.org/bioconda/tb-profiler) [![Anaconda-Server Badge](https://img.shields.io/github/last-commit/jodyphelan/TBProfiler.svg)](https://github.com/jodyphelan/TBProfiler) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/1f1e0523018c4871a3b56583f59beae9)](https://www.codacy.com/gh/jodyphelan/TBProfiler/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=jodyphelan/TBProfiler&amp;utm_campaign=Badge_Grade) [![Codacy Badge](https://app.codacy.com/project/badge/Coverage/1f1e0523018c4871a3b56583f59beae9)](https://www.codacy.com/gh/jodyphelan/TBProfiler/dashboard?utm_source=github.com&utm_medium=referral&utm_content=jodyphelan/TBProfiler&utm_campaign=Badge_Coverage)
 
-![TB Profiler Logo](https://raw.githubusercontent.com/jodyphelan/jodyphelan_github_io_old/master/img/tb-profiler-logo-rectangle.png)
 
 
 This repository contains a complete rewrite of the [web version of TBProfiler](http://tbdr.lshtm.ac.uk), described [here](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0650-x). It allows the use of profiling through a command line interface and contains some additional functionality such as the ability to process minION data.
