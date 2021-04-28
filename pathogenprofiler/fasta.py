@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from .utils import *
+from .utils import run_cmd
 class fasta:
     """
     Class to represent fasta seuqnces in a python dict.
@@ -33,7 +33,6 @@ class fasta:
         self.sum_length = sum_length
         self.fa_dict = result
     def get_ref_variants(self,refseq,prefix,file_prefix=None):
-        add_arguments_to_self(self,locals())
         self.refseq = refseq
         self.file_prefix = file_prefix
         if self.file_prefix==None:

@@ -2,11 +2,12 @@ import csv
 import json
 import re
 from collections import defaultdict
-from shutil import copyfile
 import subprocess
 import os.path
 import sys
 from datetime import datetime
+
+chr_name = "Chromosome"
 
 def fa2dict(filename):
     fa_dict = {}
@@ -36,7 +37,7 @@ def write_gene_pos(infile,genes,outfile):
     with open(outfile, "w") as OUT:
         for l in open(infile):
             row = l.strip().split()
-            rv,gene,chr_start,chr_end,gene_start,gene_end = [row[0],row[1]]+[int(row[i]) for i in range(2,6)]
+            rv,_,chr_start,chr_end,gene_start,gene_end = [row[0],row[1]]+[int(row[i]) for i in range(2,6)]
             if rv in genes:
                 y = 0
                 for i, chr_pos in enumerate(range(chr_start, chr_end+1)):
@@ -115,10 +116,8 @@ def parse_mutation(mut,gene,fasta_dict,gene_info):
         strand = gene_info[gene]["strand"]
 
         if strand == "+":
-            chr_pos = gene_info[gene]["start"] - (gene_info[gene]["gene_start"] - nt_pos)
             return ["%s%s>%s" % (nt_pos,ref_nt,alt_nt)]
         else:
-            chr_pos = gene_info[gene]["end"] + (gene_info[gene]["gene_end"] - nt_pos)
             return ["%s%s>%s" % (nt_pos,revcom(ref_nt),revcom(alt_nt))]
     ## ncRNA Mutation
     ## r.514a>c
@@ -235,11 +234,7 @@ def create_db(args):
     bed_file = "%s.bed" % args.prefix
     json_file = "%s.dr.json" % args.prefix
     version_file = "%s.version.json" % args.prefix
-    conf = {
-        "gff": os.path.abspath(gff_file), "ref": os.path.abspath(genome_file),
-        "ann": os.path.abspath(ann_file), "barcode": os.path.abspath(barcode_file),
-        "bed": os.path.abspath(bed_file), "json_db": os.path.abspath(json_file)
-    }
+
     version = {"name":args.prefix}
     if not args.custom:
         for l in subprocess.Popen("git log | head -4", shell=True, stdout=subprocess.PIPE).stdout:
