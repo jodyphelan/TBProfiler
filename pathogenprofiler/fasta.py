@@ -34,6 +34,7 @@ class fasta:
         self.fa_dict = result
     def get_ref_variants(self,refseq,prefix,file_prefix=None):
         self.refseq = refseq
+        self.prefix = prefix
         self.file_prefix = file_prefix
         if self.file_prefix==None:
             self.file_prefix=prefix
