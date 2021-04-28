@@ -1,9 +1,6 @@
-from .utils import add_arguments_to_self, run_cmd, cmd_out, filecheck, index_bam, nofile, rm_files, log, load_bed
-from .fasta import fasta
+from .utils import add_arguments_to_self, run_cmd, cmd_out, filecheck, index_bam
 from .vcf import vcf, delly_bcf
-from tqdm import tqdm
 from collections import defaultdict
-import sys
 
 
 class bam:
