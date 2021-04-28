@@ -20,7 +20,7 @@ por5_dr_variants = [
     ('gid', 'p.Ala80Pro')
 ]
 
-collate_text = 'sample\tmain_lineage\tsub_lineage\tDR_type\tnum_dr_variants\tnum_other_variants\trifampicin\tisoniazid\tpyrazinamide\tethambutol\tstreptomycin\tfluoroquinolones\tmoxifloxacin\tofloxacin\tlevofloxacin\tciprofloxacin\taminoglycosides\tamikacin\tkanamycin\tcapreomycin\tethionamide\tpara-aminosalicylic_acid\tcycloserine\tlinezolid\tbedaquiline\tclofazimine\tdelamanid\npor5A_illumina_bwa_bcftools\tlineage4\tlineage4.3.4.2\tMDR\t7\t14\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\npor5A_illumina_freebayes\tlineage4\tlineage4.3.4.2\tMDR\t7\t14\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\npor5_vcf\tlineage4\tlineage4.3.4.2\tMDR\t7\t15\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\npor5A_illumina_bwa_freebayes\tlineage4\tlineage4.3.4.2\tMDR\t7\t14\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\npor5A_illumina_bwa_gatk\tlineage4\tlineage4.3.4.2\tMDR\t7\t14\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\n'
+collate_text = 'sample\tmain_lineage\tsub_lineage\tDR_type\tnum_dr_variants\tnum_other_variants\trifampicin\tisoniazid\tpyrazinamide\tethambutol\tstreptomycin\tfluoroquinolones\tmoxifloxacin\tofloxacin\tlevofloxacin\tciprofloxacin\taminoglycosides\tamikacin\tkanamycin\tcapreomycin\tethionamide\tpara-aminosalicylic_acid\tcycloserine\tlinezolid\tbedaquiline\tclofazimine\tdelamanid\npor5A_illumina_bwa_freebayes\tlineage4\tlineage4.3.4.2\tMDR\t7\t14\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\npor5A_illumina_bwa_gatk\tlineage4\tlineage4.3.4.2\tMDR\t7\t14\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\npor5A_illumina_bwa_bcftools\tlineage4\tlineage4.3.4.2\tMDR\t7\t14\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\npor5_vcf\tlineage4\tlineage4.3.4.2\tMDR\t7\t15\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\n'
     
 def test_vcf():
     sp.call("tb-profiler vcf_profile tb-profiler-test-data/por5A1.vcf.gz",shell=True)
@@ -60,7 +60,9 @@ def test_bwa_gatk():
     assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
 
 def test_collate():
-    sp.call("tb-profiler collate",shell=True)
+    with open("samples.txt","w") as O:
+        O.write("\n".join(["por5A_illumina_bwa_freebayes","por5A_illumina_bwa_gatk","por5A_illumina_bwa_bcftools","por5_vcf"]))
+    sp.call("tb-profiler collate --samples samples.txt",shell=True)
     assert open("tbprofiler.txt").read() == collate_text
 
 def test_bowtie2_freebayes():
