@@ -104,4 +104,4 @@ def test_fasta():
     assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
 
 def test_seqs_from_bam():
-    assert pp.get_seqs_from_bam("bampor5A_illumina_nanopore.bam") == ['Chromosome']
+    assert pp.get_seqs_from_bam("bam/por5A_illumina_nanopore.bam") == ['Chromosome']
