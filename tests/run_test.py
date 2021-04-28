@@ -22,7 +22,7 @@ collate_text = 'sample\tmain_lineage\tsub_lineage\tDR_type\tnum_dr_variants\tnum
 
 def test_revcom():
     assert pp.revcom("AGCTTGAGTC") == "GACTCAAGCT"
-    
+
 
 def test_db():
     run_cmd("tb-profiler update_tbdb")
@@ -89,29 +89,19 @@ def test_bwa_freebayes_single():
     assert results["main_lin"] == "lineage4"
     assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
 
-def test_minimap2_freebayes():
-    results = illumina_fastq("freebayes","minimap2")
-    assert results["sublin"] == "lineage4.3.4.2"
-    assert results["main_lin"] == "lineage4"
-    assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
-
 def test_nanopore():
-    run_cmd(f"tb-profiler profile -1 tb-profiler-test-data/por5A.nanopore_reduced.fastq.gz --platform nanopore -p por5A_illumina_nanopore -t 4 --txt --csv --pdf")
-    results = json.load(open(f"results/por5A_illumina_nanopore.results.json"))
+    run_cmd("tb-profiler profile -1 tb-profiler-test-data/por5A.nanopore_reduced.fastq.gz --platform nanopore -p por5A_illumina_nanopore -t 4 --txt --csv --pdf")
+    results = json.load(open("results/por5A_illumina_nanopore.results.json"))
     assert results["sublin"] == "lineage4.3.4.2"
     assert results["main_lin"] == "lineage4"
     assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
 
 def test_fasta():
-    run_cmd(f"tb-profiler fasta_profile -f ~/tbprofiler_test_data/por5A1.fasta  -p por5A_fasta")
-    results = json.load(open(f"results/por5A_fasta.results.json"))
+    run_cmd("tb-profiler fasta_profile -f ~/tbprofiler_test_data/por5A1.fasta  -p por5A_fasta")
+    results = json.load(open("results/por5A_fasta.results.json"))
     assert results["sublin"] == "lineage4.3.4.2"
     assert results["main_lin"] == "lineage4"
     assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
 
-
-
-
-
 def test_seqs_from_bam():
-    pp.get_seqs_from_bam("bampor5A_illumina_nanopore.bam") == ['Chromosome']
+    assert pp.get_seqs_from_bam("bam/por5A_illumina_nanopore.bam") == ['Chromosome']

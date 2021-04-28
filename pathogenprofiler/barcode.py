@@ -1,6 +1,7 @@
-from .utils import *
+from .utils import stdev, log
 import json
 import re
+from collections import defaultdict
 
 iupac = {
     "A":["A"],

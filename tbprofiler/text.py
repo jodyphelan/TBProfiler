@@ -1,5 +1,5 @@
 import time
-from .reformat import *
+from .reformat import get_summary
 
 _DRUGS = [
     'rifampicin', 'isoniazid', 'ethambutol', 'pyrazinamide', 'streptomycin',

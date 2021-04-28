@@ -1,4 +1,3 @@
-import re
 import pathogenprofiler as pp
 import json
 from collections import defaultdict
@@ -207,5 +206,6 @@ def reformat(results,conf,reporting_af,mutation_metadata=False):
     results = reformat_annotations(results,conf,reporting_af)
     results["db_version"] = json.load(open(conf["version"]))
     if mutation_metadata:
-        results = add_mutation_metadata(results)
+        pass
+        # results = add_mutation_metadata(results)
     return results

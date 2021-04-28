@@ -1,10 +1,8 @@
-from .utils import filecheck, log, run_cmd
+from .utils import log, run_cmd
 from .bam import bam
 from .barcode import barcode, db_compare
-from .fastq import fastq
 from .vcf import vcf,delly_bcf
 from .fasta import fasta
-import re
 
 
 

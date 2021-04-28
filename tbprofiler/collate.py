@@ -5,9 +5,9 @@ from collections import defaultdict
 from tqdm import tqdm
 from .utils import get_lt2drugs
 
-def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=True,full_variant_results=True,reporting_af=0.1,mark_missing=False):
-    if not os.path.isdir(dir):
-        sys.stderr.write("\nERROR: Can't find directory %s\n" % dir )
+def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_results=True,full_variant_results=True,reporting_af=0.1,mark_missing=False):
+    if not os.path.isdir(result_dir):
+        sys.stderr.write("\nERROR: Can't find directory %s\n" % result_dir )
         exit()
     set_all_drugs = set()
     for l in open(conf["bed"]):
@@ -26,7 +26,7 @@ def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=Tr
     if sample_file:
         samples = [x.rstrip() for x in open(sample_file).readlines()]
     else:
-        samples = [x.replace(".results.json","") for x in os.listdir("%s/" % dir) if x[-13:]==".results.json"]
+        samples = [x.replace(".results.json","") for x in os.listdir("%s/" % result_dir) if x[-13:]==".results.json"]
 
     results = defaultdict(dict)
     dr_variants = defaultdict(lambda:defaultdict(dict))
@@ -41,7 +41,7 @@ def collate_results(prefix,conf,dir="./results",sample_file=None,full_results=Tr
 
     for s in tqdm(samples):
         dr_drugs[s] = set()
-        temp = json.load(open("%s/%s.results.json" % (dir,s)))
+        temp = json.load(open("%s/%s.results.json" % (result_dir,s)))
 
         missing_drugs = set()
         if "missing_positions" in temp["qc"]:

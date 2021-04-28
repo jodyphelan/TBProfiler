@@ -1,10 +1,7 @@
 import sys
-import gzip
 import os.path
 import subprocess
-import csv
 from collections import defaultdict
-import json
 import random
 import math
 import re
@@ -294,7 +291,7 @@ def rm_files(x,verbose=True):
             if verbose: sys.stderr.write("Removing %s\n" % f)
             os.remove(f)
 
-            
+
 # def verify_fq(filename):
 #     """
 #     Return True if input is a valid fastQ file
