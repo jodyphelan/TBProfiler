@@ -13,7 +13,6 @@ The pipeline aligns reads to the H37Rv reference using bowtie2, BWA or minimap2 
 
 This page has all the info you need to get started, however additional (and more organised!) documentation is available [here](https://jodyphelan.gitbook.io/tb-profiler/). I have also tried create a (very!) basic translation to other languages:  [:brazil:](https://jodyphelan.gitbook.io/tb-profiler/translations/portugues)[:netherlands:](https://jodyphelan.gitbook.io/tb-profiler/translations/nederlands). Please contact me if you would like to improve a translation or add a new one!
 
-
 ## Keeping up to date
 TBProfiler is under constant rapid development. If you plan to use the program in your work please make sure you are using the most up to date version! Similarly, the database is not static and is continuously being improved so make sure you are using the most latest version. If you use TBProfiler in your work please state the version of both the tool and the database as they are deveoped independantly from each other.
 
@@ -101,7 +100,6 @@ This will automatically create a number of colled result files from all the indi
 ### Writing your own summary scripts
 
 The `collate` function extracts the drug-resistance mutations and lineage, however you may want to extract more features that are present in the individual json result files. I have created a little tutorial on how to do this [here](https://jodyphelan.gitbook.io/tb-profiler/writing-a-custom-collate-script).
-
 
 ## Mutation database
 

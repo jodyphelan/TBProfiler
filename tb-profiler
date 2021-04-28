@@ -270,7 +270,7 @@ def main_collate(args):
         conf = get_conf_dict(args.external_db)
     else:
         conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
-    tbp.collate_results(args.prefix,conf,sample_file=args.samples,dir=args.dir,reporting_af=args.reporting_af,mark_missing=args.mark_missing)
+    tbp.collate_results(args.prefix,conf,sample_file=args.samples,result_dir=args.dir,reporting_af=args.reporting_af,mark_missing=args.mark_missing)
 
 def main_version(args):
     print("\nTBProfiler version %s\n" % tbp._VERSION)

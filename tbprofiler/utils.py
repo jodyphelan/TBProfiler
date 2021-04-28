@@ -5,11 +5,6 @@ import sys
 import pathogenprofiler as pp
 
 
-try:
-    sys.base_prefix
-except:
-    sys.base_prefix = getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', sys.prefix))
-
 def get_conf_dict_with_path(library_path):
     files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
     conf = {}
@@ -71,13 +66,13 @@ def get_drugs2gene(bed_file):
             results[drug].append(gene)
     return dict(results)
 
-    
+
 def get_genome_positions_from_json_db(json_file,ann_file):
     codon_ann = defaultdict(set)
     gene_ann = {}
     for l in open(ann_file):
         #Chromosome      5002    Rv0005  -238
-        chrom,genome_pos,gene,gene_pos = l.strip().split()
+        _,genome_pos,gene,gene_pos = l.strip().split()
         genome_pos = int(genome_pos)
         gene_pos = int(gene_pos)
         # This is a bit dangerous as it assumes all coding genes are labled with "Rv"
