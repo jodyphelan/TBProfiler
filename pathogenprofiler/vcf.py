@@ -166,7 +166,7 @@ class vcf:
                     else:
                         variants[sample].append({"gene_id":gene_id,"gene_name":gene_name,"chr":chrom,"genome_pos":pos,"type":info[0],"change":info[6],"freq":adr[call2],"nucleotide_change":info[6], "variant_annotations":annotations})
                 elif "synonymous" in info[0] or info[0] == "stop_retained":
-                    change_num,ref_nuc,alt_nuc =  parse_mutation(info[6])
+                    _,ref_nuc,alt_nuc =  parse_mutation(info[6])
                     change = "%s%s>%s" % (ann_pos,ref_nuc,alt_nuc) if ann_pos else "%s%s>%s" % (pos,ref_nuc,alt_nuc)
                     variants[sample].append({"gene_id":gene_id,"gene_name":gene_name,"chr":chrom,"genome_pos":pos,"type":info[0],"change":change,"freq":adr[call2],"nucleotide_change":info[6], "variant_annotations":annotations})
                 elif info[0] == "non_coding" or info[0] == "splice_region" or info[0] == "3_prime_utr":
@@ -191,7 +191,6 @@ class vcf:
             alleles = [row[2]]+alts
             for i in range(len(self.samples)):
                 calls,ad = row[i+4].split(":")
-                call1,call2 = calls.split("/") if "/" in calls else calls.split("|")
                 if calls=="N/N":
                     raw_variants[row[0]][row[1]][self.samples[i]]["N"] = 1.0
                     continue

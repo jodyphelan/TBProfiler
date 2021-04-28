@@ -13,7 +13,7 @@ class bam:
         index_bam(bam_file,threads=threads)
 
     def run_delly(self):
-        stdout,stderr = run_cmd("delly call -t DEL -g %(ref_file)s %(bam_file)s -o %(prefix)s.delly.bcf" % vars(self),terminate_on_error=False)
+        _,stderr = run_cmd("delly call -t DEL -g %(ref_file)s %(bam_file)s -o %(prefix)s.delly.bcf" % vars(self),terminate_on_error=False)
         if "not enough data to estimate library parameters" in stderr:
             return None
         else:
@@ -24,9 +24,8 @@ class bam:
         filecheck(ref_file)
         self.caller = caller.lower()
         self.missing_cmd = "" if remove_missing else "-S ."
-        # Set up final vcf file name
-        
 
+        # Set up final vcf file name
         # Make the windows for parallel calling based on chunking the whole
         # genome or by providing a bed file
         if bed_file:
@@ -155,7 +154,7 @@ class bam:
         else:
             return self.region_fraction
 
-    def get_missing_genomic_positions(self,cutoff=10):
+    def get_missing_genomic_positions(self,bed_file=None,cutoff=10):
         if not hasattr(self,"genome_coverage"):
-            self.get_region_coverage()
+            self.get_region_coverage(bed_file)
         return [x[0] for x in self.genome_coverage if x[1]<cutoff]

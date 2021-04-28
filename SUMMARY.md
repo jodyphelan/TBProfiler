@@ -1,3 +1,3 @@
 # Table of contents
-*   [TBProfiler](README.md)
 
+*   [TBProfiler](README.md)
