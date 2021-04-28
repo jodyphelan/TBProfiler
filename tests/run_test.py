@@ -1,8 +1,9 @@
 from pathogenprofiler import run_cmd
 import pathogenprofiler as pp
+import json
 
-run_cmd("git clone https://github.com/jodyphelan/tb-profiler-test-data.git"_
 
+run_cmd("git clone https://github.com/jodyphelan/tb-profiler-test-data.git")
 
 por5_dr_variants = [
     ('rpoB', 'p.Ser450Leu'),
