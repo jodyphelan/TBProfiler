@@ -15,11 +15,6 @@ def debug(x):
     sys.stderr.write(x+"\n")
     sys.stderr.write("#"*40+"\n")
 
-def median(lst):
-    #Thanks https://stackoverflow.com/questions/24101524/finding-median-of-list-in-python
-    n = len(lst)
-    s = sorted(lst)
-    return (sum(s[n//2-1:n//2+1])/2.0, s[n//2])[n % 2] if n else None
 
 def reformat_mutations(x,vartype,gene,gene_info):
     aa_short2long = {
@@ -102,14 +97,6 @@ def reformat_mutations(x,vartype,gene,gene_info):
             return "c.%s" % (x)
     return x
 
-
-def filetype(x):
-    for l in cmd_out("file %s" % x):
-        pass
-    row = l.rstrip().split()
-    return row[1]
-
-
 def get_seqs_from_bam(bamfile):
     seqs = []
     for l in cmd_out("samtools view %s -H | grep ^@SQ" % bamfile):
@@ -162,27 +149,10 @@ def cmd_out(cmd,verbose=1):
         raise Exception
     stderr.close()
 
-def get_random_file(prefix = None,extension=None):
-    randint = rand_generator.randint(1,999999)
-    if prefix:
-        if extension:
-            return "%s.%s%s" % (prefix,randint,extension)
-        else:
-            return "%s.%s.txt" % (prefix,randint)
-    else:
-        if extension:
-            return "%s.tmp%s" % (randint,extension)
-        else:
-            return "%s.tmp.txt" % (randint)
-
 def log(msg,ext=False):
     sys.stderr.write("\n"+str(msg)+"\n")
     if ext:
         exit(1)
-
-def init_params():
-    conf = json.load(open("%s/%s" % (sys.prefix,"pathogenseq.conf")))
-    return conf
 
 
 def load_bed(filename,columns,key1,key2=None,intasint=False):
@@ -315,7 +285,16 @@ def tabix(bcffile,threads=1,overwrite=False):
         elif os.path.getmtime(bcffile+".tbi")<os.path.getmtime(bcffile) or overwrite:
             run_cmd(cmd)
 
+def rm_files(x,verbose=True):
+    """
+    Remove a files in a list format
+    """
+    for f in x:
+        if os.path.isfile(f):
+            if verbose: sys.stderr.write("Removing %s\n" % f)
+            os.remove(f)
 
+            
 # def verify_fq(filename):
 #     """
 #     Return True if input is a valid fastQ file
@@ -328,23 +307,16 @@ def tabix(bcffile,threads=1,overwrite=False):
 #     else:
 #         return True
 
-def rm_files(x,verbose=True):
-    """
-    Remove a files in a list format
-    """
-    for f in x:
-        if os.path.isfile(f):
-            if verbose: sys.stderr.write("Removing %s\n" % f)
-            os.remove(f)
 
-def file_len(filename):
-    """
-    Return length of a file
-    """
-    filecheck(filename)
-    for l in cmd_out("wc -l %s" % filename):
-        res = l.rstrip().split()[0]
-    return int(res)
+
+# def file_len(filename):
+#     """
+#     Return length of a file
+#     """
+#     filecheck(filename)
+#     for l in cmd_out("wc -l %s" % filename):
+#         res = l.rstrip().split()[0]
+#     return int(res)
 
 
 # def download_from_ena(acc):

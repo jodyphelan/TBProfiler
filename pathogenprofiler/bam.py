@@ -1,4 +1,4 @@
-from .utils import add_arguments_to_self, run_cmd, cmd_out, filecheck, index_bam, nofile, rm_files, log, load_bed, median
+from .utils import add_arguments_to_self, run_cmd, cmd_out, filecheck, index_bam, nofile, rm_files, log, load_bed
 from .fasta import fasta
 from .vcf import vcf, delly_bcf
 from tqdm import tqdm
