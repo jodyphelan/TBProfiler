@@ -8,22 +8,21 @@ This repository contains a complete rewrite of the [web version of TBProfiler](h
 
 The pipeline aligns reads to the H37Rv reference using bowtie2, BWA or minimap2 and then calls variants using bcftools. These variants are then compared to a drug-resistance database. We also predict the number of reads supporting drug resistance variants as an insight into hetero-resistance \(not applicable for minION data\)
 
-### Documentation
+## Documentation
 
 This page has all the info you need to get started, however additional (and more organised!) documentation is available [here](https://jodyphelan.gitbook.io/tb-profiler/). I have also tried create a (very!) basic translation to other languages:  [:brazil:](https://jodyphelan.gitbook.io/tb-profiler/translations/portugues)[:netherlands:](https://jodyphelan.gitbook.io/tb-profiler/translations/nederlands). Please contact me if you would like to improve a translation or add a new one!
 
-### Using TBProfiler in your work
 
-#### Keeping up to date
+## Keeping up to date
 TBProfiler is under constant rapid development. If you plan to use the program in your work please make sure you are using the most up to date version! Similarly, the database is not static and is continuously being improved so make sure you are using the most latest version. If you use TBProfiler in your work please state the version of both the tool and the database as they are deveoped independantly from each other.
 
 ## Installation
 
-#### Conda
+### Conda
 
 Conda can function as a package manages are is available [here](https://docs.conda.io/en/latest/miniconda.html). If you have conda make sure the bioconda and conda-forge channels are added:
 
-```text
+```bash
 conda config --add channels defaults
 conda config --add channels bioconda
 conda config --add channels conda-forge
@@ -31,24 +30,24 @@ conda config --add channels conda-forge
 
 Then you can install tb-profiler and all of its dependancies from the bioconda channel:
 
-##### Linux
+#### Linux
 
-```text
+```bash
 conda install -c bioconda tb-profiler
 ```
 
-##### OSX
+#### OSX
 
-```text
+```bash
 conda install -c bioconda tb-profiler samtools=1.9=h7c4ea83_11 ncurses=6.1=h0a44026_1002
 ```
 
-#### Manually
+### Manually
 
 It is possible to install manually. The following pre-requisites will be needed at runtime: _trimmomatic \(&gt;=v0.38\), bwa \(&gt;=v0.7.17\), minimap2 \(&gt;=v2.16\), bowtie2 \(&gt;=v2.3.5\), samtools \(&gt;=v1.9\), bcftools \(&gt;=v1.9\), GATK \(&gt;=v4.1.4.0\), freebayes \(&gt;=v1.3.2\), tqdm \(&gt;=v4.32.2\) parallel \(&gt;=v20190522\) and samclip \(&gt;=v0.4.0\)_. The pipeline should work and has been tested on the program versions indicated in parentheses.
 
 To install the library run the following code:
-```
+```bash
 pip3 install git+https://github.com/jodyphelan/TBProfiler.git
 mkdir `python -c "import sys; print(getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', sys.prefix)));"`
 tb-profiler update_tbdb
@@ -70,7 +69,7 @@ tb-profiler profile -1 /path/to/reads_1.fastq.gz -2 /path/to/reads_2.fastq.gz -p
 
 The prefix is usefull when you need to run more that one sample. This will store BAM, VCF and result files in respective directories. Results are output in json and text format.
 
-##### Example run
+#### Example run
 
 ```text
 mkdir test_run; cd test_run
@@ -80,25 +79,25 @@ tb-profiler profile -1 ERR1664619_1.fastq.gz -2 ERR1664619_2.fastq.gz -t 4 -p ER
 cat results/ERR1664619.results.json
 ```
 
-##### Running with an existing BAM file
+#### Running with an existing BAM file
 
 By using the -a option you can specify to use an existing BAM file instead of fastq files. **Warning!!!**: The BAM files must have been created using the version of the genome as the database which can be downloaded [here](ftp://ftp.ensemblgenomes.org/pub/release-32/bacteria//fasta/bacteria_0_collection/mycobacterium_tuberculosis_h37rv/dna/Mycobacterium_tuberculosis_h37rv.ASM19595v2.dna.toplevel.fa.gz). Confusingly, this genome has multiple accession numbers \(ASM19595v2,NC\_000962.3,GCF\_000195955.2, etc...\). If you believe your reference to be the exact same sequence \(length should be 4411532\) then you can create a database with the same sequence name as used in your BAM file. For example if your sequence name is "NC\_000962.3" you can run
 
-```
+```bash
 tb-profiler update_tbdb --seqname NC_000962.3
 ```
 
-##### Summarising runs
+### Summarising runs
 
 The results from numerous runs can be collated into one table using the following command:
 
-```text
+```bash
 tb-profiler collate
 ```
 
 This will automatically create a number of colled result files from all the individual result files in the _result_ directory. If you would like to generate this file for a subset of the runs you can provide a list with the run sames using the `--samples` flag. The prefix for the output files is _tbprofiler_ by default but this can be changed with the `--prefix` flag.
 
-##### Writing your own summary scripts
+### Writing your own summary scripts
 
 The `collate` function extracts the drug-resistance mutations and lineage, however you may want to extract more features that are present in the individual json result files. I have created a little tutorial on how to do this [here](https://jodyphelan.gitbook.io/tb-profiler/writing-a-custom-collate-script).
 
@@ -127,9 +126,9 @@ The pipeline searches for small variants and big deletions associated with drug 
 
 Several files are produced by the `tb-profile collate` function. Among these are several config files that can be used with [iTOL](http://itol.embl.de/) to annotate phylogenetic trees. A small tree and config files have been placed in the _example\_data_ directory. To use navigate to the iTOL website and upload the _tbprofiler.tree_ file using the upload button on the navigation bar. Once this has been uploaded you will be taken to a visualisation of the tree. To add the annotation, click on the '+' button on the lower right hand corner and select the iTOL config files. You should now see a figure similar to the one below. The following annotations are included:
 
-* Lineage
-* Drug resistance classes \(Sensitive, drug-resistant, MDR, XDR\)
-* Drug resistance calls for individual drugs, were filled circles represent resistance.
+*   Lineage
+*   Drug resistance classes \(Sensitive, drug-resistant, MDR, XDR\)
+*   Drug resistance calls for individual drugs, were filled circles represent resistance.
 
 ![](https://github.com/jodyphelan/jodyphelan.github.io/raw/master/img/itol_example.png)
 
@@ -147,5 +146,5 @@ Will populate this once we get some frequently asked questions!
 
 ## Future plans
 
-* Add in capability to perform basic phylogenetic functions
-* Add in levels of resistance to mutations
+*   Add in capability to perform basic phylogenetic functions
+*   Add in levels of resistance to mutations
