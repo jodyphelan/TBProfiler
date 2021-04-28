@@ -1,8 +1,9 @@
-from .utils import *
+from .utils import run_cmd, cmd_out,add_arguments_to_self,rm_files, index_bcf,tabix, log, load_bed
 from .fasta import fasta
 from collections import defaultdict
 import re
 from uuid import uuid4
+import sys
 
 re_seq = re.compile("([0-9\-]*)([A-Z\*]+)")
 re_I = re.compile("([A-Z\*]+)")
