@@ -184,18 +184,6 @@ def init_params():
     conf = json.load(open("%s/%s" % (sys.prefix,"pathogenseq.conf")))
     return conf
 
-def load_tsv(filename):
-    meta = {}
-    for row in csv.DictReader(open(filename),delimiter="\t"):
-        if "sample" not in row:
-            sys.stderr.write("No sample column...Exiting")
-            quit(1)
-        meta[row["sample"]] = {}
-        columns = set(row)-set(["sample"])
-        for c in columns:
-            meta[row["sample"]][c.upper()] = row[c]
-    columns = [c.upper() for c in set(row)-set(["sample"])]
-    return columns,meta
 
 def load_bed(filename,columns,key1,key2=None,intasint=False):
     results = defaultdict(lambda: defaultdict(tuple))
@@ -214,31 +202,7 @@ def load_bed(filename,columns,key1,key2=None,intasint=False):
             results[row[key1-1]]= tuple([row[int(x)-1] for x in columns])
     return results
 
-def split_bed(bed_file,size,reformat=False):
-    for l in open(filecheck(bed_file)):
-        row = l.rstrip().split()
-        chrom,start,end = row[0],int(row[1]),int(row[2])
-        if end-start>size:
-            tmps = start
-            tmpe = start
-            while tmpe<end:
-                tmpe+=size
-                if tmpe>end:
-                    tmpe=end
-                loc = "%s:%s-%s" % (chrom,tmps,tmpe)
-                loc_str = "%s_%s_%s" % (chrom,tmps,tmpe)
-                if reformat:
-                    sys.stdout.write("%s\t%s\n" % (loc,loc_str))
-                else:
-                    sys.stdout.write("%s\n"%loc)
-                tmps=tmpe+1
-        else:
-            loc = "%s:%s-%s" % (chrom,start,end)
-            loc_str = "%s_%s_%s" % (chrom,start,end)
-            if reformat:
-                sys.stdout.write("%s\t%s\n" % (loc,loc_str))
-            else:
-                sys.stdout.write("%s\n"%loc)
+
 def filecheck(filename):
     """
     Check if file is there and quit if it isn't
@@ -251,20 +215,6 @@ def filecheck(filename):
     else:
         return filename
 
-def foldercheck(filename):
-    """
-    Check if file is there and quit if it isn't
-    """
-    if not os.path.isdir(filename):
-        sys.stderr.write("Can't find %s\n" % filename)
-        exit(1)
-    else:
-        return filename
-
-def debug(s):
-    sys.stderr.write("#"*40+"\n")
-    sys.stderr.write("%s\n" % s)
-    sys.stderr.write("#"*40+"\n")
 
 def nofile(filename):
     """
@@ -366,17 +316,17 @@ def tabix(bcffile,threads=1,overwrite=False):
             run_cmd(cmd)
 
 
-def verify_fq(filename):
-    """
-    Return True if input is a valid fastQ file
-    """
-    FQ = open(filename) if filename[-3:]!=".gz" else gzip.open(filename)
-    l1 = FQ.readline()
-    if l1[0]!="@":
-        sys.stderr.write("First character is not \"@\"\nPlease make sure this is fastq format\nExiting...")
-        exit(1)
-    else:
-        return True
+# def verify_fq(filename):
+#     """
+#     Return True if input is a valid fastQ file
+#     """
+#     FQ = open(filename) if filename[-3:]!=".gz" else gzip.open(filename)
+#     l1 = FQ.readline()
+#     if l1[0]!="@":
+#         sys.stderr.write("First character is not \"@\"\nPlease make sure this is fastq format\nExiting...")
+#         exit(1)
+#     else:
+#         return True
 
 def rm_files(x,verbose=True):
     """
@@ -392,51 +342,43 @@ def file_len(filename):
     Return length of a file
     """
     filecheck(filename)
-    for l in subprocess.Popen("wc -l %s" % filename,shell=True,stdout=subprocess.PIPE).stdout:
+    for l in cmd_out("wc -l %s" % filename):
         res = l.rstrip().split()[0]
     return int(res)
 
-def gz_file_len(filename):
-    """
-    Return lengths of a gzipped file
-    """
-    filecheck(filename)
-    for l in subprocess.Popen("gunzip -c %s |wc -l" % filename,shell=True,stdout=subprocess.PIPE).stdout:
-        res = l.rstrip().split()[0]
-    return int(res)
 
-def download_from_ena(acc):
-    if len(acc)==9:
-        dir1 = acc[:6]
-        cmd = "wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/%s/%s/%s*" % (dir1,acc,acc)
-    elif len(acc)==10:
-        dir1 = acc[:6]
-        dir2 = "00"+acc[-1]
-        cmd = "wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/%s/%s/%s/%s*" % (dir1,dir2,acc,acc)
-    else:
-        sys.stderr.write("Check Accession: %s" % acc)
-        exit(1)
-    run_cmd(cmd)
+# def download_from_ena(acc):
+#     if len(acc)==9:
+#         dir1 = acc[:6]
+#         cmd = "wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/%s/%s/%s*" % (dir1,acc,acc)
+#     elif len(acc)==10:
+#         dir1 = acc[:6]
+#         dir2 = "00"+acc[-1]
+#         cmd = "wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/%s/%s/%s/%s*" % (dir1,dir2,acc,acc)
+#     else:
+#         sys.stderr.write("Check Accession: %s" % acc)
+#         exit(1)
+#     run_cmd(cmd)
 
-def which(program):
-    import os
-    def is_exe(fpath):
-        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+# def which(program):
+#     import os
+#     def is_exe(fpath):
+#         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
-    fpath = os.path.split(program)[0]
-    if fpath:
-        if is_exe(program):
-            return program
-    else:
-        for path in os.environ["PATH"].split(os.pathsep):
-            exe_file = os.path.join(path, program)
-            if is_exe(exe_file):
-                return exe_file
+#     fpath = os.path.split(program)[0]
+#     if fpath:
+#         if is_exe(program):
+#             return program
+#     else:
+#         for path in os.environ["PATH"].split(os.pathsep):
+#             exe_file = os.path.join(path, program)
+#             if is_exe(exe_file):
+#                 return exe_file
 
-    return None
+#     return None
 
-def programs_check(programs):
-    for p in programs:
-        if which(p)==None:
-            log("Can't find %s in path... Exiting." % p)
-            quit(1)
+# def programs_check(programs):
+#     for p in programs:
+#         if which(p)==None:
+#             log("Can't find %s in path... Exiting." % p)
+#             quit(1)
