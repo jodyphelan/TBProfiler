@@ -237,7 +237,7 @@ def create_db(args):
     version = {"name":args.prefix}
     if not args.custom:
         for l in cmd_out("git log | head -4"):
-            row = l.decode().strip().split()
+            row = l.strip().split()
             if row == []: continue
             version[row[0].replace(":","")] = " ".join(row[1:])
         version["commit"] = version["commit"][:7]
