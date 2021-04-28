@@ -1,7 +1,10 @@
 from pathogenprofiler import run_cmd
 import pathogenprofiler as pp
 import json
+import os
 
+os.mkdir("scratch")
+os.chdir("scratch")
 
 run_cmd("git clone https://github.com/jodyphelan/tb-profiler-test-data.git")
 
