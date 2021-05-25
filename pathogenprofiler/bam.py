@@ -120,7 +120,7 @@ class bam:
             else:
                 ref_nt[(tmp_chrom,tmp_pos)] = l.strip()
 
-        for l in cmd_out("bedtools coverage -a %s -b %s -d -sorted" % (bed_file,self.bam_file)):
+        for l in cmd_out(f"samtools view -Mb -L {bed_file} {self.bam_file} | bedtools coverage -a {bed_file} -b - -d -sorted"):
             row = l.strip().split()
             chrom = row[0]
             pos = int(row[2])
@@ -136,7 +136,7 @@ class bam:
         self.region_fraction = []
         self.genome_coverage = []
 
-        for l in cmd_out("bedtools coverage -a %(bed_file)s -b %(bam_file)s -sorted -d" % vars(self)):
+        for l in cmd_out(f"samtools view -Mb -L {bed_file} {self.bam_file} | bedtools coverage -a {bed_file} -b - -d -sorted"):
 
             row = l.split()
             region = row[region_column]
