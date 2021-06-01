@@ -136,13 +136,13 @@ If you plan to use TB-Profiler in your work please cite [the paper](https://geno
 
 ## Issues
 
-Please raise them using the [Issues](https://github.com/jodyphelan/TBProfiler/issues) page.
+Please raise them using the [Issues](https://github.com/jodyphelan/TBProfiler/issues) page. Please see the [contributing guidelines](https://github.com/jodyphelan/TBProfiler/blob/master/docs/CONTRIBUTING.md) and the [code of conduct](https://github.com/jodyphelan/TBProfiler/blob/master/CODE_OF_CONDUCT.md).
 
 ## FAQ
+Q. How can I use tb-profiler to produce a phylogenetic tree?
 
-Will populate this once we get some frequently asked questions!
+A. At the moment TB-Profiler does not provide any functionality to actually create the tree. The config files for itol are generated, however the tree must be created with other software. It is planned for future releases, however it might take some time to be fully developed. I would suggest alternative software for the phylogenetic reconstruciton step (such as snippy + iqtree)
 
 ## Future plans
 
-*   Add in capability to perform basic phylogenetic functions
-*   Add in levels of resistance to mutations
+Please see the [roadmap](https://github.com/jodyphelan/TBProfiler/projects/1) to view future plans as well as features currently in development
