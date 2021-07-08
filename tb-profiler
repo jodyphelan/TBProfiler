@@ -182,8 +182,6 @@ def main_profile(args):
         no_barcoding=args.no_lineage,variant_annotations=args.add_variant_annotations
     )
 
-    print(results["variants"])
-
     ### Reformat the results to TB-Profiler style ###
     results = tbp.reformat(results, conf, reporting_af=args.reporting_af, mutation_metadata=args.add_mutation_metadata)
     results["id"] = args.prefix
