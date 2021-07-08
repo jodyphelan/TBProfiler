@@ -21,7 +21,13 @@ def cleanup():
             for f in glob.glob(files_prefix+"*"):
                 os.remove(f)
         import traceback
-        with open(args.prefix+".errlog", "w") as O:
+        
+        if "prefix" in vars(args):
+            outfile = "%s.errlog" % args.prefix
+        elif "vcf" in vars(args):
+            outfile = "%s.errlog" % args.vcf.split("/")[-1]
+
+        with open(outfile, "w") as O:
             O.write("# tb-profiler error report\n\n")
             O.write("* OS: %s\n" % sys.platform)
             O.write("* Program version: %s\n" % tbp._VERSION)
@@ -49,7 +55,7 @@ https://github.com/jodyphelan/TBProfiler/issues/new and paste or attach the
 contents of the error log (%s)
 
 ###############################################################################
-""" % (args.prefix+".errlog"))
+""" % (outfile))
 
 
 try:
@@ -340,6 +346,12 @@ def main_vcf_profile(args):
         if pp.nofolder(args.dir+"/"+x):
             os.mkdir(args.dir+"/"+x)
 
+    global conf
+    if args.external_db:
+        conf = get_conf_dict(args.external_db)
+    else:
+        conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
+
     if args.lofreq_sample_name:
         import re
         modified_vcf = "%s.lofreq_modified.vcf" % pp.vcf(args.vcf).prefix
@@ -372,10 +384,7 @@ def main_vcf_profile(args):
     if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
         pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
 
-    if args.external_db:
-        conf = get_conf_dict(args.external_db)
-    else:
-        conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
+    
     for sample_name in vcf_obj.samples:
         args.sample_name = sample_name
         files_prefix = args.dir+"/"+sample_name
