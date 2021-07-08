@@ -47,6 +47,81 @@ class vcf:
         run_cmd("bcftools view -R %(bed_file)s %(filename)s -Oz -o %(newfile)s" % vars(self))
         return vcf(self.newfile)
 
+
+    def run_snpeff(self,db,split_indels=True):
+        add_arguments_to_self(self,locals())
+        self.vcf_csq_file = self.prefix+".csq.vcf.gz"
+        if split_indels:
+            self.tmp_file1 = "%s.vcf" % uuid4()
+            self.tmp_file2 = "%s.vcf" % uuid4()
+
+            run_cmd("bcftools view -v snps %(filename)s | snpEff ann %(db)s - > %(tmp_file1)s" % vars(self))
+            run_cmd("bcftools view -v indels %(filename)s | snpEff ann %(db)s - > %(tmp_file2)s" % vars(self))
+            run_cmd("bcftools concat %(tmp_file1)s %(tmp_file2)s | bcftools sort -Oz -o %(vcf_csq_file)s" % vars(self))
+            rm_files([self.tmp_file1, self.tmp_file2])
+
+
+        else :
+            run_cmd("snpEff ann %(db)s %(filename)s > %(vcf_csq_file)s" % vars(self))
+        return vcf(self.vcf_csq_file,self.prefix)
+
+        # run_cmd(f"snpEff ann {db} {self.filename} | bcftools view -Oz -o {self.prefix}.ann.vcf.gz")
+        # return vcf(f"{self.prefix}.ann.vcf.gz")
+
+
+    def load_ann(self,intergenic=False,intragenic=False,upstream=False,downstream=False,noncoding=False,intronic=False,synonymous=False,splice=False):
+        filter_out = []
+        if intergenic==False:
+            filter_out.append("intergenic_region")
+        if intragenic==False:
+            filter_out.append("intragenic_variant")
+        if noncoding==False:
+            filter_out.append("non_coding_transcript_variant")
+        if downstream==False:
+            filter_out.append("downstream_gene_variant")
+        if upstream==False:
+            filter_out.append("upstream_gene_variant")
+        if intronic==False:
+            filter_out.append("intron_variant")
+        if synonymous==False:
+            filter_out.append("synonymous_variant")
+        if splice==False:
+            filter_out.append("splice_region_variant&intron_variant")
+        variants = []
+        for l in cmd_out(f"bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\t%ANN\\t[%AD]\\n' {self.filename}"):
+            chrom,pos,ref,alt_str,ann_str,ad_str = l.strip().split()
+
+            alleles = [ref] + alt_str.split(",")
+            ad = [int(x) for x in ad_str.split(",")]
+            af_dict = {alleles[i]:ad[i]/sum(ad) for i in range(len(alleles))}
+            ann_list = [x.split("|") for x in ann_str.split(",")]
+            annot = {x:[] for x in alleles[1:]}
+            for ann in ann_list:
+                if ann[1] in filter_out:
+                    continue
+                tmp = {
+                    "gene_name":ann[3],
+                    "gene_id":ann[4],
+                    "feature_id":ann[6],
+                    "type":ann[1],
+                    "nucleotide_change":ann[9],
+                    "protein_change":ann[10],
+                    "chrom": chrom,
+                    "pos": pos,
+                    "ref": ref,
+                    "alt":ann[0],
+                    "af": af_dict[ann[0]]
+                }
+                annot[ann[0]].append(tmp)
+            for a in annot:
+                if len(annot[a])==0:
+                    continue
+                tmp_var = annot[a][0]
+                tmp_var["alternate_consequences"] = annot[a][1:]
+                variants.append(tmp_var)
+                
+        return variants
+
     def csq(self,ref_file,gff_file,split_indels=True):
         add_arguments_to_self(self,locals())
         self.vcf_csq_file = self.prefix+".csq.vcf.gz"

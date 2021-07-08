@@ -28,10 +28,10 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
         vcf_obj = bam_obj.call_variants(conf["ref"], caller=caller, bed_file=conf["bed"], threads=threads, calling_params=calling_params, samclip = samclip, min_dp=min_depth)
     if variant_annotations:
         ann_vcf_obj = vcf_obj.add_annotations(conf["ref"],bam_obj.bam_file)
-        csq_vcf_obj = ann_vcf_obj.csq(conf["ref"],conf["gff"])
+        ann_vcf_obj = ann_vcf_obj.run_snpeff(conf["snpEff_db"])
     else:
-        csq_vcf_obj = vcf_obj.csq(conf["ref"],conf["gff"])
-    csq = csq_vcf_obj.load_csq(ann_file=conf["ann"],extract_ann=True)
+        ann_vcf_obj = vcf_obj.run_snpeff(conf["snpEff_db"])
+    ann = ann_vcf_obj.load_ann()
 
 
     ### Get % and num reads mapping ###
@@ -53,8 +53,7 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
     if run_coverage:
         results["qc"]["gene_coverage"] = bam_obj.get_region_coverage(conf["bed"], fraction_threshold= coverage_fraction_threshold)
         results["qc"]["missing_positions"] = bam_obj.get_missing_genomic_positions(cutoff=missing_cov_threshold)
-    for sample in csq:
-        results["variants"]  = csq[sample]
+    results["variants"]  = ann
 
     if no_barcoding:
         results["barcode"] = []

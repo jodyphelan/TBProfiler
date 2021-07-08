@@ -113,6 +113,11 @@ def main_profile(args):
     else:
         conf = tbp.get_conf_dict(args.db)
 
+
+    ###### TESTING ######
+    conf["snpEff_db"] = "Mycobacterium_tuberculosis_h37rv"
+
+
     ### Create folders for results if they don't exist ###
     if pp.nofolder(args.dir):
         os.mkdir(args.dir)
@@ -176,6 +181,8 @@ def main_profile(args):
         min_depth=args.min_depth,delly_bcf_file=args.delly_bcf,call_wg=args.call_whole_genome,
         no_barcoding=args.no_lineage,variant_annotations=args.add_variant_annotations
     )
+
+    print(results["variants"])
 
     ### Reformat the results to TB-Profiler style ###
     results = tbp.reformat(results, conf, reporting_af=args.reporting_af, mutation_metadata=args.add_mutation_metadata)

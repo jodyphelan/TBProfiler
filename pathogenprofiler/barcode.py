@@ -95,14 +95,14 @@ def db_compare(mutations,db_file):
         var = mutations["variants"][i]
         if var["gene_id"] in db:
             db_var_match = None
-            if var["change"] in db[var["gene_id"]]:
+            if var["nucleotide_change"] in db[var["gene_id"]] or var["protein_change"] in db[var["gene_id"]]:
                 db_var_match = db[var["gene_id"]][var["change"]]
             elif "frameshift" in var["type"] and "frameshift" in db[var["gene_id"]]:
                 db_var_match = db[var["gene_id"]]["frameshift"]
-            elif "missense" in var["type"] and "any_missense_codon_%s" % get_missense_codon(var["change"]) in db[var["gene_id"]]:
-                db_var_match = db[var["gene_id"]]["any_missense_codon_%s" % get_missense_codon(var["change"])]
-            elif "frame" in var["type"] and "any_indel_nucleotide_%s" % get_indel_nucleotide(var["change"]) in db[var["gene_id"]]:
-                db_var_match = db[var["gene_id"]]["any_indel_nucleotide_%s" % get_indel_nucleotide(var["change"])]
+            elif "missense" in var["type"] and "any_missense_codon_%s" % get_missense_codon(var["protein_change"]) in db[var["gene_id"]]:
+                db_var_match = db[var["gene_id"]]["any_missense_codon_%s" % get_missense_codon(var["protein_change"])]
+            elif "frame" in var["type"] and "any_indel_nucleotide_%s" % get_indel_nucleotide(var["nucleotide_change"]) in db[var["gene_id"]]:
+                db_var_match = db[var["gene_id"]]["any_indel_nucleotide_%s" % get_indel_nucleotide(var["nucleotide_change"])]
             elif "stop_gained" in var["type"] and "premature_stop" in db[var["gene_id"]]:
                 db_var_match = db[var["gene_id"]]["premature_stop"]
             elif "large_deletion" in var["type"] and "large_deletion" in db[var["gene_id"]]:
