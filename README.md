@@ -104,10 +104,11 @@ The `collate` function extracts the drug-resistance mutations and lineage, howev
 
 TBProfiler ships with a default database. The development of the mutation library is hosted on the [tbdb repository](https://github.com/jodyphelan/tbdb). Please visity this repo if you would like to get involved in the database or would like to modify and create your own.
 
-If you would like to use an altered database you can load the config file produced by `parse_db.py` as such:
+If you would like to use an altered database you can download the tbdb repo, make the required changes and run the following code from within the tbdb repo directory:
 
 ```text
-tb-profiler load_library [config.json]
+tb-profiler create_db --prefix <new_library_name>
+tb-profiler load_library --prefix <new_library_name>
 ```
 
 ### Non-H37Rv databases
