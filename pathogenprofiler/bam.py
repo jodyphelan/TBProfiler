@@ -82,13 +82,14 @@ class bam:
     def get_bed_gt(self,bed_file,ref_file,caller):
         add_arguments_to_self(self, locals())
         results = defaultdict(lambda : defaultdict(dict))
-
+        run_cmd("samtools view -Mb -L %(bed_file)s %(bam_file)s > %(prefix)s.tmp.bam" % vars(self))
+        run_cmd("samtools index %(prefix)s.tmp.bam" % vars(self))
         if caller == "gatk":
-            cmd = "gatk HaplotypeCaller -I %(bam_file)s -R %(ref_file)s -L %(bed_file)s -OVI false -O /dev/stdout | bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
+            cmd = "gatk HaplotypeCaller -I %(prefix)s.tmp.bam -R %(ref_file)s -L %(bed_file)s -OVI false -O /dev/stdout | bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
         elif caller == "freebayes":
-            cmd = "freebayes -f %(ref_file)s -t %(bed_file)s %(bam_file)s --haplotype-length -1 | bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
+            cmd = "freebayes -f %(ref_file)s -t %(bed_file)s %(prefix)s.tmp.bam --haplotype-length -1 | bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
         else:
-            cmd = "bcftools mpileup -f %(ref_file)s -R %(bed_file)s %(bam_file)s -BI -a AD | bcftools call -mv | bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
+            cmd = "bcftools mpileup -f %(ref_file)s -R %(bed_file)s %(prefix)s.tmp.bam -BI -a AD | bcftools call -mv | bcftools query -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%GT\\t%%AD]\\n'" % vars(self)
 
         for l in cmd_out(cmd):
             # Chromosome    4348079    0/0    51
