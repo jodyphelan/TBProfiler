@@ -7,7 +7,7 @@ from .fasta import fasta
 
 
 
-def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagstat=False, run_delly=True, calling_params=None, delly_bcf_file=None, run_coverage=True, coverage_fraction_threshold=0, min_depth = 10, missing_cov_threshold=10, samclip=False, variant_annotations = False, call_wg=False):
+def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagstat=False, run_delly=True, calling_params=None, delly_bcf_file=None, run_coverage=True, coverage_fraction_threshold=0, min_depth = 10, missing_cov_threshold=10, samclip=False, variant_annotations = False, call_wg=False, no_barcoding=True):
     log("Using %s\n\nPlease ensure that this BAM was made using the same reference as in the database.\nIf you are not sure what reference was used it is best to remap the reads." % bam_file)
 
     ### Put user specified arguments to lower case ###
@@ -56,8 +56,11 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
     for sample in csq:
         results["variants"]  = csq[sample]
 
-    mutations = bam_obj.get_bed_gt(conf["barcode"],conf["ref"], caller=caller)
-    results["barcode"] = barcode(mutations,conf["barcode"])
+    if no_barcoding:
+        results["barcode"] = []
+    else:
+        mutations = bam_obj.get_bed_gt(conf["barcode"],conf["ref"], caller=caller)
+        results["barcode"] = barcode(mutations,conf["barcode"])
 
     ### Run delly if specified ###
     if run_delly:

@@ -173,7 +173,8 @@ def main_profile(args):
         run_delly = run_delly, calling_params=args.calling_params,
         coverage_fraction_threshold=args.coverage_fraction_threshold,
         missing_cov_threshold=args.missing_cov_threshold, samclip=True,
-        min_depth=args.min_depth,delly_bcf_file=args.delly_bcf,call_wg=args.call_whole_genome
+        min_depth=args.min_depth,delly_bcf_file=args.delly_bcf,call_wg=args.call_whole_genome,
+        no_barcoding=args.no_lineage
     )
 
     ### Reformat the results to TB-Profiler style ###
@@ -447,7 +448,7 @@ output.add_argument('--csv',action="store_true",help="Add CSV output")
 output.add_argument('--txt',action="store_true",help="Add text output")
 output.add_argument('--pdf',action="store_true",help="Add PDF output. This requires pdflatex to be installed")
 output.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and csv results")
-output.add_argument('--add_mutation_metadata',action="store_true",help="Add mutation data from the tbdr database (not currently functional)")
+output.add_argument('--add_mutation_metadata',action="store_true",help=argparse.SUPPRESS)
 output.add_argument('--call_whole_genome',action="store_true",help="Call whole genome")
 
 algorithm=parser_sub.add_argument_group("Algorithm options")
@@ -462,6 +463,7 @@ algorithm.add_argument('--missing_cov_threshold',type=int,help='Cutoff used to p
 algorithm.add_argument('--no_trim',action="store_true",help="Don't trim files using trimmomatic")
 algorithm.add_argument('--no_flagstat',action="store_true",help="Don't collect flagstats")
 algorithm.add_argument('--no_delly',action="store_true",help="Don't run delly")
+algorithm.add_argument('--no_lineage',action="store_true",help=argparse.SUPPRESS)
 algorithm.add_argument('--threads','-t',default=1,help='Threads to use',type=int)
 
 other=parser_sub.add_argument_group("Other options")
