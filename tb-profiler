@@ -174,7 +174,7 @@ def main_profile(args):
         coverage_fraction_threshold=args.coverage_fraction_threshold,
         missing_cov_threshold=args.missing_cov_threshold, samclip=True,
         min_depth=args.min_depth,delly_bcf_file=args.delly_bcf,call_wg=args.call_whole_genome,
-        no_barcoding=args.no_lineage
+        no_barcoding=args.no_lineage,variant_annotations=args.add_variant_annotations
     )
 
     ### Reformat the results to TB-Profiler style ###
@@ -464,6 +464,7 @@ algorithm.add_argument('--no_trim',action="store_true",help="Don't trim files us
 algorithm.add_argument('--no_flagstat',action="store_true",help="Don't collect flagstats")
 algorithm.add_argument('--no_delly',action="store_true",help="Don't run delly")
 algorithm.add_argument('--no_lineage',action="store_true",help=argparse.SUPPRESS)
+algorithm.add_argument('--add_variant_annotations',action="store_true",help=argparse.SUPPRESS)
 algorithm.add_argument('--threads','-t',default=1,help='Threads to use',type=int)
 
 other=parser_sub.add_argument_group("Other options")
