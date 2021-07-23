@@ -1,7 +1,7 @@
 import pathogenprofiler as pp
 import json
 from collections import defaultdict
-from .utils import get_genome_positions_from_json_db,rv2genes
+from .utils import get_genome_positions_from_json_db, get_lt2drugs,rv2genes
 
 
 def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=0.0):
@@ -105,6 +105,7 @@ def barcode2lineage(results,max_node_skip=1):
 
 def reformat_annotations(results,conf,reporting_af=0.1):
     #Chromosome      4998    Rv0005  -242
+    lt2drugs = get_lt2drugs(conf["bed"])
     chr2gene_pos = {}
     for l in open(conf["ann"]):
         row = l.rstrip().split()
@@ -132,6 +133,7 @@ def reformat_annotations(results,conf,reporting_af=0.1):
                 del var["annotation"]
                 results["other_variants"].append(var)
         else:
+            var["gene_associated_drugs"] = lt2drugs[var["locus_tag"]]
             results["other_variants"].append(var)
     del results["variants"]
 
