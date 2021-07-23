@@ -352,10 +352,11 @@ def main_vcf_profile(args):
         conf = get_conf_dict(args.external_db)
     else:
         conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
+    args.tmp_prefix = str(uuid4())
 
     if args.lofreq_sample_name:
         import re
-        modified_vcf = "%s.lofreq_modified.vcf" % pp.vcf(args.vcf).prefix
+        modified_vcf = f"{args.tmp_prefix}.lofreq_modified.vcf"
         with open(modified_vcf,"w") as O:
             for l in pp.cmd_out("bcftools view %(vcf)s" % vars(args)):
                 row = l.strip().split()
