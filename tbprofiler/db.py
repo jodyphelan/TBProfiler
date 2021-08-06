@@ -93,7 +93,7 @@ def parse_mutation(mut,gene,fasta_dict,gene_info):
         seq = fasta_dict["Chromosome"][chr_start_nt-2:chr_end_nt]
         return ["%s%s>%s" % (chr_start_nt-1, seq, seq[0])]
     # Insertion
-    re_obj = re.search("c.([0-9]+)_([0-9]+)ins([A-Z]+)", mut)
+    re_obj = re.search("c.([\-0-9]+)_([\-0-9]+)ins([A-Z]+)", mut)
     if re_obj:
         gene_start_nt = int(re_obj.group(1))
         seq_ins = re_obj.group(3)
