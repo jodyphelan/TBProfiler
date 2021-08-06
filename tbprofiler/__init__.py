@@ -6,4 +6,4 @@ from .utils import * # noqa
 from .db import * # noqa
 import os
 _ROOT = os.path.abspath(os.path.dirname(__file__))
-_VERSION = "3.0.6"
+_VERSION = "3.0.7"

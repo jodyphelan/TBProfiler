@@ -5,7 +5,7 @@ setuptools.setup(
 
 	name="tbprofiler",
 
-	version="3.0.6",
+	version="3.0.7",
 	packages=["tbprofiler","pathogenprofiler"],
 	license="MIT",
 	long_description="TBProfiler command line tool",
