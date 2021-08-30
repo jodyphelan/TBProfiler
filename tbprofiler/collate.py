@@ -84,12 +84,12 @@ def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_res
         for s in samples:
             VAR.write("%s\t%s\n" % (s,"\t".join(["%.3f" % dr_variants[gene][change][s] if gene in dr_variants and change in dr_variants[gene] and s in dr_variants[gene][change] else "0" for gene,change in sorted(dr_variants_set,key=lambda x: x[0])])))
         VAR.close()
-
-    results[s]["num_dr_variants"] = len(sample_dr_mutations_set[s])
-    results[s]["num_other_variants"] = len(sample_other_mutations_set[s])
+    
     OUT = open(prefix+".txt","w")
     OUT.write("sample\tmain_lineage\tsub_lineage\tDR_type\tnum_dr_variants\tnum_other_variants\t%s" % "\t".join(drug_list)+"\n")
     for s in samples:
+        results[s]["num_dr_variants"] = len(sample_dr_mutations_set[s])
+        results[s]["num_other_variants"] = len(sample_other_mutations_set[s])
         OUT.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" %(s,results[s]["main_lin"],results[s]["sublin"],results[s]["drtype"],results[s]["num_dr_variants"],results[s]["num_other_variants"],"\t".join([results[s][x] for x in drug_list])))
     OUT.close()
     json.dump(results,open(prefix+".json","w"))
