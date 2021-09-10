@@ -48,14 +48,14 @@ class vcf:
         return vcf(self.newfile)
 
 
-    def run_snpeff(self,db,split_indels=True):
+    def run_snpeff(self,db,ref_file,gff_file,split_indels=True):
         add_arguments_to_self(self,locals())
         self.vcf_csq_file = self.prefix+".csq.vcf.gz"
         if split_indels:
             self.tmp_file1 = "%s.vcf" % uuid4()
             self.tmp_file2 = "%s.vcf" % uuid4()
 
-            run_cmd("bcftools view -v snps %(filename)s | snpEff ann %(db)s - > %(tmp_file1)s" % vars(self))
+            run_cmd("bcftools view -v snps %(filename)s | combine_vcf_variants.py --ref %(ref_file)s --gff %(gff_file)s | snpEff ann %(db)s - > %(tmp_file1)s" % vars(self))
             run_cmd("bcftools view -v indels %(filename)s | snpEff ann %(db)s - > %(tmp_file2)s" % vars(self))
             run_cmd("bcftools concat %(tmp_file1)s %(tmp_file2)s | bcftools sort -Oz -o %(vcf_csq_file)s" % vars(self))
             rm_files([self.tmp_file1, self.tmp_file2])
@@ -110,7 +110,7 @@ class vcf:
                     "pos": pos,
                     "ref": ref,
                     "alt":ann[0],
-                    "af": af_dict[ann[0]]
+                    "freq": af_dict[ann[0]]
                 }
                 annot[ann[0]].append(tmp)
             for a in annot:

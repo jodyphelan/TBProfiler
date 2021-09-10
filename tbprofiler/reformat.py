@@ -111,9 +111,9 @@ def reformat_annotations(results,conf,reporting_af=0.1):
     for l in open(conf["ann"]):
         row = l.rstrip().split()
         chr2gene_pos[int(row[1])] = int(row[3])
-    for var in results["variants"]:
-        var["_internal_change"] = var["change"]
-        var["change"] = pp.reformat_mutations(var["change"],var["type"],var["locus_tag"],chr2gene_pos)
+    # for var in results["variants"]:
+        # var["_internal_change"] = var["change"]
+        # var["change"] = pp.reformat_mutations(var["change"],var["type"],var["locus_tag"],chr2gene_pos)
     resistant_drugs = set()
     results["dr_variants"] = []
     results["other_variants"] = []

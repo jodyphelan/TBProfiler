@@ -28,9 +28,9 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
         vcf_obj = bam_obj.call_variants(conf["ref"], caller=caller, bed_file=conf["bed"], threads=threads, calling_params=calling_params, samclip = samclip, min_dp=min_depth)
     if variant_annotations:
         ann_vcf_obj = vcf_obj.add_annotations(conf["ref"],bam_obj.bam_file)
-        ann_vcf_obj = ann_vcf_obj.run_snpeff(conf["snpEff_db"])
+        ann_vcf_obj = ann_vcf_obj.run_snpeff(conf["snpEff_db"],conf["ref"],conf["gff"])
     else:
-        ann_vcf_obj = vcf_obj.run_snpeff(conf["snpEff_db"])
+        ann_vcf_obj = vcf_obj.run_snpeff(conf["snpEff_db"],conf["ref"],conf["gff"])
     ann = ann_vcf_obj.load_ann()
 
 
@@ -84,7 +84,7 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
 
     ### Compare variants to database ###
     results = db_compare(db_file=conf["json_db"], mutations=results)
-
+    print(results)
     return results
 
 
