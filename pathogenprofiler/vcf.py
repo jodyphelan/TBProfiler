@@ -55,8 +55,8 @@ class vcf:
             self.tmp_file1 = "%s.vcf" % uuid4()
             self.tmp_file2 = "%s.vcf" % uuid4()
 
-            run_cmd("bcftools view -v snps %(filename)s | combine_vcf_variants.py --ref %(ref_file)s --gff %(gff_file)s | snpEff ann %(db)s - > %(tmp_file1)s" % vars(self))
-            run_cmd("bcftools view -v indels %(filename)s | snpEff ann %(db)s - > %(tmp_file2)s" % vars(self))
+            run_cmd("bcftools view -v snps %(filename)s | combine_vcf_variants.py --ref %(ref_file)s --gff %(gff_file)s | snpEff ann -noStats %(db)s - > %(tmp_file1)s" % vars(self))
+            run_cmd("bcftools view -v indels %(filename)s | snpEff ann -noStats %(db)s - > %(tmp_file2)s" % vars(self))
             run_cmd("bcftools concat %(tmp_file1)s %(tmp_file2)s | bcftools sort -Oz -o %(vcf_csq_file)s" % vars(self))
             rm_files([self.tmp_file1, self.tmp_file2])
 
@@ -69,7 +69,7 @@ class vcf:
         # return vcf(f"{self.prefix}.ann.vcf.gz")
 
 
-    def load_ann(self,intergenic=False,intragenic=False,upstream=False,downstream=False,noncoding=False,intronic=False,synonymous=False,splice=False):
+    def load_ann(self,max_promoter_length=200, bed_file=None,intergenic=False,intragenic=False,upstream=False,downstream=False,noncoding=False,intronic=False,synonymous=False,splice=False):
         filter_out = []
         if intergenic==False:
             filter_out.append("intergenic_region")
@@ -77,6 +77,7 @@ class vcf:
             filter_out.append("intragenic_variant")
         if noncoding==False:
             filter_out.append("non_coding_transcript_variant")
+            filter_out.append("non_coding_transcript_exon_variant")
         if downstream==False:
             filter_out.append("downstream_gene_variant")
         if upstream==False:
@@ -87,6 +88,13 @@ class vcf:
             filter_out.append("synonymous_variant")
         if splice==False:
             filter_out.append("splice_region_variant&intron_variant")
+        
+        if bed_file:
+            genes_to_keep = []
+            for l in open(bed_file):
+                row = l.strip().split()
+                genes_to_keep.append((row[3],row[4]))
+
         variants = []
         for l in cmd_out(f"bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\t%ANN\\t[%AD]\\n' {self.filename}"):
             chrom,pos,ref,alt_str,ann_str,ad_str = l.strip().split()
@@ -95,10 +103,33 @@ class vcf:
             ad = [int(x) for x in ad_str.split(",")]
             af_dict = {alleles[i]:ad[i]/sum(ad) for i in range(len(alleles))}
             ann_list = [x.split("|") for x in ann_str.split(",")]
-            annot = {x:[] for x in alleles[1:]}
+            tmp_var = {
+                "chrom": chrom,
+                "pos": pos,
+                "ref": ref,
+                "alt":alleles[1],
+                "freq":af_dict[alleles[1]],
+                "consequences":[]
+            }
+            # if pos=="1473246":
+            #     import pdb; pdb.set_trace()
             for ann in ann_list:
                 if ann[1] in filter_out:
                     continue
+                if bed_file:
+                    if ann[3] in [x[1] for x in genes_to_keep] or ann[4] in [x[0] for x in genes_to_keep]:
+                        pass
+                    else:
+                        continue
+                if ann[1]=="upstream_gene_variant":
+                    print(ann)
+                    r = re.search("[cn].-([0-9]+)",ann[9])
+                    if int(r.group(1))>max_promoter_length:
+                        continue
+                    if ann[9]=="c.-3624C>T":
+                        import pdb; pdb.set_trace()
+                if ann[2]=="non_coding_transcript_exon_variant":
+                    ann[9] = re.sub("n.","r.",ann[9])
                 tmp = {
                     "gene_name":ann[3],
                     "gene_id":ann[4],
@@ -106,19 +137,9 @@ class vcf:
                     "type":ann[1],
                     "nucleotide_change":ann[9],
                     "protein_change":ann[10],
-                    "chrom": chrom,
-                    "pos": pos,
-                    "ref": ref,
-                    "alt":ann[0],
-                    "freq": af_dict[ann[0]]
                 }
-                annot[ann[0]].append(tmp)
-            for a in annot:
-                if len(annot[a])==0:
-                    continue
-                tmp_var = annot[a][0]
-                tmp_var["alternate_consequences"] = annot[a][1:]
-                variants.append(tmp_var)
+                tmp_var["consequences"].append(tmp)
+            variants.append(tmp_var)
                 
         return variants
 

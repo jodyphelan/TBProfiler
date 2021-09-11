@@ -1,3 +1,4 @@
+import sys
 import pathogenprofiler as pp
 import json
 from collections import defaultdict
@@ -46,6 +47,32 @@ def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=
     new_json["drug_table"] = drug_table
     new_json["pipline_table"] = pipeline_tbl
     return new_json
+
+def select_most_relevant_csq(csqs):
+    rank = ["frameshift_variant","missense_variant","non_coding_transcript_exon_variant","upstream_gene_variant","synonymous_variant"]
+    return sorted(csqs,key=lambda x:rank.index(x["type"]))[0]
+
+def select_csq(dict_list):
+    for d in dict_list:
+        print(d)
+        annotated_csq = []
+        for csq in d["consequences"]:
+            if "annotation" in csq:
+                annotated_csq.append(csq)
+        if len(annotated_csq)==0:
+            csq = select_most_relevant_csq(d["consequences"])
+            alternate_consequences = [json.dumps(x) for x in d["consequences"]]
+            alternate_consequences.remove(json.dumps(csq))
+            alternate_consequences = [json.loads(x) for x in alternate_consequences]
+        elif len(annotated_csq)==1:
+            csq = annotated_csq[0]
+            alternate_consequences = []
+        else:
+            quit("ERROR! too many csqs")
+        del d["consequences"]
+        d.update(csq)
+        d["alternate_consequences"] = alternate_consequences
+    return dict_list
 
 def dict_list_add_genes(dict_list,conf):
     rv2gene = {}
@@ -167,7 +194,7 @@ unlist = lambda t: [item for sublist in t for item in sublist]
 
 def reformat_missing_genome_pos(results,conf):
     rv2gene = rv2genes(conf["bed"])
-    dr_associated_genome_pos = get_genome_positions_from_json_db(conf["json_db"],conf["ann"])
+    dr_associated_genome_pos = get_genome_positions_from_json_db(conf["json_db"],conf["ann"],conf["gff"])
     genome_pos2gene_pos = {}
     genome_pos2gene = {}
     for l in open(conf["ann"]):
@@ -201,6 +228,8 @@ def reformat_missing_genome_pos(results,conf):
 
 
 def reformat(results,conf,reporting_af,mutation_metadata=False):
+    results["variants"] = [x for x in results["variants"] if len(x["consequences"])>0]
+    results["variants"] = select_csq(results["variants"])
     results["variants"] = dict_list_add_genes(results["variants"],conf)
     if "gene_coverage" in results["qc"]:
         results["qc"]["gene_coverage"] = dict_list_add_genes(results["qc"]["gene_coverage"],conf)

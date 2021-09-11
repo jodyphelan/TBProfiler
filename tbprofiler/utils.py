@@ -11,7 +11,7 @@ def get_conf_dict_with_path(library_path):
     for key in files:
         sys.stderr.write("Using %s file: %s\n" % (key,library_path+files[key]))
         conf[key] = pp.filecheck(library_path+files[key])
-    test = json.load(open(conf["json_db"]))["Rv1908c"]["315S>315T"]
+    test = json.load(open(conf["json_db"]))["Rv1908c"]["p.Ser315Thr"]
     if "annotation" not in test and "drugs" in test:
         quit("""\n
 ################################# ERROR #######################################
@@ -66,10 +66,39 @@ def get_drugs2gene(bed_file):
             results[drug].append(gene)
     return dict(results)
 
+class gene_class:
+    def __init__(self,name,locus_tag,strand,start,end,length):
+        self.name = name
+        self.locus_tag = locus_tag
+        self.strand = strand
+        self.start = start
+        self.end = end
+        self.length = length
 
-def get_genome_positions_from_json_db(json_file,ann_file):
+def load_gff(gff):
+    genes = {}
+    for l in open(gff):
+        if l[0]=="#": continue
+        fields = l.rstrip().split()
+        if fields[2]!="gene": continue
+        strand = fields[6]
+        p1 = int(fields[3])
+        p2 = int(fields[4])
+        gene_length = p2-p1+1
+        re_obj = re.search("Name=([a-zA-Z0-9\.\-\_]+)",l)
+        gene_name = re_obj.group(1) if re_obj else "NA"
+        re_obj = re.search("gene_id=([a-zA-Z0-9\.\-\_]+)",l)
+        locus_tag = re_obj.group(1) if re_obj else "NA"
+        start = p1 if strand=="+" else p2
+        end =  p2 if strand=="+" else p1
+        tmp = gene_class(gene_name,locus_tag,strand,start,end,gene_length)
+        genes[locus_tag] = tmp
+    return genes
+
+def get_genome_positions_from_json_db(json_file,ann_file,gff_file):
     codon_ann = defaultdict(set)
     gene_ann = {}
+    
     for l in open(ann_file):
         #Chromosome      5002    Rv0005  -238
         _,genome_pos,gene,gene_pos = l.strip().split()
@@ -82,16 +111,14 @@ def get_genome_positions_from_json_db(json_file,ann_file):
                 codon = ((gene_pos-1)//3) + 1
                 codon_ann[(gene,codon)].add(genome_pos)
 
-
         gene_ann[(gene,gene_pos)] = genome_pos
 
-
+    gene_info = load_gff(gff_file)
     genome_positions = defaultdict(set)
     db = json.load(open(json_file))
     for gene in db:
-        for _var in db[gene]:
-            var = db[gene][_var]["hgvs_mutation"]
-            drugs = tuple([x["drug"] for x in db[gene][_var]["annotations"]])
+        for var in db[gene]:
+            drugs = tuple([x["drug"] for x in db[gene][var]["annotations"]])
             if var[0]=="p":
                 #p.Thr40Ile
                 re_obj = re.match("p.[A-Za-z]+([0-9]+)[A-Za-z\*]",var)
@@ -123,7 +150,12 @@ def get_genome_positions_from_json_db(json_file,ann_file):
                     #c.-16C>T
                     re_obj = re.match("c.(-[0-9]+)[A-Z]>[A-Z]", var)
                     gene_pos = int(re_obj.group(1))
-                    genome_positions[gene_ann[(gene,gene_pos)]].add((gene,var,drugs))
+                    g = gene_info[gene]
+                    if g.strand == "+":
+                        genome_pos = g.start + gene_pos
+                    else:
+                        genome_pos = g.start - gene_pos 
+                    genome_positions[genome_pos].add((gene,var,drugs))
 
             elif var[0]=="r":
                 #rrl r.2814g>t

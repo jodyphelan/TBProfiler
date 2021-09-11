@@ -31,7 +31,7 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
         ann_vcf_obj = ann_vcf_obj.run_snpeff(conf["snpEff_db"],conf["ref"],conf["gff"])
     else:
         ann_vcf_obj = vcf_obj.run_snpeff(conf["snpEff_db"],conf["ref"],conf["gff"])
-    ann = ann_vcf_obj.load_ann()
+    ann = ann_vcf_obj.load_ann(bed_file=conf["bed"],upstream=True,synonymous=True,noncoding=True)
 
 
     ### Get % and num reads mapping ###
