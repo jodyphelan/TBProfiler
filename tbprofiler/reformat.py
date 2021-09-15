@@ -49,8 +49,12 @@ def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=
     return new_json
 
 def select_most_relevant_csq(csqs):
-    rank = ["frameshift_variant","missense_variant","non_coding_transcript_exon_variant","upstream_gene_variant","synonymous_variant"]
-    return sorted(csqs,key=lambda x:rank.index(x["type"]))[0]
+    rank = ["frameshift_variant","start_lost","disruptive_inframe_deletion","disruptive_inframe_insertion","stop_gained","conservative_inframe_deletion","conservative_inframe_insertion","missense_variant","non_coding_transcript_exon_variant","upstream_gene_variant","stop_retained_variant","synonymous_variant"]
+    ranked_csq = []
+    for csq in csqs:
+        ranked_csq.append([i for i,d in enumerate(rank) if d in csq["type"]][0])
+    
+    return csqs[ranked_csq.index(min(ranked_csq))]
 
 def select_csq(dict_list):
     for d in dict_list:
