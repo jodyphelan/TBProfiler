@@ -57,7 +57,8 @@ def select_most_relevant_csq(csqs):
     return csq1
 
 def set_change(var):
-    var["change"] = var["protein_change"] if var["type"]=="missense_variant" else var["nucleotide_change"]
+    protein_csqs = ["missense_variant","stop_gained"]
+    var["change"] = var["protein_change"] if var["type"] in protein_csqs else var["nucleotide_change"]
     return var
 
 def select_csq(dict_list):

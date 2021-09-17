@@ -105,7 +105,7 @@ class vcf:
             ann_list = [x.split("|") for x in ann_str.split(",")]
             tmp_var = {
                 "chrom": chrom,
-                "pos": pos,
+                "genome_pos": int(pos),
                 "ref": ref,
                 "alt":alleles[1],
                 "freq":af_dict[alleles[1]],
