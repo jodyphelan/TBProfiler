@@ -54,12 +54,14 @@ def select_most_relevant_csq(csqs):
     for csq in csqs:
         ranked_csq.append([i for i,d in enumerate(rank) if d in csq["type"]][0])
     csq1 = csqs[ranked_csq.index(min(ranked_csq))]
-    csq1["change"] = csq["protein_change"] if csq["type"]=="missense_variant" else csq1["nucleotide_change"]
     return csq1
+
+def set_change(var):
+    var["change"] = var["protein_change"] if var["type"]=="missense_variant" else var["nucleotide_change"]
+    return var
 
 def select_csq(dict_list):
     for d in dict_list:
-        print(d)
         annotated_csq = []
         for csq in d["consequences"]:
             if "annotation" in csq:
@@ -77,6 +79,7 @@ def select_csq(dict_list):
         del d["consequences"]
         d.update(csq)
         d["alternate_consequences"] = alternate_consequences
+        d = set_change(d)
     return dict_list
 
 def dict_list_add_genes(dict_list,conf):
