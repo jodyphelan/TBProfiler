@@ -53,8 +53,9 @@ def select_most_relevant_csq(csqs):
     ranked_csq = []
     for csq in csqs:
         ranked_csq.append([i for i,d in enumerate(rank) if d in csq["type"]][0])
-    
-    return csqs[ranked_csq.index(min(ranked_csq))]
+    csq1 = csqs[ranked_csq.index(min(ranked_csq))]
+    csq1["change"] = csq["protein_change"] if csq["type"]=="missense_variant" else csq1["nucleotide_change"]
+    return csq1
 
 def select_csq(dict_list):
     for d in dict_list:
