@@ -169,23 +169,23 @@ def reformat_annotations(results,conf,reporting_af=0.1):
             results["other_variants"].append(var)
     del results["variants"]
 
-    FLQ_set = set(["moxifloxacin","levofloxacin","ciprofloxacin","ofloxacin"])
-    SLI_set = set(["amikacin","capreomycin","kanamycin"])
+    FLQ_set = set(["levofloxacin","moxifloxacin","ciprofloxacin","ofloxacin"])
+    groupA_set = set(["bedaquiline","linezolid"])
 
     rif = "rifampicin" in resistant_drugs
     inh = "isoniazid" in resistant_drugs
     flq = len(FLQ_set.intersection(resistant_drugs)) > 0
-    sli = len(SLI_set.intersection(resistant_drugs)) > 0
+    gpa = len(groupA_set.intersection(resistant_drugs)) > 0
 
     if len(resistant_drugs)==0:
         drtype = "Sensitive"
     elif (rif and not inh) or (inh and not rif):
         drtype = "Pre-MDR"
-    elif (rif and inh) and (not flq and not sli):
+    elif (rif and inh) and (not flq and not gpa):
         drtype = "MDR"
-    elif (rif and inh) and ( (flq and not sli) or (sli and not flq) ):
+    elif (rif and inh) and (flq and not gpa):
         drtype = "Pre-XDR"
-    elif (rif and inh) and (flq and sli):
+    elif (rif and inh) and (flq and gpa):
         drtype = "XDR"
     else:
         drtype = "Other"
