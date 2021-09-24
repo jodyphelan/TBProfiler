@@ -126,10 +126,7 @@ class vcf:
                     r = re.search("[cn].-([0-9]+)",ann[9])
                     if int(r.group(1))>max_promoter_length:
                         continue
-                    if ann[9]=="c.-3624C>T":
-                        import pdb; pdb.set_trace()
-                if ann[2]=="non_coding_transcript_exon_variant":
-                    ann[9] = re.sub("n.","r.",ann[9])
+
                 tmp = {
                     "gene_name":ann[3],
                     "gene_id":ann[4],

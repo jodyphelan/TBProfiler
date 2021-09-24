@@ -157,9 +157,9 @@ def get_genome_positions_from_json_db(json_file,ann_file,gff_file):
                         genome_pos = g.start - gene_pos 
                     genome_positions[genome_pos].add((gene,var,drugs))
 
-            elif var[0]=="r":
+            elif var[0]=="n":
                 #rrl r.2814g>t
-                re_obj = re.match("r.([0-9]+)[A-Za-z]+>[A-Za-z]+",var)
+                re_obj = re.match("n.([0-9]+)[A-Za-z]+>[A-Za-z]+",var)
                 gene_pos = int(re_obj.group(1))
                 genome_positions[gene_ann[(gene,gene_pos)]].add((gene,var,drugs))
 
@@ -173,7 +173,7 @@ def get_genome_positions_from_json_db(json_file,ann_file,gff_file):
                 for pos in codon_ann[(gene,codon_pos)]:
                     genome_positions[pos].add((gene,var,drugs))
             else:
-                quit()
+                quit("Don't know how to extract genome position from %s" % var)
 
     return genome_positions
 

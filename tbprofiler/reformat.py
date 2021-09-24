@@ -89,7 +89,6 @@ def dict_list_add_genes(dict_list,conf):
         row = l.rstrip().split()
         rv2gene[row[3]] = row[4]
     for d in dict_list:
-        print(d)
         d["locus_tag"] = d["gene_id"]
         d["gene"] = rv2gene[d["gene_id"]]
         del d["gene_id"]

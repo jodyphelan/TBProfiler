@@ -285,7 +285,7 @@ def main_collate(args):
     tbp.collate_results(args.prefix,conf,sample_file=args.samples,result_dir=args.dir,reporting_af=args.reporting_af,mark_missing=args.mark_missing)
 
 def main_version(args):
-    print("\nTBProfiler version %s\n" % tbp._VERSION)
+    sys.stdout.write("\nTBProfiler version %s\n" % tbp._VERSION)
 
 def main_reformat(args):
     if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
