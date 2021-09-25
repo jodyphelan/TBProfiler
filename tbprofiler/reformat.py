@@ -183,8 +183,10 @@ def reformat_annotations(results,conf,reporting_af=0.1):
 
     if len(resistant_drugs)==0:
         drtype = "Sensitive"
-    elif (rif and not inh) or (inh and not rif):
-        drtype = "Pre-MDR"
+    elif (rif and not inh) and (not flq and not gpa):
+        drtype = "RR-TB"
+    elif (inh and not rif) and (not flq and not gpa):
+        drtype = "HR-MDR"
     elif (rif and inh) and (not flq and not gpa):
         drtype = "MDR"
     elif (rif and inh) and (flq and not gpa):

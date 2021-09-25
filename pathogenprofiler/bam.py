@@ -71,6 +71,20 @@ class bam:
         self.pct_reads_mapped = 0.0 if self.num_reads_mapped == 0 else float(lines[4][4][1:-1])
         return self.num_reads_mapped,self.pct_reads_mapped
 
+    def get_median_coverage(self):
+        lines = []
+        for l in cmd_out("bedtools genomecov -ibam %s" % (self.bam_file)):
+            arr = l.split()
+            if arr[0]=="genome":
+                lines.append(arr)
+        midpoint =  int(lines[0][3])/2
+        x = 0
+        for row in lines:
+            x = x + int(row[2])
+            if x>midpoint:
+                break
+        return int(row[1])
+        
     def bed_zero_cov_regions(self,bed_file):
         add_arguments_to_self(self, locals())
         cmd = "bedtools coverage -sorted -b %(bam_file)s -a %(bed_file)s" % vars(self)

@@ -131,6 +131,15 @@ def get_genome_positions_from_json_db(json_file,ann_file,gff_file):
                     re_obj = re.match("c.([0-9]+)_([0-9]+)ins[A-Za-z]+",var)
                     gene_pos = int(re_obj.group(1))
                     genome_positions[gene_ann[(gene,gene_pos)]].add((gene,var,drugs))
+                elif "dup" in var:
+                    re_obj = re.match("c.([0-9]+)dup[A-Za-z]+",var)
+                    if re_obj:
+                        gene_pos = int(re_obj.group(1))
+                        genome_positions[gene_ann[(gene,gene_pos)]].add((gene,var,drugs))
+                    re_obj = re.match("c.([0-9]+)_([0-9]+)dup[A-Za-z]+",var)
+                    if re_obj:
+                        gene_pos = int(re_obj.group(1))
+                        genome_positions[gene_ann[(gene,gene_pos)]].add((gene,var,drugs))
 
                 elif "del" in var:
                     if "_" in var:

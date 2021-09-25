@@ -46,7 +46,8 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
         "variants":[],
         "qc":{
             "pct_reads_mapped":bam_obj.pct_reads_mapped,
-            "num_reads_mapped":bam_obj.num_reads_mapped
+            "num_reads_mapped":bam_obj.num_reads_mapped,
+            "median_coverage":bam_obj.get_median_coverage()
         }
     }
 
