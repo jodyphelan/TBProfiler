@@ -87,7 +87,6 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
 
     ### Compare variants to database ###
     results = db_compare(db_file=conf["json_db"], mutations=results)
-    print(results)
     return results
 
 
