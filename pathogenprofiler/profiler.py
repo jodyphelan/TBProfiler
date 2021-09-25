@@ -38,8 +38,10 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
     if no_flagstat:
         bam_obj.pct_reads_mapped = "NA"
         bam_obj.num_reads_mapped = "NA"
+        bam_obj.median_coverage = "NA"
     else:
         bam_obj.flagstat()
+        bam_obj.get_median_coverage()
 
     ### Put results into a dictionary ###
     results = {
@@ -47,7 +49,7 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
         "qc":{
             "pct_reads_mapped":bam_obj.pct_reads_mapped,
             "num_reads_mapped":bam_obj.num_reads_mapped,
-            "median_coverage":bam_obj.get_median_coverage()
+            "median_coverage":bam_obj.median_coverage
         }
     }
 

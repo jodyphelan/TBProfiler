@@ -83,8 +83,9 @@ class bam:
             x = x + int(row[2])
             if x>midpoint:
                 break
+        self.median_coverage = int(row[1])
         return int(row[1])
-        
+
     def bed_zero_cov_regions(self,bed_file):
         add_arguments_to_self(self, locals())
         cmd = "bedtools coverage -sorted -b %(bam_file)s -a %(bed_file)s" % vars(self)
