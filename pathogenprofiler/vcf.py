@@ -355,7 +355,7 @@ class delly_bcf(vcf):
          vcf.__init__(self,filename)
     def get_robust_calls(self):
         results = []
-        with open(f"/tmp/{self.filename}.calls.txt","w") as LOG:
+        with open(f"/tmp/{self.filename.split('/')[-1]}.calls.txt","w") as LOG:
             for l in cmd_out("bcftools query -f '%%CHROM\\t%%POS\\t[%%END\\t%%GT\\t%%DR\\t%%DV\\t%%RR\\t%%RV]\\n' %(filename)s" % vars(self)):
                 row = l.split()
                 if row[3]!="1/1":continue
