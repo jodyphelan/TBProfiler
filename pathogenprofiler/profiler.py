@@ -74,13 +74,25 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
             results["delly"] = "success"
             deletions = delly_bcf_obj.overlap_bed(conf["bed"])
             for deletion in deletions:
-                tmp = {
-                    "genome_pos": deletion["start"], "gene_id": deletion["region"],
-                    "gene_name": None, "nucleotide_change": None,"variant_annotations":{},
-                    "chr": deletion["chr"], "freq": 1, "type": "large_deletion",
-                    "change": "%(chr)s_%(start)s_%(end)s" % deletion
-                    }
-                results["variants"].append(tmp)
+                tmp_var = {
+                    "chrom": deletion["chr"],
+                    "genome_pos": deletion["start"],
+                    "ref": None,
+                    "alt":None,
+                    "freq":1.0,
+                    "consequences":[
+                        {
+                        "gene_name":None,
+                        "gene_id":deletion["region"],
+                        "feature_id":None,
+                        "type":"large_deletion",
+                        "nucleotide_change":"%(chr)s:g.%(start)s_%(end)s" % deletion,
+                        "protein_change":None,
+                        }
+                    ]
+                }
+                
+                results["variants"].append(tmp_var)
 
         else:
             results["delly"] = "fail"
