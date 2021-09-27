@@ -355,13 +355,11 @@ class delly_bcf(vcf):
          vcf.__init__(self,filename)
     def get_robust_calls(self):
         results = []
-        with open(f"/tmp/{self.filename.split('/')[-1]}.calls.txt","w") as LOG:
-            for l in cmd_out("bcftools query -f '%%CHROM\\t%%POS\\t[%%END\\t%%GT\\t%%DR\\t%%DV\\t%%RR\\t%%RV]\\n' %(filename)s" % vars(self)):
-                row = l.split()
-                if row[3]!="1/1":continue
-                if int(row[2])-int(row[1])>100000: continue
-                results.append(row)
-                LOG.write(l+"\n")
+        for l in cmd_out("bcftools query -f '%%CHROM\\t%%POS\\t[%%END\\t%%GT\\t%%DR\\t%%DV\\t%%RR\\t%%RV]\\n' %(filename)s" % vars(self)):
+            row = l.split()
+            if row[3]!="1/1":continue
+            if int(row[2])-int(row[1])>100000: continue
+            results.append(row)
         return results
     def overlap_bed(self,bed_file):
         results = []
