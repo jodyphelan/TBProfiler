@@ -83,8 +83,6 @@ def load_gff(gff):
         if l[0]=="#": continue
         fields = l.rstrip().split()
         if fields[2] not in ["gene","rRNA_gene","ncRNA_gene"]: continue
-        if "rrl" in l:
-            print(l)
         strand = fields[6]
         p1 = int(fields[3])
         p2 = int(fields[4])
