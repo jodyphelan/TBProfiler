@@ -55,7 +55,7 @@ def write_bed(gene_dict,gene_info,outfile,chr_name):
             quit()
         lines.append([
             chr_name,
-            str(gene_info[gene].feature_start+200),
+            str(gene_info[gene].feature_start-200),
             str(gene_info[gene].feature_end+200),
             gene_info[gene].locus_tag,
             gene_info[gene].name,
