@@ -52,6 +52,7 @@ def select_most_relevant_csq(csqs):
     rank = ["frameshift_variant","large_deletion","start_lost","disruptive_inframe_deletion","disruptive_inframe_insertion","stop_gained","stop_lost","conservative_inframe_deletion","conservative_inframe_insertion","missense_variant","non_coding_transcript_exon_variant","upstream_gene_variant","stop_retained_variant","synonymous_variant"]
     ranked_csq = []
     for csq in csqs:
+        print(csq)
         ranked_csq.append([i for i,d in enumerate(rank) if d in csq["type"]][0])
     csq1 = csqs[ranked_csq.index(min(ranked_csq))]
     return csq1
@@ -142,13 +143,6 @@ def barcode2lineage(results,max_node_skip=1):
 def reformat_annotations(results,conf,reporting_af=0.1):
     #Chromosome      4998    Rv0005  -242
     lt2drugs = get_lt2drugs(conf["bed"])
-    chr2gene_pos = {}
-    for l in open(conf["ann"]):
-        row = l.rstrip().split()
-        chr2gene_pos[int(row[1])] = int(row[3])
-    # for var in results["variants"]:
-        # var["_internal_change"] = var["change"]
-        # var["change"] = pp.reformat_mutations(var["change"],var["type"],var["locus_tag"],chr2gene_pos)
     resistant_drugs = set()
     results["dr_variants"] = []
     results["other_variants"] = []
@@ -202,37 +196,18 @@ def reformat_annotations(results,conf,reporting_af=0.1):
 
 unlist = lambda t: [item for sublist in t for item in sublist]
 
-def reformat_missing_genome_pos(results,conf):
+def reformat_missing_genome_pos(positions,conf):
     rv2gene = rv2genes(conf["bed"])
-    dr_associated_genome_pos = get_genome_positions_from_json_db(conf["json_db"],conf["ann"],conf["gff"])
-    genome_pos2gene_pos = {}
-    genome_pos2gene = {}
-    for l in open(conf["ann"]):
-        row = l.strip().split()
-        genome_pos2gene_pos[int(row[1])] = int(row[3])
-        genome_pos2gene[int(row[1])] = row[2]
-
-    tmp_results = defaultdict(lambda: defaultdict(list))
-    for genome_pos in results:
-        # This is a bit dangerous as it assumes all coding genes are labled with "Rv"
-        gene = genome_pos2gene[genome_pos]
-        gene_pos = genome_pos2gene_pos[genome_pos]
-        coding = True if gene[:2]=="Rv" else False
-        if coding:
-            if gene_pos>=0:
-                codon = ((gene_pos-1)//3) + 1
-                tmp_results[gene][codon].append(genome_pos)
-            else:
-                tmp_results[gene][gene_pos].append(genome_pos)
-        else:
-            tmp_results[gene][gene_pos].append(genome_pos)
+    dr_associated_genome_pos = get_genome_positions_from_json_db(conf["json_db"])
     new_results = []
-    for gene in tmp_results:
-        for pos in tmp_results[gene]:
-            genome_positions = tmp_results[gene][pos]
-            dr_position = list(set(unlist([unlist([y[2] for y in dr_associated_genome_pos[x]]) for x in genome_positions if x in dr_associated_genome_pos])))
-
-            new_results.append({"locus_tag":gene, "gene": rv2gene[gene], "genome_positions": genome_positions , "position":pos, "position_type":"codon" if (gene[:2]=="Rv" and pos>=0) else "gene", "drug_resistance_position": dr_position})
+    for pos in positions:
+        if pos in dr_associated_genome_pos:
+            tmp = dr_associated_genome_pos[pos]
+            print(tmp)
+            gene = list(tmp)[0][0]
+            variants = ",".join([x[1] for x in tmp])
+            drugs = ",".join(set(unlist([x[2] for x in tmp])))
+            new_results.append({"position":pos,"locus_tag":gene, "gene": rv2gene[gene], "variants": variants, "drugs":drugs})
     return new_results
 
 
