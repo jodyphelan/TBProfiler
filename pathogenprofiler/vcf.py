@@ -55,7 +55,7 @@ class vcf:
             self.tmp_file1 = "%s.vcf" % uuid4()
             self.tmp_file2 = "%s.vcf" % uuid4()
 
-            run_cmd("bcftools view -v snps %(filename)s | combine_vcf_variants.py --ref %(ref_file)s --gff %(gff_file)s | snpEff ann -noStats %(db)s - > %(tmp_file1)s" % vars(self))
+            run_cmd("bcftools view -v snps %(filename)s | combine_vcf_variants.py --ref %(ref_file)s --gff %(gff_file)s | bcftools norm -m - | snpEff ann -noStats %(db)s - > %(tmp_file1)s" % vars(self))
             run_cmd("bcftools view -v indels %(filename)s | snpEff ann -noStats %(db)s - > %(tmp_file2)s" % vars(self))
             run_cmd("bcftools concat %(tmp_file1)s %(tmp_file2)s | bcftools sort -Oz -o %(vcf_csq_file)s" % vars(self))
             rm_files([self.tmp_file1, self.tmp_file2])
@@ -122,7 +122,6 @@ class vcf:
                     else:
                         continue
                 if ann[1]=="upstream_gene_variant":
-                    print(ann)
                     r = re.search("[cn].-([0-9]+)",ann[9])
                     if int(r.group(1))>max_promoter_length:
                         continue
