@@ -127,7 +127,8 @@ def main_profile(args):
     ### Set up platform dependant parameters ###
     if args.platform=="nanopore":
         args.mapper = "minimap2"
-        args.caller = "bcftools"
+        if args.caller=="gatk":
+            args.caller = "freebayes"
         args.no_trim=True
         run_delly = False
     else:

@@ -17,7 +17,8 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
     ### Set caller to bcftools if platform is nanopre and wrong caller has been used ###
     if platform == "nanopore":
         run_delly = False
-        caller = "bcftools"
+        if caller=="gatk":
+            caller = "freebayes"
 
     ### Create bam object and call variants ###
     bam_obj = bam(bam_file, prefix, platform=platform, threads=threads)
@@ -61,7 +62,7 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
     if no_barcoding:
         results["barcode"] = []
     else:
-        mutations = bam_obj.get_bed_gt(conf["barcode"],conf["ref"], caller=caller)
+        mutations = bam_obj.get_bed_gt(conf["barcode"],conf["ref"], caller=caller,platform=platform)
         results["barcode"] = barcode(mutations,conf["barcode"])
 
     ### Run delly if specified ###
