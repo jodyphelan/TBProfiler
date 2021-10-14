@@ -217,7 +217,9 @@ def reformat(results,conf,reporting_af,mutation_metadata=False):
     if "gene_coverage" in results["qc"]:
         results["qc"]["gene_coverage"] = dict_list_add_genes(results["qc"]["gene_coverage"],conf)
         results["qc"]["missing_positions"] = reformat_missing_genome_pos(results["qc"]["missing_positions"],conf)
-    results = barcode2lineage(results)
+    if "barcode" in results:
+        # results["barcode"] = []
+        results = barcode2lineage(results)
     results = reformat_annotations(results,conf,reporting_af)
     results["db_version"] = json.load(open(conf["version"]))
     if mutation_metadata:

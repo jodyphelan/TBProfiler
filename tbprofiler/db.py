@@ -6,6 +6,8 @@ import sys
 from datetime import datetime
 from pathogenprofiler import run_cmd, cmd_out
 from .utils import load_gff
+import os
+import shutil
 
 chr_name = "Chromosome"
 
@@ -54,7 +56,7 @@ def write_bed(gene_dict,gene_info,outfile,chr_name):
             sys.stderr.write("%s not found in the 'gene_info' dictionary... Exiting!" % gene)
             quit()
         lines.append([
-            chr_name,
+            gene_info[gene].chrom,
             str(gene_info[gene].feature_start-200),
             str(gene_info[gene].feature_end+200),
             gene_info[gene].locus_tag,
@@ -77,7 +79,7 @@ def load_gene_info(filename):
 
 
 def get_genome_position(gene_object,change):
-    if change in ["frameshift","large_deletion"]:
+    if change in ["frameshift","large_deletion","functional_gene"]:
         return None
     if "any_missense_codon" in change:
         codon = int(change.replace("any_missense_codon_",""))
@@ -194,9 +196,9 @@ def create_db(args):
     gene_name2gene_id.update({g.locus_tag:g.locus_tag for g in genes.values()})
     db = {}
     locus_tag_to_drug_dict = defaultdict(set)
-    confidence = {}
-    for row in csv.DictReader(open(args.confidence)):
-        confidence[(row["gene"],row["mutation"],row["drug"])] = row["confidence"]
+    # confidence = {}
+    # for row in csv.DictReader(open(args.confidence)):
+        # confidence[(row["gene"],row["mutation"],row["drug"])] = row["confidence"]
     for row in csv.DictReader(open(args.csv)):
         locus_tag = gene_name2gene_id[row["Gene"]]
         drug = row["Drug"].lower()
@@ -208,24 +210,26 @@ def create_db(args):
             db[locus_tag][mut] = {"annotations":[]}
 
         tmp_annotation = {"type":"drug","drug":row["Drug"]}
-        tmp_annotation["confidence"] = confidence.get((locus_tag,row["Mutation"],drug),"indeterminate")
+        # tmp_annotation["confidence"] = confidence.get((locus_tag,row["Mutation"],drug),"indeterminate")
         annotation_columns = set(row.keys()) - set(["Gene","Mutation","Drug"])
+        print(annotation_columns)
         for col in annotation_columns:
             if row[col]=="":continue
             tmp_annotation[col.lower()] = row[col]
         db[locus_tag][mut]["annotations"].append(tmp_annotation)
         db[locus_tag][mut]["genome_positions"] = get_genome_position(genes[locus_tag],mut)
 
-
-    for row in csv.DictReader(open(args.watchlist)):
-        locus_tag = gene_name2gene_id[row["Gene"]]
-        drug = row["Drug"].lower()
-        locus_tag_to_drug_dict[locus_tag].add(drug)
+    if args.watchlist:
+        for row in csv.DictReader(open(args.watchlist)):
+            locus_tag = gene_name2gene_id[row["Gene"]]
+            drug = row["Drug"].lower()
+            locus_tag_to_drug_dict[locus_tag].add(drug)
 
     genome_file = "%s.fasta" % args.prefix
     gff_file = "%s.gff" % args.prefix
     ann_file = "%s.ann.txt" % args.prefix
-    barcode_file = "%s.barcode.bed" % args.prefix
+    if args.prefix:
+        barcode_file = "%s.barcode.bed" % args.prefix
     bed_file = "%s.bed" % args.prefix
     json_file = "%s.dr.json" % args.prefix
     version_file = "%s.version.json" % args.prefix
@@ -244,9 +248,14 @@ def create_db(args):
         version["Author"] = args.db_author if args.db_author else "NA"
 
     json.dump(version,open(version_file,"w"))
-    open(genome_file,"w").write(">%s\n%s\n" % (chr_name,fasta_dict["Chromosome"]))
-    run_cmd("sed 's/Chromosome/%s/g' genome.gff > %s" % (chr_name,gff_file))
-    run_cmd("sed 's/Chromosome/%s/g' barcode.bed > %s" % (chr_name,barcode_file))
-    write_gene_pos("genes.txt",list(locus_tag_to_drug_dict.keys()),ann_file)
+
+    shutil.copy("genome.fasta",genome_file)
+    shutil.copy("genome.gff",gff_file)
+    biggest_chrom = [x[0] for x in sorted(fasta_dict.items(),key=lambda x:len(x[1]),reverse=True)][0]
+    # open(genome_file,"w").write(">%s\n%s\n" % (chr_name,fasta_dict[biggest_chrom]))
+    # run_cmd("sed 's/%s/%s/g' genome.gff > %s" % (biggest_chrom,chr_name,gff_file))
+    if os.path.isfile("barcode.bed"):
+        run_cmd("sed 's/%s/%s/g' barcode.bed > %s" % (biggest_chrom,chr_name,barcode_file))
+    # write_gene_pos("genes.txt",list(locus_tag_to_drug_dict.keys()),ann_file)
     write_bed(locus_tag_to_drug_dict,genes,bed_file,chr_name)
     json.dump(db,open(json_file,"w"))

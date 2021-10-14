@@ -3,31 +3,32 @@ import re
 from collections import defaultdict
 import sys
 import pathogenprofiler as pp
-
+import os
 
 def get_conf_dict_with_path(library_path):
     files = {"gff":".gff","ref":".fasta","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
     conf = {}
     for key in files:
         sys.stderr.write("Using %s file: %s\n" % (key,library_path+files[key]))
-        conf[key] = pp.filecheck(library_path+files[key])
-    test = json.load(open(conf["json_db"]))["Rv1908c"]["p.Ser315Thr"]
-    if "annotation" not in test and "drugs" in test:
-        quit("""\n
-################################# ERROR #######################################
+        if os.path.isfile(library_path+files[key]):
+            conf[key] = pp.filecheck(library_path+files[key])
+#     test = json.load(open(conf["json_db"]))["Rv1908c"]["p.Ser315Thr"]
+#     if "annotation" not in test and "drugs" in test:
+#         quit("""\n
+# ################################# ERROR #######################################
 
-The database has different format than expected. Since tb-profiler v2.4 the
-database is parsed using tb-profiler code. Please run the following code to get
-the latest version of the database or load your own:
+# The database has different format than expected. Since tb-profiler v2.4 the
+# database is parsed using tb-profiler code. Please run the following code to get
+# the latest version of the database or load your own:
 
-tb-profiler update_tbdb
+# tb-profiler update_tbdb
 
-or
+# or
 
-tb-profiler load_library /path/to/custom_library
+# tb-profiler load_library /path/to/custom_library
 
-###############################################################################
-""")
+# ###############################################################################
+# """)
 
 
     return conf
@@ -67,10 +68,11 @@ def get_drugs2gene(bed_file):
     return dict(results)
 
 class gene_class:
-    def __init__(self,name,locus_tag,strand,start,end,length):
+    def __init__(self,name,locus_tag,strand,chrom,start,end,length):
         self.name = name
         self.locus_tag = locus_tag
         self.strand = strand
+        self.chrom = chrom
         self.feature_start = start
         self.feature_end = end
         self.start = self.feature_start if strand=="+" else self.feature_end
@@ -84,16 +86,17 @@ def load_gff(gff):
         fields = l.rstrip().split()
         if fields[2] not in ["gene","rRNA_gene","ncRNA_gene"]: continue
         strand = fields[6]
+        chrom = fields[0]
         p1 = int(fields[3])
         p2 = int(fields[4])
         gene_length = p2-p1+1
-        re_obj = re.search("Name=([a-zA-Z0-9\.\-\_]+)",l)
+        re_obj = re.search("Name=([a-zA-Z0-9\.\-\_\(\)]+)",l)
         gene_name = re_obj.group(1) if re_obj else "NA"
         re_obj = re.search("gene_id=([a-zA-Z0-9\.\-\_]+)",l)
         locus_tag = re_obj.group(1) if re_obj else "NA"
         start = p1
         end =  p2
-        tmp = gene_class(gene_name,locus_tag,strand,start,end,gene_length)
+        tmp = gene_class(gene_name,locus_tag,strand,chrom,start,end,gene_length)
         genes[locus_tag] = tmp
     return genes
 
