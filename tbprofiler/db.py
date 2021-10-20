@@ -212,7 +212,6 @@ def create_db(args):
         tmp_annotation = {"type":"drug","drug":row["Drug"]}
         # tmp_annotation["confidence"] = confidence.get((locus_tag,row["Mutation"],drug),"indeterminate")
         annotation_columns = set(row.keys()) - set(["Gene","Mutation","Drug"])
-        print(annotation_columns)
         for col in annotation_columns:
             if row[col]=="":continue
             tmp_annotation[col.lower()] = row[col]

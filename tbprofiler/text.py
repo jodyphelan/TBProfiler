@@ -56,7 +56,7 @@ def variable2string(var,quote=False):
     elif isinstance(var,list):
         return "%s%s%s" % (q,",".join(var),q)
     else:
-        return "%s%s%s" % (q,str(var).replace("_", " "),q)
+        return "%s%s%s" % (q,str(var),q)
 
 def load_text(text_strings):
     return r"""

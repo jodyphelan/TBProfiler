@@ -1,11 +1,12 @@
 import setuptools
 
+version = [l.strip() for l in open("tbprofiler/__init__.py") if "version" in l][0].split('"')[1]
 
 setuptools.setup(
 
 	name="tbprofiler",
 
-	version="3.0.8",
+	version=version,
 	packages=["tbprofiler","pathogenprofiler"],
 	license="MIT",
 	long_description="TBProfiler command line tool",

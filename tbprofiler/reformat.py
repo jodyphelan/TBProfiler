@@ -139,23 +139,19 @@ def barcode2lineage(results,max_node_skip=1):
     return results
 
 
-def reformat_annotations(results,conf,reporting_af=0.1):
+def reformat_annotations(results,conf):
     #Chromosome      4998    Rv0005  -242
     lt2drugs = get_lt2drugs(conf["bed"])
-    resistant_drugs = set()
     results["dr_variants"] = []
     results["other_variants"] = []
     for var in results["variants"]:
         if "annotation" in var:
             tmp = var.copy()
-            drvar = any([x["type"]=="drug" for x in var["annotation"]])
+            drvar = any([x["type"]=="drug" and x["confers"]=="resistance" for x in var["annotation"]])
             phylovar = any([x["type"]=="phylogenetic" for x in var["annotation"]])
             if drvar:
                 tmp["drugs"] = var["annotation"]
                 del tmp["annotation"]
-                if tmp["freq"]>=reporting_af:
-                    for d in tmp["drugs"]:
-                        resistant_drugs.add(d["drug"])
                 results["dr_variants"].append(tmp)
             elif phylovar:
                 var["lineage_variant"] = var["annotation"][0]["lineage"]
@@ -165,6 +161,14 @@ def reformat_annotations(results,conf,reporting_af=0.1):
             var["gene_associated_drugs"] = lt2drugs[var["locus_tag"]]
             results["other_variants"].append(var)
     del results["variants"]
+    return results
+
+def add_drtypes(results,reporting_af=0.1):
+    resistant_drugs = set()
+    for var in results["dr_variants"]:
+        if var["freq"]>=reporting_af:
+            for d in var["drugs"]:
+                resistant_drugs.add(d["drug"])
 
     FLQ_set = set(["levofloxacin","moxifloxacin","ciprofloxacin","ofloxacin"])
     groupA_set = set(["bedaquiline","linezolid"])
@@ -220,7 +224,8 @@ def reformat(results,conf,reporting_af,mutation_metadata=False):
     if "barcode" in results:
         # results["barcode"] = []
         results = barcode2lineage(results)
-    results = reformat_annotations(results,conf,reporting_af)
+    results = reformat_annotations(results,conf)
+    results = add_drtypes(results,reporting_af)
     results["db_version"] = json.load(open(conf["version"]))
     if mutation_metadata:
         pass

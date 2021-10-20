@@ -30,7 +30,7 @@ def cleanup():
         with open(outfile, "w") as O:
             O.write("# tb-profiler error report\n\n")
             O.write("* OS: %s\n" % sys.platform)
-            O.write("* Program version: %s\n" % tbp._VERSION)
+            O.write("* Program version: %s\n" % tbp.__version__)
             O.write("* Database version: %s\n" % json.load(open(conf["version"]))["commit"])
             O.write("* Program call:\n")
             O.write("```\n")
@@ -190,7 +190,7 @@ def main_profile(args):
     ### Reformat the results to TB-Profiler style ###
     results = tbp.reformat(results, conf, reporting_af=args.reporting_af, mutation_metadata=args.add_mutation_metadata)
     results["id"] = args.prefix
-    results["tbprofiler_version"] = tbp._VERSION
+    results["tbprofiler_version"] = tbp.__version__
     results["pipeline"] = {"mapper":args.mapper if not args.bam else "N/A","variant_caller":args.caller}
 
     for x in ["bam","vcf","results"]:
@@ -290,7 +290,7 @@ def main_collate(args):
     tbp.collate_results(args.prefix,conf,sample_file=args.samples,result_dir=args.dir,reporting_af=args.reporting_af,mark_missing=args.mark_missing)
 
 def main_version(args):
-    sys.stdout.write("\nTBProfiler version %s\n" % tbp._VERSION)
+    sys.stdout.write("\nTBProfiler version %s\n" % tbp.__version__)
 
 def main_reformat(args):
     if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
@@ -329,7 +329,7 @@ def main_fasta_profile(args):
     results = pp.fasta_profiler(conf, args.prefix, args.fasta)
     results = tbp.reformat(results,conf,reporting_af=0)
     results["id"] = args.prefix
-    results["tbprofiler_version"] = tbp._VERSION
+    results["tbprofiler_version"] = tbp.__version__
     results["pipeline"] = {"mapper":"N/A","variant_caller":"paftools.js"}
 
     json_output = args.dir+"/results/"+args.prefix+".results.json"
@@ -408,7 +408,7 @@ def main_vcf_profile(args):
         results = pp.vcf_profiler(conf, files_prefix, sample_name, args.tmp_vcf)
         results = tbp.reformat(results,conf,reporting_af=args.reporting_af)
         results["id"] = sample_name
-        results["tbprofiler_version"] = tbp._VERSION
+        results["tbprofiler_version"] = tbp.__version__
         results["pipeline"] = {"mapper": "N/A","variant_caller":"N/A"}
 
         json_output = args.dir+"/results/"+sample_name+".results.json"
@@ -438,7 +438,7 @@ def main_test(args):
 #### Argument Parsing ####
 
 parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
+parser.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 subparsers = parser.add_subparsers(help="Task to perform")
 
 # Profile #
@@ -481,7 +481,7 @@ algorithm.add_argument('--threads','-t',default=1,help='Threads to use',type=int
 
 other=parser_sub.add_argument_group("Other options")
 other.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
-other.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
+other.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 other.add_argument('--no_cleanup',action="store_true",help="Don't remove temporary files on error")
 other.add_argument('--delly_bcf',help=argparse.SUPPRESS)
 parser_sub.set_defaults(func=main_profile)
@@ -499,7 +499,7 @@ parser_sub.add_argument('--txt',action="store_true",help="Add text output")
 parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
 parser_sub.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and csv results")
 parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
-parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
+parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.set_defaults(func=main_vcf_profile)
 
 
@@ -514,7 +514,7 @@ parser_sub.add_argument('--txt',action="store_true",help="Add text output")
 parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
 parser_sub.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and csv results")
 parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
-parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
+parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.set_defaults(func=main_fasta_profile)
 
 
@@ -526,7 +526,7 @@ parser_sub.add_argument('--snps',action="store_true",help='Sample prefix')
 parser_sub.add_argument('--caller',default='bcftools',choices=["bcftools","freebayes","gatk"],type=str,help="Variant caller")
 parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
 parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
-parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
+parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.set_defaults(func=main_lineage)
 
 parser_sub = subparsers.add_parser('collate', help='Collate results form multiple samples together', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -539,7 +539,7 @@ parser_sub.add_argument('--mark_missing',action="store_true",help='An asteriks w
 parser_sub.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to call variants')
 parser_sub.add_argument('--db',default='tbdb',help='Full path to mutation database json file to use')
 parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
-parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
+parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.set_defaults(func=main_collate)
 
 
@@ -549,7 +549,7 @@ parser_sub.add_argument('json',help='JSON output file')
 parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
 parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
 parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
-parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
+parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.set_defaults(func=main_reprofile)
 
 
@@ -560,7 +560,7 @@ parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
 # parser_sub.add_argument('--pdf',action="store_true",help="Add PDF output. This requires pdflatex to be installed")
 parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
 parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
-parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
+parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.set_defaults(func=main_reformat)
 
 parser_sub = subparsers.add_parser('create_db', help='Generate the files required to run TBProfiler', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -578,12 +578,12 @@ parser_sub.set_defaults(func=main_create_db)
 
 parser_sub = subparsers.add_parser('load_library', help='Load new library', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_sub.add_argument('prefix',type=str,help='Prefix to the library files')
-parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
+parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.set_defaults(func=main_load_library)
 
 parser_sub = subparsers.add_parser('update_tbdb', help='Pull the latest tbdb library and load', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_sub.add_argument('--seqname',default='Chromosome',help='Mutation panel name')
-parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
+parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.set_defaults(func=main_update_tbdb)
 
 parser_sub = subparsers.add_parser('version', help='Output program version and exit', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
