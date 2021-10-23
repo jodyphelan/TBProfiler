@@ -48,21 +48,23 @@ class vcf:
         return vcf(self.newfile)
 
 
-    def run_snpeff(self,db,ref_file,gff_file,split_indels=True):
+    def run_snpeff(self,db,ref_file,gff_file,rename_chroms = None, split_indels=True):
         add_arguments_to_self(self,locals())
         self.vcf_csq_file = self.prefix+".csq.vcf.gz"
+        self.rename_cmd = f"rename_vcf_chrom.py --source {' '.join(rename_chroms['source'])} --target {' '.join(rename_chroms['target'])} |" if rename_chroms else ""
+        self.re_rename_cmd = f"| rename_vcf_chrom.py --source {' '.join(rename_chroms['target'])} --target {' '.join(rename_chroms['source'])}" if rename_chroms else ""
         if split_indels:
             self.tmp_file1 = "%s.vcf" % uuid4()
             self.tmp_file2 = "%s.vcf" % uuid4()
 
-            run_cmd("bcftools view -v snps %(filename)s | combine_vcf_variants.py --ref %(ref_file)s --gff %(gff_file)s | bcftools norm -m - | snpEff ann -noStats %(db)s - > %(tmp_file1)s" % vars(self))
-            run_cmd("bcftools view -v indels %(filename)s | bcftools norm -m - | snpEff ann -noStats %(db)s - > %(tmp_file2)s" % vars(self))
+            run_cmd("bcftools view -v snps %(filename)s | combine_vcf_variants.py --ref %(ref_file)s --gff %(gff_file)s | bcftools norm -m - | %(rename_cmd)s snpEff ann -noStats %(db)s - %(re_rename_cmd)s > %(tmp_file1)s" % vars(self))
+            run_cmd("bcftools view -v indels %(filename)s | bcftools norm -m - | %(rename_cmd)s snpEff ann -noStats %(db)s - %(re_rename_cmd)s > %(tmp_file2)s" % vars(self))
             run_cmd("bcftools concat %(tmp_file1)s %(tmp_file2)s | bcftools sort -Oz -o %(vcf_csq_file)s" % vars(self))
             rm_files([self.tmp_file1, self.tmp_file2])
 
 
         else :
-            run_cmd("snpEff ann %(db)s %(filename)s > %(vcf_csq_file)s" % vars(self))
+            run_cmd("bcftools view %(filename)s | %(rename_cmd)s snpEff ann %(db)s - %(re_rename_cmd)s > %(vcf_csq_file)s" % vars(self))
         return vcf(self.vcf_csq_file,self.prefix)
 
         # run_cmd(f"snpEff ann {db} {self.filename} | bcftools view -Oz -o {self.prefix}.ann.vcf.gz")

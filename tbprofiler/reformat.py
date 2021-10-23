@@ -29,6 +29,17 @@ def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=
             if drug not in annotation: annotation[drug] = {key:[] for key in columns}
             for key in columns:
                 annotation[drug][key].append(x["drugs"][drug][key])
+    if "resistance_genes" in json_results:
+        for x in json_results["resistance_genes"]:
+            for d in x["drugs"]:
+                drug = d["drug"]
+                if drug not in results: results[drug] = []
+                results[d["drug"]].append("%s (resistance_gene)" % (x["gene"],))
+                if drug not in annotation: annotation[drug] = {key:[] for key in columns}
+                for key in columns:
+                    annotation[drug][key].append(x["drugs"][drug][key])
+
+
     for d in drugs:
         if d in results:
             results[d] = ", ".join(results[d]) if len(results[d])>0 else ""
@@ -147,16 +158,15 @@ def reformat_annotations(results,conf):
     for var in results["variants"]:
         if "annotation" in var:
             tmp = var.copy()
-            drvar = any([x["type"]=="drug" and x["confers"]=="resistance" for x in var["annotation"]])
-            phylovar = any([x["type"]=="phylogenetic" for x in var["annotation"]])
-            if drvar:
+            drugs = tuple([x["drug"] for x in var["annotation"] if x["type"]=="drug"])
+            if len(drugs)>0:
                 tmp["drugs"] = var["annotation"]
                 del tmp["annotation"]
                 results["dr_variants"].append(tmp)
-            elif phylovar:
-                var["lineage_variant"] = var["annotation"][0]["lineage"]
-                del var["annotation"]
+            else:
+                var["gene_associated_drugs"] = lt2drugs[var["locus_tag"]]
                 results["other_variants"].append(var)
+
         else:
             var["gene_associated_drugs"] = lt2drugs[var["locus_tag"]]
             results["other_variants"].append(var)

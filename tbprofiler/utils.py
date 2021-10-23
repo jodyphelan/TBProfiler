@@ -12,6 +12,8 @@ def get_conf_dict_with_path(library_path):
         sys.stderr.write("Using %s file: %s\n" % (key,library_path+files[key]))
         if os.path.isfile(library_path+files[key]):
             conf[key] = pp.filecheck(library_path+files[key])
+    sys.stderr.write("Using %s file: %s\n" % (key,library_path+".variables.json"))
+    conf.update(json.load(open(pp.filecheck(library_path+".variables.json"))))
 #     test = json.load(open(conf["json_db"]))["Rv1908c"]["p.Ser315Thr"]
 #     if "annotation" not in test and "drugs" in test:
 #         quit("""\n
@@ -105,7 +107,9 @@ def get_genome_positions_from_json_db(json_file):
     db = json.load(open(json_file))
     for gene in db:
         for var in db[gene]:
-            drugs = tuple([x["drug"] for x in db[gene][var]["annotations"]])
+            drugs = tuple([x["drug"] for x in db[gene][var]["annotations"] if x["type"]=="drug"])
+            if len(drugs)==0:
+                continue
             if db[gene][var]["genome_positions"]:
                 for pos in db[gene][var]["genome_positions"]:
                     genome_positions[pos].add((gene,var,drugs))

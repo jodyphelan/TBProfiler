@@ -56,7 +56,7 @@ def write_bed(gene_dict,gene_info,outfile,chr_name):
             sys.stderr.write("%s not found in the 'gene_info' dictionary... Exiting!" % gene)
             quit()
         lines.append([
-            gene_info[gene].chrom,
+            chr_name,
             str(gene_info[gene].feature_start-200),
             str(gene_info[gene].feature_end+200),
             gene_info[gene].locus_tag,
@@ -188,17 +188,19 @@ def get_genome_position(gene_object,change):
 
 def create_db(args):
     global chr_name
-    chr_name = args.seqname
     fasta_dict = fa2dict("genome.fasta")
-    # gene_info = load_gene_info("genes.txt")
+    biggest_chrom = [x[0] for x in sorted(fasta_dict.items(),key=lambda x:len(x[1]),reverse=True)][0]
+    chr_name = biggest_chrom
+    if args.seqname:
+        chr_name = args.seqname
+    else:
+        args.seqname = biggest_chrom
+        
     genes = load_gff("genome.gff")
     gene_name2gene_id = {g.name:g.locus_tag for g in genes.values()}
     gene_name2gene_id.update({g.locus_tag:g.locus_tag for g in genes.values()})
     db = {}
     locus_tag_to_drug_dict = defaultdict(set)
-    # confidence = {}
-    # for row in csv.DictReader(open(args.confidence)):
-        # confidence[(row["gene"],row["mutation"],row["drug"])] = row["confidence"]
     for row in csv.DictReader(open(args.csv)):
         locus_tag = gene_name2gene_id[row["Gene"]]
         drug = row["Drug"].lower()
@@ -210,13 +212,31 @@ def create_db(args):
             db[locus_tag][mut] = {"annotations":[]}
 
         tmp_annotation = {"type":"drug","drug":row["Drug"]}
-        # tmp_annotation["confidence"] = confidence.get((locus_tag,row["Mutation"],drug),"indeterminate")
         annotation_columns = set(row.keys()) - set(["Gene","Mutation","Drug"])
         for col in annotation_columns:
             if row[col]=="":continue
             tmp_annotation[col.lower()] = row[col]
         db[locus_tag][mut]["annotations"].append(tmp_annotation)
         db[locus_tag][mut]["genome_positions"] = get_genome_position(genes[locus_tag],mut)
+
+    if args.other_annotations:
+        print(args.other_annotations)
+        for row in csv.DictReader(open(args.other_annotations)):
+            print(row)
+            locus_tag = gene_name2gene_id[row["Gene"]]
+            mut = row["Mutation"]
+            if locus_tag not in db:
+                db[locus_tag] = {}
+            if mut not in db[locus_tag]:
+                db[locus_tag][mut] = {"annotations":[]}
+            tmp_annotation = {"type":row["Type"]}
+            annotation_columns = set(row.keys()) - set(["Gene","Mutation"])
+            for col in annotation_columns:
+                if row[col]=="":continue
+                tmp_annotation[col.lower()] = row[col]
+            db[locus_tag][mut]["annotations"].append(tmp_annotation)
+            db[locus_tag][mut]["genome_positions"] = get_genome_position(genes[locus_tag],mut)
+            print(db[locus_tag][mut])
 
     if args.watchlist:
         for row in csv.DictReader(open(args.watchlist)):
@@ -226,7 +246,6 @@ def create_db(args):
 
     genome_file = "%s.fasta" % args.prefix
     gff_file = "%s.gff" % args.prefix
-    ann_file = "%s.ann.txt" % args.prefix
     if args.prefix:
         barcode_file = "%s.barcode.bed" % args.prefix
     bed_file = "%s.bed" % args.prefix
@@ -248,13 +267,14 @@ def create_db(args):
 
     json.dump(version,open(version_file,"w"))
 
-    shutil.copy("genome.fasta",genome_file)
-    shutil.copy("genome.gff",gff_file)
-    biggest_chrom = [x[0] for x in sorted(fasta_dict.items(),key=lambda x:len(x[1]),reverse=True)][0]
-    # open(genome_file,"w").write(">%s\n%s\n" % (chr_name,fasta_dict[biggest_chrom]))
-    # run_cmd("sed 's/%s/%s/g' genome.gff > %s" % (biggest_chrom,chr_name,gff_file))
+    # shutil.copy("genome.fasta",genome_file)
+    # shutil.copy("genome.gff",gff_file)
+    variables = json.load(open("variables.json"))    
+    variables["chromosome_conversion"] = {"source":[args.seqname],"target":[biggest_chrom]}
+    json.dump(variables,open(args.prefix+".variables.json","w"))
+    open(genome_file,"w").write(">%s\n%s\n" % (chr_name,fasta_dict[biggest_chrom]))
+    run_cmd("sed 's/%s/%s/g' genome.gff > %s" % (biggest_chrom,chr_name,gff_file))
     if os.path.isfile("barcode.bed"):
         run_cmd("sed 's/%s/%s/g' barcode.bed > %s" % (biggest_chrom,chr_name,barcode_file))
-    # write_gene_pos("genes.txt",list(locus_tag_to_drug_dict.keys()),ann_file)
     write_bed(locus_tag_to_drug_dict,genes,bed_file,chr_name)
     json.dump(db,open(json_file,"w"))
