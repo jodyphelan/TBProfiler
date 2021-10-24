@@ -53,10 +53,8 @@ def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=
         for key in columns:
             dictline[key] = annotation[d][key] if d in annotation else ""
         drug_table.append(dictline)
-    pipeline_tbl = [{"Analysis":"Mapping","Program":json_results["pipeline"]["mapper"]},{"Analysis":"Variant Calling","Program":json_results["pipeline"]["variant_caller"]}]
     new_json = json_results.copy()
     new_json["drug_table"] = drug_table
-    new_json["pipline_table"] = pipeline_tbl
     return new_json
 
 def select_most_relevant_csq(csqs):
