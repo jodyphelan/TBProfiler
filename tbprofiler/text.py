@@ -176,7 +176,8 @@ def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0):
     text_strings["missing_report"] = dict_list2text(json_results["qc"]["missing_positions"],["gene","locus_tag","position","position_type","drug_resistance_position"]) if "gene_coverage" in json_results["qc"] else "NA"
     text_strings["pipeline"] = dict_list2text(json_results["pipline_table"],["Analysis","Program"])
     text_strings["version"] = json_results["tbprofiler_version"]
-    text_strings["db_version"] = "%s_%s_%s_%s" % (json_results["db_version"]["name"],json_results["db_version"]["commit"],json_results["db_version"]["Author"],json_results["db_version"]["Date"])
+    tmp = json_results["db_version"]
+    text_strings["db_version"] = "%s_%s_%s_%s" % (tmp["name"],tmp["commit"],tmp["Author"],tmp["Date"])
     o = open(outfile,"w")
     o.write(load_text(text_strings))
     o.close()
@@ -199,7 +200,8 @@ def get_csv_strings(json_results,conf,columns=None):
     csv_strings["missing_report"] = dict_list2csv(json_results["qc"]["missing_positions"],["gene","locus_tag","position","position_type","drug_resistance_position"]) if "gene_coverage" in json_results["qc"] else "NA"
     csv_strings["pipeline"] = dict_list2csv(json_results["pipline_table"],["Analysis","Program"])
     csv_strings["version"] = json_results["tbprofiler_version"]
-    csv_strings["db_version"] = "%s_%s_%s_%s" % (json_results["db_version"]["name"],json_results["db_version"]["commit"],json_results["db_version"]["Author"],json_results["db_version"]["Date"])
+    tmp = json_results["db_version"]
+    csv_strings["db_version"] = "%s_%s_%s_%s" % (tmp["name"],tmp["commit"],tmp["Author"],tmp["Date"])
     return csv_strings
 
 

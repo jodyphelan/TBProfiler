@@ -191,7 +191,10 @@ def main_profile(args):
     results = tbp.reformat(results, conf, reporting_af=args.reporting_af, mutation_metadata=args.add_mutation_metadata)
     results["id"] = args.prefix
     results["tbprofiler_version"] = tbp.__version__
-    results["pipeline"] = {"mapper":args.mapper if not args.bam else "N/A","variant_caller":args.caller}
+    results["pipeline"] = [
+        {"Analysis":"Mapping","Program":args.mapper if not args.bam else "N/A"},
+        {"Analysis":"Variant calling","Program":args.caller}
+    ]
 
     for x in ["bam","vcf","results"]:
         if pp.nofolder(args.dir+"/"+x):
