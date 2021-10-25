@@ -13,7 +13,7 @@ The pipeline aligns reads to the H37Rv reference using bowtie2, BWA or minimap2 
 This page has all the info you need to get started, however additional (and more organised!) documentation is available [here](https://jodyphelan.gitbook.io/tb-profiler/). We have also have some basic translation to other languages:  [:brazil:](https://jodyphelan.gitbook.io/tb-profiler/translations/portugues)[:netherlands:](https://jodyphelan.gitbook.io/tb-profiler/translations/nederlands). Please contact us if you would like to improve a translation or add a new one!
 
 ## Keeping up to date
-TBProfiler is under constant rapid development. If you plan to use the program in your work please make sure you are using the most up to date version! Similarly, the database is not static and is continuously being improved so make sure you are using the most latest version. If you use TBProfiler in your work please state the version of both the tool and the database as they are deveoped independantly from each other.
+TBProfiler is under constant rapid development. If you plan to use the program in your work please make sure you are using the most up to date version! Similarly, the database is not static and is continuously being improved so make sure you are using the most latest version. If you use TBProfiler in your work please state the version of both the tool and the database as they are developed independantly from each other.
 
 ## Installation
 
