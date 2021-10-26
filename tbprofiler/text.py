@@ -174,7 +174,7 @@ def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0):
     text_strings["other_var_report"] = dict_list2text(json_results["other_variants"],["genome_pos","locus_tag","gene","change","freq"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
     text_strings["coverage_report"] = dict_list2text(json_results["qc"]["gene_coverage"], ["gene","locus_tag","cutoff","fraction"]) if "gene_coverage" in json_results["qc"] else "NA"
     text_strings["missing_report"] = dict_list2text(json_results["qc"]["missing_positions"],["gene","locus_tag","position","position_type","drug_resistance_position"]) if "gene_coverage" in json_results["qc"] else "NA"
-    text_strings["pipeline"] = dict_list2text(json_results["pipline_table"],["Analysis","Program"])
+    text_strings["pipeline"] = dict_list2text(json_results["pipeline"],["Analysis","Program"])
     text_strings["version"] = json_results["tbprofiler_version"]
     tmp = json_results["db_version"]
     text_strings["db_version"] = "%s_%s_%s_%s" % (tmp["name"],tmp["commit"],tmp["Author"],tmp["Date"])
@@ -198,7 +198,7 @@ def get_csv_strings(json_results,conf,columns=None):
     csv_strings["other_var_report"] = dict_list2csv(json_results["other_variants"],["genome_pos","locus_tag","change","freq"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
     csv_strings["coverage_report"] = dict_list2csv(json_results["qc"]["gene_coverage"], ["gene","locus_tag","cutoff","fraction"]) if "gene_coverage" in json_results["qc"] else "NA"
     csv_strings["missing_report"] = dict_list2csv(json_results["qc"]["missing_positions"],["gene","locus_tag","position","position_type","drug_resistance_position"]) if "gene_coverage" in json_results["qc"] else "NA"
-    csv_strings["pipeline"] = dict_list2csv(json_results["pipline_table"],["Analysis","Program"])
+    csv_strings["pipeline"] = dict_list2csv(json_results["pipeline"],["Analysis","Program"])
     csv_strings["version"] = json_results["tbprofiler_version"]
     tmp = json_results["db_version"]
     csv_strings["db_version"] = "%s_%s_%s_%s" % (tmp["name"],tmp["commit"],tmp["Author"],tmp["Date"])

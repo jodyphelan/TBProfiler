@@ -16,6 +16,7 @@ def fa2dict(filename):
     seq_name = ""
     for l in open(filename):
         line = l.rstrip()
+        if line=="":continue
         if line[0] == ">":
             seq_name = line[1:].split()[0]
             fa_dict[seq_name] = []
@@ -49,14 +50,14 @@ def write_gene_pos(infile,genes,outfile):
                     OUT.write("%s\t%s\t%s\t%s\n" % (chr_name,chr_pos,rv,gene_start+(x*i)+y))
 
 
-def write_bed(gene_dict,gene_info,outfile,chr_name):
+def write_bed(gene_dict,gene_info,outfile):
     lines = []
     for gene in gene_dict:
         if gene not in gene_info:
             sys.stderr.write("%s not found in the 'gene_info' dictionary... Exiting!" % gene)
             quit()
         lines.append([
-            chr_name,
+            gene_info[gene].chrom,
             str(gene_info[gene].feature_start-200),
             str(gene_info[gene].feature_end+200),
             gene_info[gene].locus_tag,
@@ -185,18 +186,52 @@ def get_genome_position(gene_object,change):
             return [p]
     quit(f"Don't know how to handle {change}")
 
+def match_ref_chrom_names(source,target):
+    source_fa = fa2dict(source)
+    source_fa_size = {s:len(source_fa[s]) for s in source_fa}
+    target_fa = fa2dict(target)
+    target_fa_size = {s:len(target_fa[s]) for s in target_fa}
+    conversion = {}
+    for s in target_fa:
+        tlen = target_fa_size[s]
+        tmp = [x[0] for x in source_fa_size.items() if x[1]==tlen]
+        if len(tmp)==1:
+            conversion[s] = tmp[0]
+    return conversion
+
 
 def create_db(args):
+
+    genome_file = "%s.fasta" % args.prefix
+    gff_file = "%s.gff" % args.prefix
+    if args.prefix:
+        barcode_file = "%s.barcode.bed" % args.prefix
+    bed_file = "%s.bed" % args.prefix
+    json_file = "%s.dr.json" % args.prefix
+    version_file = "%s.version.json" % args.prefix
+
+
     global chr_name
-    fasta_dict = fa2dict("genome.fasta")
-    biggest_chrom = [x[0] for x in sorted(fasta_dict.items(),key=lambda x:len(x[1]),reverse=True)][0]
-    chr_name = biggest_chrom
-    if args.seqname:
-        chr_name = args.seqname
+
+    if args.match_ref:
+        chrom_conversion = match_ref_chrom_names(args.match_ref,"genome.fasta")
+        shutil.copy(args.match_ref,genome_file)
     else:
-        args.seqname = biggest_chrom
-        
-    genes = load_gff("genome.gff")
+        chrom_conversion = match_ref_chrom_names("genome.fasta","genome.fasta")
+        shutil.copy("genome.fasta",genome_file)    
+    
+    with open(gff_file,"w") as O:
+        for l in open("genome.gff"):
+            if l[0]=="#":
+                O.write(l)
+            else:
+                row = l.strip().split()
+                if row[0] in chrom_conversion:
+                    row[0] = chrom_conversion[row[0]]
+                    O.write("\t".join(row)+"\n")        
+
+                    
+    genes = load_gff(gff_file)
     gene_name2gene_id = {g.name:g.locus_tag for g in genes.values()}
     gene_name2gene_id.update({g.locus_tag:g.locus_tag for g in genes.values()})
     db = {}
@@ -244,13 +279,7 @@ def create_db(args):
             drug = row["Drug"].lower()
             locus_tag_to_drug_dict[locus_tag].add(drug)
 
-    genome_file = "%s.fasta" % args.prefix
-    gff_file = "%s.gff" % args.prefix
-    if args.prefix:
-        barcode_file = "%s.barcode.bed" % args.prefix
-    bed_file = "%s.bed" % args.prefix
-    json_file = "%s.dr.json" % args.prefix
-    version_file = "%s.version.json" % args.prefix
+    
 
     version = {"name":args.prefix}
     if not args.custom:
@@ -267,14 +296,14 @@ def create_db(args):
 
     json.dump(version,open(version_file,"w"))
 
-    # shutil.copy("genome.fasta",genome_file)
-    # shutil.copy("genome.gff",gff_file)
     variables = json.load(open("variables.json"))    
-    variables["chromosome_conversion"] = {"source":[args.seqname],"target":[biggest_chrom]}
+    variables["chromosome_conversion"] = {"source":list(chrom_conversion.keys()),"target":list(chrom_conversion.values())}
     json.dump(variables,open(args.prefix+".variables.json","w"))
-    open(genome_file,"w").write(">%s\n%s\n" % (chr_name,fasta_dict[biggest_chrom]))
-    run_cmd("sed 's/%s/%s/g' genome.gff > %s" % (biggest_chrom,chr_name,gff_file))
     if os.path.isfile("barcode.bed"):
-        run_cmd("sed 's/%s/%s/g' barcode.bed > %s" % (biggest_chrom,chr_name,barcode_file))
-    write_bed(locus_tag_to_drug_dict,genes,bed_file,chr_name)
+        with open(barcode_file,"w") as O:
+            for l in open("barcode.bed"):
+                row = l.strip().split()
+                row[0] = chrom_conversion[row[0]]
+                O.write("\t".join(row)+"\n")
+    write_bed(locus_tag_to_drug_dict,genes,bed_file)
     json.dump(db,open(json_file,"w"))
