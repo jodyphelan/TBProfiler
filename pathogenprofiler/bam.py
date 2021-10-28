@@ -20,7 +20,6 @@ class bam:
             return delly_bcf("%(prefix)s.delly.bcf" % vars(self))
 
     def call_variants(self,ref_file,caller,bed_file=None,threads=1,calling_params=None,remove_missing=False, samclip=False,min_dp=10):
-        print(caller)
         add_arguments_to_self(self, locals())
         filecheck(ref_file)
         self.caller = caller.lower()

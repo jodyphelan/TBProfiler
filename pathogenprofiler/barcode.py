@@ -97,7 +97,6 @@ def db_compare(mutations,db_file):
             csq = var["consequences"][j]
             if csq["gene_id"] in db:
                 db_var_match = None
-                print(var)
                 
                 if csq["nucleotide_change"] in db[csq["gene_id"]]:
                     db_var_match = db[csq["gene_id"]][csq["nucleotide_change"]]

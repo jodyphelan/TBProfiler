@@ -255,9 +255,7 @@ def create_db(args):
         db[locus_tag][mut]["genome_positions"] = get_genome_position(genes[locus_tag],mut)
 
     if args.other_annotations:
-        print(args.other_annotations)
         for row in csv.DictReader(open(args.other_annotations)):
-            print(row)
             locus_tag = gene_name2gene_id[row["Gene"]]
             mut = row["Mutation"]
             if locus_tag not in db:
@@ -271,7 +269,6 @@ def create_db(args):
                 tmp_annotation[col.lower()] = row[col]
             db[locus_tag][mut]["annotations"].append(tmp_annotation)
             db[locus_tag][mut]["genome_positions"] = get_genome_position(genes[locus_tag],mut)
-            print(db[locus_tag][mut])
 
     if args.watchlist:
         for row in csv.DictReader(open(args.watchlist)):
