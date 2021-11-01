@@ -237,7 +237,7 @@ def main_create_db(args):
 
 def main_load_library(args):
     lib_prefix = args.prefix.split("/")[-1]
-    files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json","variables":".variables.json"}
+    files = {"gff":".gff","ref":".fasta","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json","variables":".variables.json"}
     if pp.nofolder(sys.base_prefix+"/share/tbprofiler"):
         pp.run_cmd("mkdir %s " % (sys.base_prefix+"/share/tbprofiler/"))
     for key in files:
