@@ -63,22 +63,13 @@ try:
 except:
     sys.base_prefix = getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', sys.prefix))
 
-def get_conf_dict(library_prefix):
-    files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
-    global conf
-    conf = {}
-    for key in files:
-        sys.stderr.write("Using %s file: %s\n" % (key,library_prefix+files[key]))
-        conf[key] = pp.filecheck(library_prefix+files[key])
-    return conf
-
 def main_reprofile(args):
     if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
         pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
     if args.external_db:
-        conf = get_conf_dict(args.external_db)
+        conf = tbp.get_conf_dict_with_path(args.external_db)
     else:
-        conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
+        conf = tbp.get_conf_dict(args.db)
     old_results = json.load(open(args.json))
     new_results = old_results.copy()
     variant_dump = {}
@@ -246,7 +237,7 @@ def main_create_db(args):
 
 def main_load_library(args):
     lib_prefix = args.prefix.split("/")[-1]
-    files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
+    files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json","variables":".variables.json"}
     if pp.nofolder(sys.base_prefix+"/share/tbprofiler"):
         pp.run_cmd("mkdir %s " % (sys.base_prefix+"/share/tbprofiler/"))
     for key in files:
@@ -263,12 +254,12 @@ def main_lineage(args):
     if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
         pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
     if args.external_db:
-        conf = get_conf_dict(args.external_db)
+        conf = tbp.get_conf_dict_with_path(args.external_db)
     else:
-        conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
+        conf = tbp.get_conf_dict(args.db)
     pp.filecheck(args.bam)
     bam = pp.bam(args.bam,args.bam,conf["ref"])
-    mutations = bam.get_bed_gt(conf["barcode"],conf["ref"],args.caller)
+    mutations = bam.get_bed_gt(conf["barcode"],conf["ref"],args.caller,args.platform)
 
     results = {}
     snps_file = args.prefix+".lineage.snps.txt" if args.snps else None
@@ -287,9 +278,9 @@ def main_collate(args):
     if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
         pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
     if args.external_db:
-        conf = get_conf_dict(args.external_db)
+        conf = tbp.get_conf_dict_with_path(args.external_db)
     else:
-        conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
+        conf = tbp.get_conf_dict(args.db)
     tbp.collate_results(args.prefix,conf,sample_file=args.samples,result_dir=args.dir,reporting_af=args.reporting_af,mark_missing=args.mark_missing)
 
 def main_version(args):
@@ -301,9 +292,9 @@ def main_reformat(args):
 
     results = json.load(open(args.json))
     if args.external_db:
-        conf = get_conf_dict(args.external_db)
+        conf = tbp.get_conf_dict_with_path(args.external_db)
     else:
-        conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
+        conf = tbp.get_conf_dict(args.db)
     args.prefix = results["id"]
     tex_output = args.prefix+".results.tex"
     csv_output = args.prefix+".results.csv"
@@ -326,17 +317,17 @@ def main_fasta_profile(args):
         pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
 
     if args.external_db:
-        conf = get_conf_dict(args.external_db)
+        conf = tbp.get_conf_dict_with_path(args.external_db)
     else:
-        conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
+        conf = tbp.get_conf_dict(args.db)
     results = pp.fasta_profiler(conf, args.prefix, args.fasta)
-    results = tbp.reformat(results,conf,reporting_af=0)
+    results = tbp.reformat(results,conf,reporting_af=0,use_suspect=args.suspect)
     results["id"] = args.prefix
     results["tbprofiler_version"] = tbp.__version__
-    results["pipeline"] = {"mapper":"N/A","variant_caller":"paftools.js"}
+    results["pipeline"] = [{"Analysis":"Variant_calling","Program":"paftools.js"}]
+
 
     json_output = args.dir+"/results/"+args.prefix+".results.json"
-    tex_output = args.dir+"/results/"+args.prefix+".results.tex"
     text_output = args.dir+"/results/"+args.prefix+".results.txt"
     csv_output = args.dir+"/results/"+args.prefix+".results.csv"
 
@@ -362,9 +353,9 @@ def main_vcf_profile(args):
 
     global conf
     if args.external_db:
-        conf = get_conf_dict(args.external_db)
+        conf = tbp.get_conf_dict_with_path(args.external_db)
     else:
-        conf = get_conf_dict(sys.base_prefix+"/share/tbprofiler/%s" % args.db)
+        conf = tbp.get_conf_dict(args.db)
     args.tmp_prefix = str(uuid4())
 
     if args.lofreq_sample_name:
@@ -409,10 +400,10 @@ def main_vcf_profile(args):
         else:
             pp.run_cmd("bcftools view -s %(sample_name)s -c 1 %(vcf)s | bcftools +fixploidy -Oz -o %(tmp_vcf)s " % vars(args))
         results = pp.vcf_profiler(conf, files_prefix, sample_name, args.tmp_vcf)
-        results = tbp.reformat(results,conf,reporting_af=args.reporting_af)
+        results = tbp.reformat(results,conf,reporting_af=args.reporting_af,use_suspect=args.suspect)
         results["id"] = sample_name
         results["tbprofiler_version"] = tbp.__version__
-        results["pipeline"] = {"mapper": "N/A","variant_caller":"N/A"}
+        results["pipeline"] = []
 
         json_output = args.dir+"/results/"+sample_name+".results.json"
         tex_output = args.dir+"/results/"+sample_name+".results.tex"
@@ -474,6 +465,7 @@ algorithm.add_argument('--af',default=0.1,type=float,help='Minimum allele freque
 algorithm.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to use variants for prediction')
 algorithm.add_argument('--coverage_fraction_threshold',default=0,type=int,help='Cutoff used to calculate fraction of region covered by <= this value')
 algorithm.add_argument('--missing_cov_threshold',type=int,help='Cutoff used to positions/codons in genes which are missing (this argument has now been merged with --min_depth argument and will be deprecated in future releases)')
+algorithm.add_argument('--suspect',action="store_true",help="Use the suspect suite of tools to add ML predictions")
 algorithm.add_argument('--no_trim',action="store_true",help="Don't trim files using trimmomatic")
 algorithm.add_argument('--no_flagstat',action="store_true",help="Don't collect flagstats")
 algorithm.add_argument('--no_clip',action="store_false",help="Don't clip reads")
@@ -498,6 +490,7 @@ parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to call variants')
 parser_sub.add_argument('--lofreq_sample_name',help='Sample name to use if VCF has been generated by lofreq')
+parser_sub.add_argument('--suspect',action="store_true",help="Use the suspect suite of tools to add ML predictions")
 parser_sub.add_argument('--txt',action="store_true",help="Add text output")
 parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
 parser_sub.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and csv results")
@@ -513,6 +506,7 @@ parser_sub.add_argument('--prefix','-p',help='VCF file',required=True)
 parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
 parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+parser_sub.add_argument('--suspect',action="store_true",help="Use the suspect suite of tools to add ML predictions")
 parser_sub.add_argument('--txt',action="store_true",help="Add text output")
 parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
 parser_sub.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and csv results")
@@ -527,6 +521,7 @@ parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix
 parser_sub.add_argument('--outfmt',default='json',choices=["json","txt"],type=str,help="Output format")
 parser_sub.add_argument('--snps',action="store_true",help='Sample prefix')
 parser_sub.add_argument('--caller',default='bcftools',choices=["bcftools","freebayes","gatk"],type=str,help="Variant caller")
+parser_sub.add_argument('--platform','-m',choices=["illumina","nanopore"],default="illumina",help='NGS Platform used to generate data')
 parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
 parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)

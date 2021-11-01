@@ -3,7 +3,7 @@ import pathogenprofiler as pp
 import json
 from collections import defaultdict
 from .utils import get_genome_positions_from_json_db, get_lt2drugs,rv2genes
-
+from .xdb import *
 
 def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=0.0):
     if not columns:
@@ -158,8 +158,16 @@ def reformat_annotations(results,conf):
             tmp = var.copy()
             drugs = tuple([x["drug"] for x in var["annotation"] if x["type"]=="drug"])
             if len(drugs)>0:
-                tmp["drugs"] = var["annotation"]
-                del tmp["annotation"]
+                dr_ann = []
+                other_ann = []
+                while len(tmp["annotation"])>0:
+                    x = tmp["annotation"].pop()
+                    if x["type"]=="drug":
+                        dr_ann.append(x)
+                    else:
+                        other_ann.append(x)
+                tmp["drugs"] = dr_ann
+                tmp["annotation"] = other_ann
                 results["dr_variants"].append(tmp)
             else:
                 var["gene_associated_drugs"] = lt2drugs[var["locus_tag"]]
@@ -221,8 +229,34 @@ def reformat_missing_genome_pos(positions,conf):
     return new_results
 
 
+def suspect_profiling(results):
+    new_vars = []
+    for var in results["other_variants"]:
+        if var["type"]!="missense_variant": continue
+        pred = None
+        if var["gene"]=="atpE":
+            pred = get_biosig_bdq_prediction(var["change"])
+        if var["gene"]=="pncA":
+            pred = get_biosig_pza_prediction(var["change"])
+        if pred:
+            if "annotation" in var:
+                var["annotation"].append(pred)
+            else:
+                var["annotation"] = [pred]
+            var["drugs"] = [{
+                "type":"drug",
+                "drug":"pyrazinamide" if var["gene"]=="pncA" else "bedquiline",
+                "confers": "resistance",
+                "evidence": "suspect-PZA" if var["gene"]=="pncA" else "suspect-BDQ"
+            }]
+            new_vars.append(var)
+    for v in new_vars:
+        results["dr_variants"].append(v)
+        results["other_variants"].remove(v)
+    return results
 
-def reformat(results,conf,reporting_af,mutation_metadata=False):
+    
+def reformat(results,conf,reporting_af,mutation_metadata=False,use_suspect=False):
     results["variants"] = [x for x in results["variants"] if len(x["consequences"])>0]
     results["variants"] = select_csq(results["variants"])
     results["variants"] = dict_list_add_genes(results["variants"],conf)
@@ -238,4 +272,6 @@ def reformat(results,conf,reporting_af,mutation_metadata=False):
     if mutation_metadata:
         pass
         # results = add_mutation_metadata(results)
+    if use_suspect:
+        results = suspect_profiling(results)
     return results

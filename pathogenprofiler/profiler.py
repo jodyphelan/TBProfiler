@@ -104,15 +104,15 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
 def fasta_profiler(conf, prefix, filename):
     fasta_obj = fasta(filename)
     wg_vcf_file = fasta_obj.get_ref_variants(conf["ref"], prefix)
-    wg_vcf_obj = vcf(wg_vcf_file)
+    vcf_obj = vcf(wg_vcf_file)
     vcf_file = prefix+".targets.vcf.gz"
     run_cmd("bcftools view -c 1 %s -Oz -o %s -T %s" % (wg_vcf_file,vcf_file,conf['bed']))
-    vcf_csq_obj = vcf(vcf_file).csq(conf["ref"],conf["gff"])
-    csq = vcf_csq_obj.load_csq(ann_file=conf["ann"])
+    vcf_obj = vcf_obj.run_snpeff(conf["snpEff_db"],conf["ref"],conf["gff"],rename_chroms= conf["chromosome_conversion"])
+    ann = vcf_obj.load_ann(bed_file=conf["bed"],upstream=True,synonymous=True,noncoding=True)
+
     results = {"variants":[],"missing_pos":[],"qc":{"pct_reads_mapped":"NA","num_reads_mapped":"NA"}}
-    for sample in csq:
-        results["variants"]  = csq[sample]
-    mutations = wg_vcf_obj.get_bed_gt(conf["barcode"], conf["ref"])
+    results["variants"]  = ann
+    mutations = vcf_obj.get_bed_gt(conf["barcode"], conf["ref"])
     if "C" in mutations["Chromosome"][325505] and  mutations["Chromosome"][325505]["C"]==50:  mutations["Chromosome"][325505] = {"T":25}
     if "G" in mutations["Chromosome"][599868] and  mutations["Chromosome"][599868]["G"]==50:  mutations["Chromosome"][599868] = {"A":25}
     if "C" in mutations["Chromosome"][931123] and  mutations["Chromosome"][931123]["C"]==50:  mutations["Chromosome"][931123] = {"T":25}
@@ -126,11 +126,10 @@ def vcf_profiler(conf, prefix, sample_name, vcf_file):
     vcf_targets_file = "%s.targets.vcf.gz" % prefix
     run_cmd("bcftools view -T %s %s -Oz -o %s" % (conf["bed"],vcf_file,vcf_targets_file))
     vcf_obj = vcf(vcf_targets_file)
-    vcf_csq_obj = vcf_obj.csq(conf["ref"],conf["gff"])
-    csq = vcf_csq_obj.load_csq(ann_file=conf["ann"])
+    vcf_obj = vcf_obj.run_snpeff(conf["snpEff_db"],conf["ref"],conf["gff"],rename_chroms= conf["chromosome_conversion"])
+    ann = vcf_obj.load_ann(bed_file=conf["bed"],upstream=True,synonymous=True,noncoding=True)
     results = {"variants":[],"missing_pos":[],"qc":{"pct_reads_mapped":"NA","num_reads_mapped":"NA"}}
-    for sample in csq:
-        results["variants"]  = csq[sample]
+    results["variants"]  = ann
     mutations = vcf(vcf_file).get_bed_gt(conf["barcode"], conf["ref"])
     if "C" in mutations["Chromosome"][325505] and  mutations["Chromosome"][325505]["C"]==50:  mutations["Chromosome"][325505] = {"T":25}
     if "G" in mutations["Chromosome"][599868] and  mutations["Chromosome"][599868]["G"]==50:  mutations["Chromosome"][599868] = {"A":25}
@@ -139,5 +138,5 @@ def vcf_profiler(conf, prefix, sample_name, vcf_file):
 
     results["barcode"] = barcode(mutations,conf["barcode"])
     results = db_compare(db_file=conf["json_db"], mutations=results)
-    run_cmd("rm %s* %s*" % (vcf_targets_file,vcf_csq_obj.filename))
+    run_cmd("rm %s* %s*" % (vcf_targets_file,vcf_obj.filename))
     return results

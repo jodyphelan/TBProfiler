@@ -102,16 +102,14 @@ Pipeline version: %(version)s
 Database version: %(db_version)s
 %(pipeline)s
 
-Disclaimer
-----------
-This tool is for Research Use Only and is offered free foruse. The London School
-of Hygiene and Tropical Medicine shall have no liability for any loss or damages
-of any kind, however sustained relating to the use of this tool.
-
 Citation
 --------
 Coll, F. et al. Rapid determination of anti-tuberculosis drug resistance from
 whole-genome sequences. Genome Medicine 7, 51. 2015
+
+Phelan, JE. et al. Integrating informatics tools and portable sequencing 
+technology for rapid detection of resistance to anti-tuberculous drugs. 
+Genome Medicine 11, 41. 2019
 """ % text_strings
 
 def load_csv(text_strings):
@@ -154,7 +152,17 @@ Analysis pipeline specifications
 --------------------------------
 Pipeline version,%(version)s
 Database version,"%(db_version)s"
-%(pipeline)s""" % text_strings
+%(pipeline)s
+
+Citation
+--------
+Coll, F. et al. Rapid determination of anti-tuberculosis drug resistance from
+whole-genome sequences. Genome Medicine 7, 51. 2015
+
+Phelan, JE. et al. Integrating informatics tools and portable sequencing 
+technology for rapid detection of resistance to anti-tuberculous drugs. 
+Genome Medicine 11, 41. 2019
+""" % text_strings
 
 
 def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0):
@@ -170,10 +178,10 @@ def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0):
     text_strings["drtype"] = json_results["drtype"]
     text_strings["dr_report"] = dict_list2text(json_results["drug_table"],["Drug","Genotypic Resistance","Mutations"]+columns if columns else [])
     text_strings["lineage_report"] = dict_list2text(json_results["lineage"],["lin","frac","family","spoligotype","rd"],{"lin":"Lineage","frac":"Estimated fraction"})
-    text_strings["dr_var_report"] = dict_list2text(json_results["dr_variants"],["genome_pos","locus_tag","gene","change","freq","drugs.drug"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
+    text_strings["dr_var_report"] = dict_list2text(json_results["dr_variants"],["genome_pos","locus_tag","gene","change","freq","drugs.drug"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction","drugs.drug":"Drug"})
     text_strings["other_var_report"] = dict_list2text(json_results["other_variants"],["genome_pos","locus_tag","gene","change","freq"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
-    text_strings["coverage_report"] = dict_list2text(json_results["qc"]["gene_coverage"], ["gene","locus_tag","cutoff","fraction"]) if "gene_coverage" in json_results["qc"] else "NA"
-    text_strings["missing_report"] = dict_list2text(json_results["qc"]["missing_positions"],["gene","locus_tag","position","position_type","drug_resistance_position"]) if "gene_coverage" in json_results["qc"] else "NA"
+    text_strings["coverage_report"] = dict_list2text(json_results["qc"]["gene_coverage"], ["gene","locus_tag","cutoff","fraction"]) if "gene_coverage" in json_results["qc"] else "Not available"
+    text_strings["missing_report"] = dict_list2text(json_results["qc"]["missing_positions"],["gene","locus_tag","position","position_type","drug_resistance_position"]) if "gene_coverage" in json_results["qc"] else "Not available"
     text_strings["pipeline"] = dict_list2text(json_results["pipeline"],["Analysis","Program"])
     text_strings["version"] = json_results["tbprofiler_version"]
     tmp = json_results["db_version"]
@@ -194,10 +202,10 @@ def get_csv_strings(json_results,conf,columns=None):
     csv_strings["drtype"] = json_results["drtype"]
     csv_strings["dr_report"] = dict_list2csv(json_results["drug_table"],["Drug","Genotypic Resistance","Mutations"]+columns if columns else [])
     csv_strings["lineage_report"] = dict_list2csv(json_results["lineage"],["lin","frac","family","spoligotype","rd"],{"lin":"Lineage","frac":"Estimated fraction"})
-    csv_strings["dr_var_report"] = dict_list2csv(json_results["dr_variants"],["genome_pos","locus_tag","gene","change","freq","drugs.drug"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
+    csv_strings["dr_var_report"] = dict_list2csv(json_results["dr_variants"],["genome_pos","locus_tag","gene","change","freq","drugs.drug"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction","drugs.drug":"Drug"})
     csv_strings["other_var_report"] = dict_list2csv(json_results["other_variants"],["genome_pos","locus_tag","change","freq"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"})
-    csv_strings["coverage_report"] = dict_list2csv(json_results["qc"]["gene_coverage"], ["gene","locus_tag","cutoff","fraction"]) if "gene_coverage" in json_results["qc"] else "NA"
-    csv_strings["missing_report"] = dict_list2csv(json_results["qc"]["missing_positions"],["gene","locus_tag","position","position_type","drug_resistance_position"]) if "gene_coverage" in json_results["qc"] else "NA"
+    csv_strings["coverage_report"] = dict_list2csv(json_results["qc"]["gene_coverage"], ["gene","locus_tag","cutoff","fraction"]) if "gene_coverage" in json_results["qc"] else "Not available"
+    csv_strings["missing_report"] = dict_list2csv(json_results["qc"]["missing_positions"],["gene","locus_tag","position","position_type","drug_resistance_position"]) if "gene_coverage" in json_results["qc"] else "Not available"
     csv_strings["pipeline"] = dict_list2csv(json_results["pipeline"],["Analysis","Program"])
     csv_strings["version"] = json_results["tbprofiler_version"]
     tmp = json_results["db_version"]

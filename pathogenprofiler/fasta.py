@@ -38,5 +38,5 @@ class fasta:
         self.file_prefix = file_prefix
         if self.file_prefix==None:
             self.file_prefix=prefix
-        run_cmd("minimap2 %(refseq)s %(fa_file)s --cs | sort -k6,6 -k8,8n | paftools.js call -l 100 -L 100 -f %(refseq)s -s %(prefix)s - | bcftools view -Oz -o %(file_prefix)s.vcf.gz" % vars(self))
+        run_cmd("minimap2 %(refseq)s %(fa_file)s --cs | sort -k6,6 -k8,8n | paftools.js call -l 100 -L 100 -f %(refseq)s -s %(prefix)s - | add_dummy_AD.py | bcftools view -Oz -o %(file_prefix)s.vcf.gz" % vars(self))
         return "%s.vcf.gz" % self.file_prefix
