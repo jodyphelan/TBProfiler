@@ -223,6 +223,8 @@ def get_snpeff_formated_mutation_list(csv_file,ref,gff,snpEffDB):
             converted_mutations[(row["Gene"],row["Mutation"])] = row["Mutation"]
         if row["Mutation"] == "large_deletion":
             converted_mutations[(row["Gene"],row["Mutation"])] = row["Mutation"]
+        if row["Mutation"] == "functional_gene":
+            converted_mutations[(row["Gene"],row["Mutation"])] = row["Mutation"]
         if row["Mutation"][:19] == "any_missense_codon_":
             converted_mutations[(row["Gene"],row["Mutation"])] = row["Mutation"]
         
@@ -230,10 +232,10 @@ def get_snpeff_formated_mutation_list(csv_file,ref,gff,snpEffDB):
             quit(f"Don't know how to handle this mutation: {row['Gene']} {row['Mutation']}\n")
             
     print("Converting %s mutations" % len(mutations))
-    mutation_conversion = get_ann(mutations,snpEffDB)
-    for key in mutation_conversion:
-        converted_mutations[key] = mutation_conversion[key]
-
+    if len(mutations)>0:
+        mutation_conversion = get_ann(mutations,snpEffDB)
+        for key in mutation_conversion:
+            converted_mutations[key] = mutation_conversion[key]
     return converted_mutations
     
 
