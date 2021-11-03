@@ -65,7 +65,7 @@ except:
 
 def main_reprofile(args):
     if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
-        pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+        pp.errlog("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
     if args.external_db:
         conf = tbp.get_conf_dict_with_path(args.external_db)
     else:
@@ -97,7 +97,7 @@ def main_reprofile(args):
 def main_profile(args):
     #### Setup conf dictionary ###
     if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
-        pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+        pp.errlog("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
     global conf
     if args.external_db:
         conf = tbp.get_conf_dict_with_path(args.external_db)
@@ -220,7 +220,7 @@ def main_profile(args):
 
     pp.run_cmd("rm %s*" % files_prefix)
 
-    pp.log("Profiling finished sucessfully!")
+    pp.successlog("Profiling finished sucessfully!")
 
 def main_update_tbdb(args):
     if pp.nofolder("tbdb"):
@@ -231,7 +231,7 @@ def main_update_tbdb(args):
     pp.run_cmd("tb-profiler create_db %s" % tmp)
     pp.run_cmd("tb-profiler load_library tbdb")
     os.chdir("../")
-    pp.log("Sucessfully updated TBDB")
+    pp.successlog("Sucessfully updated TBDB")
 
 def main_create_db(args):
     tbp.create_db(args)
@@ -277,7 +277,7 @@ def main_lineage(args):
 
 def main_collate(args):
     if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
-        pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+        pp.errlog("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
     if args.external_db:
         conf = tbp.get_conf_dict_with_path(args.external_db)
     else:
@@ -289,7 +289,7 @@ def main_version(args):
 
 def main_reformat(args):
     if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
-        pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+        pp.errlog("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
 
     results = json.load(open(args.json))
     if args.external_db:
@@ -315,7 +315,7 @@ def main_fasta_profile(args):
         if pp.nofolder(args.dir+"/"+x):
             os.mkdir(args.dir+"/"+x)
     if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
-        pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+        pp.errlog("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
 
     if args.external_db:
         conf = tbp.get_conf_dict_with_path(args.external_db)
@@ -389,7 +389,7 @@ def main_vcf_profile(args):
 
     vcf_obj = pp.vcf(args.vcf)
     if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
-        pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+        pp.errlog("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
 
     
     for sample_name in vcf_obj.samples:
