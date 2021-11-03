@@ -31,7 +31,7 @@ def cleanup():
             O.write("# tb-profiler error report\n\n")
             O.write("* OS: %s\n" % sys.platform)
             O.write("* Program version: %s\n" % tbp.__version__)
-            O.write("* Database version: %s\n" % json.load(open(conf["version"]))["commit"])
+            O.write("* Database version: %s\n" % json.load(open(conf["version"]))["commit"]) if conf else ""
             O.write("* Program call:\n")
             O.write("```\n")
             O.write("%s\n" % vars(args))
@@ -202,9 +202,9 @@ def main_profile(args):
     if args.pdf:
         tbp.write_pdf(results,conf,pdf_output)
     if args.txt:
-        tbp.write_text(results,conf,text_output,extra_columns,reporting_af=args.reporting_af)
+        tbp.write_text(results,conf,text_output,extra_columns,reporting_af=args.reporting_af,sep="\t")
     if args.csv:
-        tbp.write_csv(results,conf,csv_output,extra_columns)
+        tbp.write_text(results,conf,csv_output,extra_columns,reporting_af=args.reporting_af,sep=",")
 
     ### Move files to respective directories ###
     result_files = {

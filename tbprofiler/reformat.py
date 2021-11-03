@@ -156,7 +156,7 @@ def reformat_annotations(results,conf):
     for var in results["variants"]:
         if "annotation" in var:
             tmp = var.copy()
-            drugs = tuple([x["drug"] for x in var["annotation"] if x["type"]=="drug"])
+            drugs = tuple([x["drug"] for x in var["annotation"] if x["type"]=="drug" and x["confers"]=="resistance"])
             if len(drugs)>0:
                 dr_ann = []
                 other_ann = []
