@@ -19,7 +19,7 @@ def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=
     results = {}
     annotation = {}
     for key in columns:
-        if key not in json_results["dr_variants"][0]: pp.log("%s not found in variant annotation, is this a valid column in the database CSV file? Exiting!" % key,True)
+        if key not in json_results["dr_variants"][0]: pp.errlog("%s not found in variant annotation, is this a valid column in the database CSV file? Exiting!" % key,True)
     for x in json_results["dr_variants"]:
         for d in x["drugs"]:
             drug = d["drug"]

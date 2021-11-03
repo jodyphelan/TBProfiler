@@ -14,7 +14,11 @@ def infolog(x):
 def errlog(x):
     sys.stderr.write('\033[91m' + str(x) + '\033[0m' + '\n')
 
-    
+def successlog(x):
+    sys.stderr.write('\033[92m' + str(x) + '\033[0m' + '\n')
+
+def warninglog(x):
+    sys.stderr.write('\033[93m' + str(x) + '\033[0m' + '\n')    
 
 def debug(x):
     sys.stderr.write("#"*40+"\n")

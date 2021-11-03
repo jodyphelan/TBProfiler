@@ -249,11 +249,11 @@ def main_load_library(args):
     if os.path.isfile("%s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".dict"):
         pp.run_cmd("rm %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".dict")
     pp.create_seq_dict(sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
-    pp.log("Sucessfully imported library")
+    pp.successlog("Sucessfully imported library")
 
 def main_lineage(args):
     if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
-        pp.log("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+        pp.errlog("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
     if args.external_db:
         conf = tbp.get_conf_dict_with_path(args.external_db)
     else:
