@@ -6,6 +6,7 @@ import pathogenprofiler as pp
 import os
 
 
+
 def get_conf_dict_with_path(library_path):
     files = {"gff":".gff","ref":".fasta","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
     conf = {}
