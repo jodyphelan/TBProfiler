@@ -11,10 +11,10 @@ def get_conf_dict_with_path(library_path):
     files = {"gff":".gff","ref":".fasta","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
     conf = {}
     for key in files:
-        pp.infolog("Using %s file: %s\n" % (key,library_path+files[key]))
+        pp.infolog("Using %s file: %s" % (key,library_path+files[key]))
         if os.path.isfile(library_path+files[key]):
             conf[key] = pp.filecheck(library_path+files[key])
-    pp.infolog("Using variables file: %s\n" % (library_path+".variables.json"))
+    pp.infolog("Using variables file: %s" % (library_path+".variables.json"))
     conf.update(json.load(open(pp.filecheck(library_path+".variables.json"))))
 #     test = json.load(open(conf["json_db"]))["Rv1908c"]["p.Ser315Thr"]
 #     if "annotation" not in test and "drugs" in test:
