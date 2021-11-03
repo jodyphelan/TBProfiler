@@ -4,10 +4,10 @@ import sys
 from collections import defaultdict
 from tqdm import tqdm
 from .utils import get_lt2drugs
-
+from pathogenprofiler import errlog
 def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_results=True,full_variant_results=True,reporting_af=0.1,mark_missing=False):
     if not os.path.isdir(result_dir):
-        sys.stderr.write("\nERROR: Can't find directory %s\n" % result_dir )
+        errlog("\nERROR: Can't find directory %s\n" % result_dir )
         exit()
     set_all_drugs = set()
     for l in open(conf["bed"]):

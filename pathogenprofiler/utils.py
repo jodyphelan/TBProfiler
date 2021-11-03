@@ -7,6 +7,15 @@ import math
 import re
 rand_generator = random.SystemRandom()
 
+
+def infolog(x):
+    sys.stderr.write('\033[94m' + str(x) + '\033[0m' + '\n')
+
+def errlog(x):
+    sys.stderr.write('\033[91m' + str(x) + '\033[0m' + '\n')
+
+    
+
 def debug(x):
     sys.stderr.write("#"*40+"\n")
     sys.stderr.write(x+"\n")

@@ -1,5 +1,6 @@
 import time
 from .reformat import get_summary
+from pathogenprofiler import errlog
 
 _DRUGS = [
     'rifampicin', 'isoniazid', 'ethambutol', 'pyrazinamide', 'streptomycin',

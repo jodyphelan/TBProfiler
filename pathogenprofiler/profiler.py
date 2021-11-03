@@ -1,4 +1,4 @@
-from .utils import log, run_cmd
+from .utils import infolog, run_cmd
 from .bam import bam
 from .barcode import barcode, db_compare
 from .vcf import vcf,delly_bcf
@@ -8,7 +8,7 @@ from .fasta import fasta
 
 
 def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagstat=False, run_delly=True, calling_params=None, delly_bcf_file=None, run_coverage=True, coverage_fraction_threshold=0, min_depth = 10, missing_cov_threshold=10, samclip=False, variant_annotations = False, call_wg=False):
-    log("Using %s\n\nPlease ensure that this BAM was made using the same reference as in the database.\nIf you are not sure what reference was used it is best to remap the reads." % bam_file)
+    infolog("Using %s\n\nPlease ensure that this BAM was made using the same reference as in the database.\nIf you are not sure what reference was used it is best to remap the reads." % bam_file)
 
     ### Put user specified arguments to lower case ###
     platform = platform.lower()
@@ -17,8 +17,7 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
     ### Set caller to bcftools if platform is nanopre and wrong caller has been used ###
     if platform == "nanopore":
         run_delly = False
-        if caller=="gatk":
-            caller = "freebayes"
+        caller = "freebayes"
 
     ### Create bam object and call variants ###
     bam_obj = bam(bam_file, prefix, platform=platform, threads=threads)

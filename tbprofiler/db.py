@@ -4,7 +4,7 @@ import re
 from collections import defaultdict
 import sys
 from datetime import datetime
-from pathogenprofiler import run_cmd, cmd_out
+from pathogenprofiler import run_cmd, cmd_out, errlog
 from .utils import load_gff
 import os
 import shutil
@@ -56,7 +56,7 @@ def write_bed(gene_dict,gene_info,outfile):
     lines = []
     for gene in gene_dict:
         if gene not in gene_info:
-            sys.stderr.write("%s not found in the 'gene_info' dictionary... Exiting!" % gene)
+            errlog("%s not found in the 'gene_info' dictionary... Exiting!" % gene)
             quit()
         lines.append([
             gene_info[gene].chrom,

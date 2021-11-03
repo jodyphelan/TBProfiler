@@ -46,7 +46,7 @@ def cleanup():
             O.write("```\n")
             O.write("%s" % sys.last_value)
             O.write("```\n")
-        sys.stderr.write("""\n
+        pp.errlog("""\n
 ################################# ERROR #######################################
 
 This run has failed. Please check all arguments and make sure all input files
@@ -227,7 +227,8 @@ def main_update_tbdb(args):
         pp.run_cmd("git clone https://github.com/jodyphelan/tbdb.git")
     os.chdir("tbdb")
     pp.run_cmd("git pull")
-    pp.run_cmd("tb-profiler create_db --seqname %s" % args.seqname)
+    tmp = "--match_ref %s" % args.match_ref if args.match_ref else ""
+    pp.run_cmd("tb-profiler create_db %s" % tmp)
     pp.run_cmd("tb-profiler load_library tbdb")
     os.chdir("../")
     pp.log("Sucessfully updated TBDB")
@@ -581,7 +582,7 @@ parser_sub.add_argument('--version', action='version', version="TBProfiler versi
 parser_sub.set_defaults(func=main_load_library)
 
 parser_sub = subparsers.add_parser('update_tbdb', help='Pull the latest tbdb library and load', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser_sub.add_argument('--seqname',default='Chromosome',help='Mutation panel name')
+parser_sub.add_argument('--match_ref',type=str,help='The prefix for all output files')
 parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.set_defaults(func=main_update_tbdb)
 
