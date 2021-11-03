@@ -220,7 +220,7 @@ def main_profile(args):
 
     pp.run_cmd("rm %s*" % files_prefix)
 
-    pp.successlog("Profiling finished sucessfully!")
+    pp.successlog("\nProfiling finished sucessfully!")
 
 def main_update_tbdb(args):
     if pp.nofolder("tbdb"):
