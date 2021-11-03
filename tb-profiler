@@ -567,7 +567,6 @@ parser_sub.add_argument('--prefix','-p',default="tbdb",type=str,help='The input 
 parser_sub.add_argument('--csv','-c',default="tbdb.csv",type=str,help='The prefix for all output files')
 parser_sub.add_argument('--watchlist','-w',default="tbdb.watchlist.csv",type=str,help='A csv file containing genes to profile but without any specific associated mutations')
 parser_sub.add_argument('--match_ref',type=str,help='The prefix for all output files')
-parser_sub.add_argument('--confidence',default="tbdb.confidence.csv",type=str,help="A CSV containing gene, mutation, drug and confidence columns")
 parser_sub.add_argument('--other_annotations',default="tbdb.other_annotations.csv",type=str,help="A CSV containing gene, mutation, drug and confidence columns")
 parser_sub.add_argument('--custom',action="store_true",help='Tells the script this is a custom database, this is used to alter the generation of the version file')
 parser_sub.add_argument('--db-name',help='Overrides the name of the database in the version file')
