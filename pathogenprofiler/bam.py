@@ -1,7 +1,8 @@
 from .utils import add_arguments_to_self, run_cmd, cmd_out, filecheck, index_bam
 from .vcf import vcf, delly_bcf
 from collections import defaultdict
-
+import json
+from uuid import uuid4
 
 class bam:
     """
@@ -73,12 +74,11 @@ class bam:
         return vcf(self.vcf_file)
 
     def flagstat(self):
-        lines = []
-        for l in cmd_out("samtools flagstat %s" % (self.bam_file)):
-            arr = l.split()
-            lines.append(arr)
-        self.num_reads_mapped = int(lines[4][0])
-        self.pct_reads_mapped = 0.0 if self.num_reads_mapped == 0 else float(lines[4][4][1:-1])
+        tmpfile = str(uuid4())
+        run_cmd(f"samtools flagstat -O json {self.bam_file} > {tmpfile}")
+        flagstat = json.load(open(tmpfile))
+        self.num_reads_mapped = flagstat["QC-passed reads"]["primary mapped"]
+        self.pct_reads_mapped = flagstat["QC-passed reads"]["mapped %"]
         return self.num_reads_mapped,self.pct_reads_mapped
 
     def get_median_coverage(self):

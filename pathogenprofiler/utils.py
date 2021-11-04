@@ -23,9 +23,7 @@ def warninglog(x):
     sys.stderr.write('\033[93m' + str(x) + '\033[0m' + '\n')    
 
 def debug(x):
-    sys.stderr.write("#"*40+"\n")
-    sys.stderr.write(x+"\n")
-    sys.stderr.write("#"*40+"\n")
+    sys.stderr.write('\033[93m' + str(x) + '\033[0m' + '\n')
 
 
 def reformat_mutations(x,vartype,gene,gene_info):
