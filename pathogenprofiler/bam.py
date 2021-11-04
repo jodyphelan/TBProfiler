@@ -77,7 +77,7 @@ class bam:
         tmpfile = str(uuid4())
         run_cmd(f"samtools flagstat -O json {self.bam_file} > {tmpfile}")
         flagstat = json.load(open(tmpfile))
-        self.num_reads_mapped = flagstat["QC-passed reads"]["primary mapped"]
+        self.num_reads_mapped = flagstat["QC-passed reads"]["mapped"]
         self.pct_reads_mapped = flagstat["QC-passed reads"]["mapped %"]
         return self.num_reads_mapped,self.pct_reads_mapped
 

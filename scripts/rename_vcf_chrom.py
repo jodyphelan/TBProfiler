@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 import pathogenprofiler as pp
 import sys
 import argparse
