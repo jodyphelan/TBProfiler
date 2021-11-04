@@ -4,10 +4,10 @@ import sys
 from collections import defaultdict
 from tqdm import tqdm
 from .utils import get_lt2drugs
-
+from pathogenprofiler import errlog
 def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_results=True,full_variant_results=True,reporting_af=0.1,mark_missing=False):
     if not os.path.isdir(result_dir):
-        sys.stderr.write("\nERROR: Can't find directory %s\n" % result_dir )
+        errlog("\nERROR: Can't find directory %s\n" % result_dir )
         exit()
     set_all_drugs = set()
     for l in open(conf["bed"]):
@@ -78,7 +78,7 @@ def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_res
             lt2gene[row[3]] = row[4] if row[4]!="." else row[3]
         for gene in all_vars:
             for mutation in all_vars[gene]:
-                dr_variants_set.add((lt2gene[gene],all_vars[gene][mutation]["hgvs_mutation"]))
+                dr_variants_set.add((lt2gene[gene],mutation))
         VAR = open(prefix+".variants.txt","w")
         VAR.write("sample\t%s\n" % ("\t".join(["%s_%s" % (g,c) for g,c in sorted(dr_variants_set,key=lambda x: x[0])])))
         for s in samples:

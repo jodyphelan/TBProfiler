@@ -7,6 +7,21 @@ import math
 import re
 rand_generator = random.SystemRandom()
 
+
+def infolog(x):
+    sys.stderr.write('\033[94m' + str(x) + '\033[0m' + '\n')
+
+def errlog(x,ext=False):
+    sys.stderr.write('\033[91m' + str(x) + '\033[0m' + '\n')
+    if ext==True:
+        quit(1)
+
+def successlog(x):
+    sys.stderr.write('\033[92m' + str(x) + '\033[0m' + '\n')
+
+def warninglog(x):
+    sys.stderr.write('\033[93m' + str(x) + '\033[0m' + '\n')    
+
 def debug(x):
     sys.stderr.write("#"*40+"\n")
     sys.stderr.write(x+"\n")
@@ -142,7 +157,7 @@ def cmd_out(cmd,verbose=1):
         for l in res.stdout:
             yield l.decode().rstrip()
     except:
-        sys.stderr.write("Command Failed! Please Check!")
+        errlog("Command Failed! Please Check!")
         raise Exception
     stderr.close()
 
@@ -158,14 +173,14 @@ def load_bed(filename,columns,key1,key2=None,intasint=False):
         row = l.rstrip().split("\t")
         if key2:
             if max(columns+[key1,key2])>len(row):
-                log("Can't access a column in BED file. The largest column specified is too big",True)
+                errlog("Can't access a column in BED file. The largest column specified is too big",True)
             if key2==2 or key2==3:
                 results[row[key1-1]][int(row[key2-1])] = tuple([row[int(x)-1] for x in columns])
             else:
                 results[row[key1-1]][row[key2-1]] = tuple([row[int(x)-1] for x in columns])
         else:
             if max(columns+[key1])>len(row):
-                log("Can't access a column in BED file. The largest column specified is too big",True)
+                errlog("Can't access a column in BED file. The largest column specified is too big",True)
             results[row[key1-1]]= tuple([row[int(x)-1] for x in columns])
     return results
 
@@ -177,7 +192,7 @@ def filecheck(filename):
     if filename=="/dev/null":
         return filename
     elif not os.path.isfile(filename):
-        sys.stderr.write("Can't find %s\n" % filename)
+        errlog("Can't find %s\n" % filename)
         exit(1)
     else:
         return filename

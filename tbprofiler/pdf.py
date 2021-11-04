@@ -228,6 +228,7 @@ html_text = """
 
 
 def write_pdf(results,conf,outfile):
+    newres = results.copy()
     from jinja2 import Environment, FileSystemLoader
     from weasyprint import HTML, CSS
 
@@ -251,9 +252,9 @@ def write_pdf(results,conf,outfile):
             continue
         other_variants.append(var)
 
-    results["dr_variants"] = dr_variants
-    results["other_variants"] = other_variants
-    results["qc"]["gene_coverage"] = gene_cov
-    template_vars = {"result" : results}
+    newres["dr_variants"] = dr_variants
+    newres["other_variants"] = other_variants
+    newres["qc"]["gene_coverage"] = gene_cov
+    template_vars = {"result" : newres}
     html_out = template.render(template_vars)
     HTML(string=html_out).write_pdf(outfile,stylesheets=[CSS(string=css_text)])

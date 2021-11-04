@@ -4,7 +4,12 @@ import re
 from collections import defaultdict
 import sys
 from datetime import datetime
-from pathogenprofiler import run_cmd, cmd_out
+from pathogenprofiler import run_cmd, cmd_out, errlog
+from .utils import load_gff
+import os
+import shutil
+from uuid import uuid4
+import pathogenprofiler as pp
 
 chr_name = "Chromosome"
 
@@ -13,6 +18,7 @@ def fa2dict(filename):
     seq_name = ""
     for l in open(filename):
         line = l.rstrip()
+        if line=="":continue
         if line[0] == ">":
             seq_name = line[1:].split()[0]
             fa_dict[seq_name] = []
@@ -45,138 +51,24 @@ def write_gene_pos(infile,genes,outfile):
                         y = 1 if gene_start< gene_end else -1
                     OUT.write("%s\t%s\t%s\t%s\n" % (chr_name,chr_pos,rv,gene_start+(x*i)+y))
 
-def parse_mutation(mut,gene,fasta_dict,gene_info):
-    aa_long2short = {
-    "Ala":"A","Arg":"R","Asn":"N","Asp":"D","Cys":"C",
-    "Gln":"Q","Glu":"E","Gly":"G","His":"H","Ile":"I",
-    "Leu":"L","Lys":"K","Met":"M","Phe":"F","Pro":"P",
-    "Ser":"S","Thr":"T","Trp":"W","Tyr":"Y","Val":"V",
-    "Stop":"*", "-":"-"
-    }
-    # AA change
-    re_obj = re.search("p.([A-Z][a-z][a-z])([0-9]+)([A-Z][a-z][a-z])", mut)
-    if re_obj:
-        ref_aa = aa_long2short[re_obj.group(1)]
-        alt_aa = aa_long2short[re_obj.group(3)]
-        codon_num = re_obj.group(2)
-        return ["%s%s>%s%s" % (codon_num, ref_aa, codon_num, alt_aa)]
-    # Stop codon
-    re_obj = re.search("p.([A-Z][a-z][a-z])([0-9]+)(\*)", mut)
-    if re_obj:
-        ref_aa = aa_long2short[re_obj.group(1)]
-        alt_aa = re_obj.group(3)
-        codon_num = re_obj.group(2)
-        return ["%s%s>%s%s" % (codon_num, ref_aa, codon_num, alt_aa)]
-    # Deletion single base
-    re_obj = re.search("c.([\-0-9]+)del", mut)
-    if re_obj:
-        gene_start_nt = int(re_obj.group(1))
-        strand = gene_info[gene]["strand"]
-        if strand == "-":
-            chr_start_nt = gene_info[gene]["end"] + gene_info[gene]["gene_end"] - gene_start_nt + (1 if gene_info[gene]["gene_end"]<0 else 0)
-        else:
-            chr_start_nt = gene_info[gene]["start"] - gene_info[gene]["gene_start"] + gene_start_nt - (0 if gene_start_nt<0 else 1)
-        seq = fasta_dict["Chromosome"][chr_start_nt-2:chr_start_nt]
-        return ["%s%s>%s" % (chr_start_nt-1,seq,seq[0])]
-    # Deletion multi base
-    re_obj = re.search("c.([\-0-9]+)_([\-0-9]+)del", mut)
-    if re_obj:
-        gene_start_nt = int(re_obj.group(1))
-        gene_end_nt = int(re_obj.group(2))
-        del_len = gene_end_nt-gene_start_nt+1
-        strand = gene_info[gene]["strand"]
-        if strand == "-":
-            chr_start_nt = gene_info[gene]["end"] + gene_info[gene]["gene_end"] - gene_start_nt - (del_len-1) + (1 if gene_info[gene]["gene_end"]<0 else 0)
-        else:
-            chr_start_nt = gene_info[gene]["start"] - gene_info[gene]["gene_start"] + gene_start_nt - (0 if gene_start_nt<0 else 1)
-        chr_end_nt = chr_start_nt+del_len-1
-        seq = fasta_dict["Chromosome"][chr_start_nt-2:chr_end_nt]
-        return ["%s%s>%s" % (chr_start_nt-1, seq, seq[0])]
-    # Insertion
-    re_obj = re.search("c.([\-0-9]+)_([\-0-9]+)ins([A-Z]+)", mut)
-    if re_obj:
-        gene_start_nt = int(re_obj.group(1))
-        seq_ins = re_obj.group(3)
-        strand = gene_info[gene]["strand"]
-        if strand == "-":
-            chr_start_nt = gene_info[gene]["end"] + gene_info[gene]["gene_end"] - gene_start_nt
-            seq_ins = revcom(seq_ins)
-        else:
-            chr_start_nt = gene_info[gene]["start"] - gene_info[gene]["gene_start"] + gene_start_nt - 1
-        seq_start = fasta_dict["Chromosome"][chr_start_nt-1]
-        return ["%s%s>%s" % (chr_start_nt,seq_start,seq_start+seq_ins)]
-    ## Promoter Mutation
-    ## c.-16G>C
-    re_obj = re.search("c.(\-[0-9]+)([A-Z])>([A-Z])",mut)
-    if re_obj:
-        nt_pos = int(re_obj.group(1))
-        ref_nt = re_obj.group(2)
-        alt_nt = re_obj.group(3)
-        strand = gene_info[gene]["strand"]
 
-        if strand == "+":
-            return ["%s%s>%s" % (nt_pos,ref_nt,alt_nt)]
-        else:
-            return ["%s%s>%s" % (nt_pos,revcom(ref_nt),revcom(alt_nt))]
-    ## ncRNA Mutation
-    ## r.514a>c
-    re_obj = re.search("r.([0-9]+)([a-z]+)>([a-z]+)",mut)
-    if re_obj:
-        nt_pos = re_obj.group(1)
-        ref_nt = re_obj.group(2)
-        alt_nt = re_obj.group(3)
-        return ["%s%s>%s" % (nt_pos,ref_nt.upper(),alt_nt.upper())]
-    ## frameshift
-    ## frameshift
-    re_obj = re.search("frameshift",mut)
-    if re_obj:
-        return ["frameshift"]
-    ## premature_stop
-    ## premature_stop
-    re_obj = re.search("premature_stop",mut)
-    if re_obj:
-        return ["premature_stop"]
-    ## codon range
-    ## any_missense_codon_425_452
-    re_obj = re.search("any_missense_codon_([0-9]+)_([0-9]+)",mut)
-    if re_obj:
-        start = int(re_obj.group(1))
-        end = int(re_obj.group(2))
-        return ["any_missense_codon_%s" % i for i in range(start,end+1)]
-    ## codon single
-    ## any_missense_codon_425
-    re_obj = re.search("any_missense_codon_([0-9]+)",mut)
-    if re_obj:
-        start = int(re_obj.group(1))
-        return ["any_missense_codon_%s" % start]
-    ## indel range
-    ##
-    re_obj = re.search("any_indel_nucleotide_([0-9]+)_([0-9]+)",mut)
-    if re_obj:
-        start = int(re_obj.group(1))
-        end = int(re_obj.group(2))
-        return ["any_indel_nucleotide_%s" % i for i in range(start,end+1)]
-    ## Large deletion
-    ## "large_deletion"
-    re_obj = re.search("large_deletion",mut)
-    if re_obj:
-        return ["large_deletion"]
-
-    sys.exit("%s is not a valid formatted mutation... Exiting!" % mut)
-
-def write_bed(gene_dict,gene_info,outfile,chr_name):
-    O = open(outfile,"w")
+def write_bed(gene_dict,gene_info,outfile):
     lines = []
     for gene in gene_dict:
         if gene not in gene_info:
-            sys.stderr.write("%s not found in the 'gene_info' dictionary... Exiting!" % gene)
+            errlog("%s not found in the 'gene_info' dictionary... Exiting!" % gene)
             quit()
-        lines.append([chr_name,int(gene_info[gene]["start"]),int(gene_info[gene]["end"]),gene_info[gene]["locus_tag"],gene_info[gene]["gene"],",".join(gene_dict[gene])])
-    for line in sorted(lines,key=lambda x: x[1]):
-        line[1] = str(line[1])
-        line[2] = str(line[2])
-        O.write("%s\n" %"\t".join(line))
-    O.close()
+        lines.append([
+            gene_info[gene].chrom,
+            str(gene_info[gene].feature_start-200),
+            str(gene_info[gene].feature_end+200),
+            gene_info[gene].locus_tag,
+            gene_info[gene].name,
+            ",".join(gene_dict[gene])
+        ])
+    with open(outfile,"w") as O:
+        for line in sorted(lines,key=lambda x: int(x[1])):
+            O.write("%s\n" %"\t".join(line))
 
 def load_gene_info(filename):
     gene_info = {}
@@ -187,52 +79,368 @@ def load_gene_info(filename):
         gene_info[row[1]] = {"locus_tag":row[0],"gene":row[1],"start":int(row[2]),"end":int(row[3]),"gene_start":int(row[4]),"gene_end":int(row[5]),"strand":strand}
     return gene_info
 
+def get_ann(variants,snpEffDB):
+    uuid = str(uuid4()) #"463545ef-71fc-449b-8f4e-9c907ee6fbf5"
+    with open(uuid,"w") as O:
+        O.write('##fileformat=VCFv4.2\n')
+        O.write('##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">\n')
+        O.write('##contig=<ID=Chromosome,length=4411532>\n')
+        O.write('#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ttest\n')
+        for var in variants.values():
+            O.write("Chromosome\t%(pos)s\t.\t%(ref)s\t%(alt)s\t255\t.\t.\tGT\t1\n" % var) 
+    results = {}
+    keys = list(variants.keys())
+    vals = list(variants.values())
+    i = 0
+    for l in cmd_out(f"snpEff ann {snpEffDB} {uuid}"):
+        if l[0]=="#": continue
+        row = l.strip().split()
+        for ann in row[7].split(","):
+            a = ann.split("|")
+            if vals[i]["gene"] in [a[3],a[4]]:
+                results[keys[i]] = a[9] if vals[i]["type"]=="nucleotide" else a[10]
+        i+=1
+    os.remove(uuid)
+    return results
+
+
+def get_snpeff_formated_mutation_list(csv_file,ref,gff,snpEffDB):
+    genes = load_gff(gff,aslist=True)
+    refseq = fa2dict(ref)
+
+    mutations  =  {}
+    converted_mutations = {}
+    for row in csv.DictReader(open(csv_file)):
+        gene = [g for g in genes if g.name==row["Gene"] or g.locus_tag==row["Gene"]][0]
+        r = re.search("n.([0-9]+)([ACGT]+)>([ACGT]+)",row["Mutation"])
+        if r:
+            converted_mutations[(row["Gene"],row["Mutation"])] = f"n.{r.group(1)}{r.group(2).upper()}>{r.group(3).upper()}"
+        r = re.search("p\..+",row["Mutation"])
+        if r:
+            converted_mutations[(row["Gene"],row["Mutation"])] = row["Mutation"]
+        r = re.search("c.-[0-9]+[ACGT]>[ACGT]",row["Mutation"])
+        if r:
+            converted_mutations[(row["Gene"],row["Mutation"])] = row["Mutation"]
+
+        r = re.search("c.[0-9]+dup[ACGT]+",row["Mutation"])
+        if r:
+            converted_mutations[(row["Gene"],row["Mutation"])] = row["Mutation"]
+        r = re.search("c.[0-9]+_[0-9]+dup[ACGT]+",row["Mutation"])
+        if r:
+            converted_mutations[(row["Gene"],row["Mutation"])] = row["Mutation"]
+        
+
+
+
+        r = re.search("c.([0-9]+)del",row["Mutation"])
+        if r:
+            # "ethA" "c.341del"
+            del_start = int(r.group(1))
+            del_end = int(r.group(1))
+            if gene.strand == "+":
+                # rpoB "c.1282_1290del"
+                genome_start = gene.start + del_start - 2
+                genome_end = gene.start + del_end 
+            else:
+                # "ethA" "c.1057_1059del"
+                genome_start = gene.start - del_end
+                genome_end = gene.start - del_start + 2
+            ref = refseq["Chromosome"][genome_start-1:genome_end-1]
+            alt = ref[0]
+            mutations[(row["Gene"],row["Mutation"])] = {"pos":genome_start, "ref":ref, "alt":alt,"gene":row["Gene"],"type":"nucleotide"}
+
+        r = re.search("c.([0-9]+)_([0-9]+)del",row["Mutation"])
+        if r:
+            del_start = int(r.group(1))
+            del_end = int(r.group(2))
+            if gene.strand == "+":
+                # rpoB "c.1282_1290del"
+                genome_start = gene.start + del_start - 2
+                genome_end = gene.start + del_end 
+            else:
+                # "ethA" "c.1057_1059del"
+                genome_start = gene.start - del_end
+                genome_end = gene.start - del_start + 2
+            ref = refseq["Chromosome"][genome_start-1:genome_end-1]
+            alt = ref[0]
+            mutations[(row["Gene"],row["Mutation"])] = {"pos":genome_start, "ref":ref, "alt":alt,"gene":row["Gene"],"type":"nucleotide"}
+
+        r = re.search("c.-([0-9]+)del",row["Mutation"])
+        if r:
+            del_start = int(r.group(1))
+            del_end = int(r.group(1))
+            if gene.strand == "+":
+               # "embA" "c.-29_-28del"
+                genome_start = gene.start + del_start - 1
+                genome_end = gene.start + del_end + 1
+            else:
+                # "alr" "c.-283_-280delCAAT"
+                genome_start = gene.start - del_end - 1
+                genome_end = gene.start - del_start + 1
+            ref = refseq["Chromosome"][genome_start-1:genome_end-1]
+            alt = ref[0]
+            mutations[(row["Gene"],row["Mutation"])] = {"pos":genome_start, "ref":ref, "alt":alt,"gene":row["Gene"],"type":"nucleotide"}
+
+        
+        r = re.search("c.(-[0-9]+)_(-[0-9]+)del",row["Mutation"])
+        if r:
+            del_start = int(r.group(1))
+            del_end = int(r.group(2))
+            if gene.strand == "+":
+               # "embA" "c.-29_-28del"
+                genome_start = gene.start + del_start - 1
+                genome_end = gene.start + del_end + 1
+            else:
+                # "alr" "c.-283_-280delCAAT"
+                genome_start = gene.start - del_end - 1
+                genome_end = gene.start - del_start + 1
+            ref = refseq["Chromosome"][genome_start-1:genome_end-1]
+            alt = ref[0]
+            mutations[(row["Gene"],row["Mutation"])] = {"pos":genome_start, "ref":ref, "alt":alt,"gene":row["Gene"],"type":"nucleotide"}
+
+        
+
+        r = re.search("c.([0-9]+)_([0-9]+)ins([ACGT]+)", row["Mutation"])
+        if r:
+            ins_start = int(r.group(1))
+            ins_end = int(r.group(2))
+            ins_seq = r.group(3)
+            if gene.strand == "+":
+                # "rpoB" "c.1296_1297insTTC"
+                genome_start = gene.start + ins_start - 1 
+                genome_end = gene.start + ins_end - 1
+            else:
+                # "pncA" "c.521_522insT"
+                ins_seq = pp.revcom(ins_seq)
+                genome_start = gene.start - ins_start 
+                genome_end = gene.start - ins_end + 2
+
+            ref = refseq["Chromosome"][genome_start-1:genome_end-1]
+            alt = ref + ins_seq
+            mutations[(row["Gene"],row["Mutation"])] = {"pos":genome_start, "ref":ref, "alt":alt,"gene":row["Gene"],"type":"nucleotide"}
+        
+        if row["Mutation"] == "frameshift":
+            converted_mutations[(row["Gene"],row["Mutation"])] = row["Mutation"]
+        if row["Mutation"] == "large_deletion":
+            converted_mutations[(row["Gene"],row["Mutation"])] = row["Mutation"]
+        if row["Mutation"] == "functional_gene":
+            converted_mutations[(row["Gene"],row["Mutation"])] = row["Mutation"]
+        if row["Mutation"][:19] == "any_missense_codon_":
+            converted_mutations[(row["Gene"],row["Mutation"])] = row["Mutation"]
+        
+        if (row["Gene"],row["Mutation"]) not in converted_mutations and (row["Gene"],row["Mutation"]) not in mutations:
+            quit(f"Don't know how to handle this mutation: {row['Gene']} {row['Mutation']}\n")
+            
+    print("Converting %s mutations" % len(mutations))
+    if len(mutations)>0:
+        mutation_conversion = get_ann(mutations,snpEffDB)
+        for key in mutation_conversion:
+            converted_mutations[key] = mutation_conversion[key]
+    return converted_mutations
+    
+
+
+
+def get_genome_position(gene_object,change):
+    if change in ["frameshift","large_deletion","functional_gene"]:
+        return None
+    if "any_missense_codon" in change:
+        codon = int(change.replace("any_missense_codon_",""))
+        change = f"p.Xyz{codon}Xyz"
+
+
+    g = gene_object
+    r = re.search("p.[A-Za-z]+([0-9]+)",change)
+    if r:
+        codon = int(r.group(1))
+        if g.strand=="+":
+            p = g.start + codon*3-3
+            return [p,p+1,p+2]
+        else:
+            p = g.start - codon*3 + 1
+            return [p,p+1,p+2]
+    r = re.search("c.(-[0-9]+)[ACGT]+>[ACGT]+",change)
+    if r:
+        pos = int(r.group(1))
+        if g.strand=="+":
+            p = g.start + pos
+            return [p]
+        else:
+            p = g.start - pos
+            return [p]
+    r = re.search("n.([0-9]+)[ACGT]+>[ACGT]+",change)
+    if r:
+        pos = int(r.group(1))
+        if g.strand=="+":
+            p = g.start + pos -1
+            return [p]
+    r = re.search("c.([0-9]+)_([0-9]+)ins[A-Z]+",change)
+    if r:
+        pos = int(r.group(1))
+        if g.strand=="+":
+            p = g.start + pos -1
+            return [p, p+1]
+        else:
+            p = g.start - pos 
+            return [p, p+1]
+    r = re.search("c.([\-0-9]+)_([\-0-9]+)del[A-Z]+",change)
+    if r:
+        pos1 = int(r.group(1))
+        pos2 = int(r.group(2))
+        if g.strand=="+":
+            p1 = g.start + pos1 -1
+            p2 = g.start + pos2 -1
+            if pos1<0:
+                p1+=1
+                p2+=1
+            return list(range(p1,p2+1))
+        else:
+            p1 = g.start - pos1 + 1
+            p2 = g.start - pos2 + 1
+            if pos1<0:
+                p1+=1
+                p2+=1
+                quit(f"Don't know how to handle {change}")
+            return list(range(p2,p1+1))
+    r = re.search("c.([0-9]+)del[A-Z]+",change)
+    if r:
+        pos = int(r.group(1))
+        if g.strand=="+":
+            p = g.start + pos - 1
+            return [p]
+        else:
+            p = g.start - pos + 1
+            return [p]
+    r = re.search("c.([0-9]+)dup[A-Z]+",change)
+    if r:
+        pos = int(r.group(1))
+        if g.strand=="+":
+            p = g.start + pos - 1
+            return [p]
+        else:
+            p = g.start - pos + 1
+            return [p]
+    r = re.search("c.([0-9]+)_([0-9]+)dup[A-Z]+",change)
+    if r:
+        pos1 = int(r.group(1))
+        pos2 = int(r.group(2))
+        if g.strand=="+":
+            p1 = g.start + pos1 - 1
+            p2 = g.start + pos2 - 1
+            return list(range(p1,p2+1))
+        else:
+            p = g.start - pos + 1
+            quit(f"Don't know how to handle {change}")
+            return [p]
+
+
+    r = re.search("n.([0-9]+)([0-9]+)dup[A-Z]+",change)
+    if r:
+        pos1 = int(r.group(1))
+        pos2 = int(r.group(2))
+        if g.strand=="+":
+            p1 = g.start + pos1 - 1
+            p2 = g.start + pos2 - 1
+            return list(range(p1,p2+1))
+        else:
+            p = g.start - pos + 1
+            quit(f"Don't know how to handle {change}")
+            return [p]
+    quit(f"Don't know how to handle {change}")
+
+def match_ref_chrom_names(source,target):
+    source_fa = fa2dict(source)
+    source_fa_size = {s:len(source_fa[s]) for s in source_fa}
+    target_fa = fa2dict(target)
+    target_fa_size = {s:len(target_fa[s]) for s in target_fa}
+    conversion = {}
+    for s in target_fa:
+        tlen = target_fa_size[s]
+        tmp = [x[0] for x in source_fa_size.items() if x[1]==tlen]
+        if len(tmp)==1:
+            conversion[s] = tmp[0]
+    return conversion
+
+
 def create_db(args):
+
+    genome_file = "%s.fasta" % args.prefix
+    gff_file = "%s.gff" % args.prefix
+    if args.prefix:
+        barcode_file = "%s.barcode.bed" % args.prefix
+    bed_file = "%s.bed" % args.prefix
+    json_file = "%s.dr.json" % args.prefix
+    version_file = "%s.version.json" % args.prefix
+
+
     global chr_name
-    chr_name = args.seqname
-    fasta_dict = fa2dict("genome.fasta")
-    gene_info = load_gene_info("genes.txt")
+
+    if args.match_ref:
+        chrom_conversion = match_ref_chrom_names(args.match_ref,"genome.fasta")
+        shutil.copy(args.match_ref,genome_file)
+    else:
+        chrom_conversion = match_ref_chrom_names("genome.fasta","genome.fasta")
+        shutil.copy("genome.fasta",genome_file)    
+    
+    with open(gff_file,"w") as O:
+        for l in open("genome.gff"):
+            if l[0]=="#":
+                O.write(l)
+            else:
+                row = l.strip().split()
+                if row[0] in chrom_conversion:
+                    row[0] = chrom_conversion[row[0]]
+                    O.write("\t".join(row)+"\n")        
+
+                    
+    genes = load_gff(gff_file)
+    gene_name2gene_id = {g.name:g.locus_tag for g in genes.values()}
+    gene_name2gene_id.update({g.locus_tag:g.locus_tag for g in genes.values()})
     db = {}
     locus_tag_to_drug_dict = defaultdict(set)
-    confidence = {}
-    for row in csv.DictReader(open(args.confidence)):
-        confidence[(row["gene"],row["mutation"],row["drug"])] = row["confidence"]
+    mutation_lookup = get_snpeff_formated_mutation_list(args.csv,"genome.fasta","genome.gff",json.load(open("variables.json"))["snpEff_db"])
     for row in csv.DictReader(open(args.csv)):
-        locus_tag = gene_info[row["Gene"]]["locus_tag"]
+        locus_tag = gene_name2gene_id[row["Gene"]]
         drug = row["Drug"].lower()
-        muts = parse_mutation(row["Mutation"],locus_tag,fasta_dict,gene_info)
-        for mut in muts:
-            locus_tag_to_drug_dict[locus_tag].add(drug)
+        mut = mutation_lookup[(row["Gene"],row["Mutation"])]
+        if mut!=row["Mutation"]:
+            print(mut,row["Mutation"])
+        locus_tag_to_drug_dict[locus_tag].add(drug)
+        if locus_tag not in db:
+            db[locus_tag] = {}
+        if mut not in db[locus_tag]:
+            db[locus_tag][mut] = {"annotations":[]}
+
+        tmp_annotation = {"type":"drug","drug":row["Drug"]}
+        annotation_columns = set(row.keys()) - set(["Gene","Mutation","Drug"])
+        for col in annotation_columns:
+            if row[col]=="":continue
+            tmp_annotation[col.lower()] = row[col]
+        db[locus_tag][mut]["annotations"].append(tmp_annotation)
+        db[locus_tag][mut]["genome_positions"] = get_genome_position(genes[locus_tag],mut)
+
+    if args.other_annotations:
+        for row in csv.DictReader(open(args.other_annotations)):
+            locus_tag = gene_name2gene_id[row["Gene"]]
+            mut = row["Mutation"]
             if locus_tag not in db:
                 db[locus_tag] = {}
             if mut not in db[locus_tag]:
                 db[locus_tag][mut] = {"annotations":[]}
-            # db[locus_tag][mut]["drugs"][drug] = {}
-            tmp_annotation = {"type":"drug","drug":row["Drug"]}
-            tmp_annotation["confidence"] = confidence.get((locus_tag,row["Mutation"],drug),"indeterminate")
-            annotation_columns = set(row.keys()) - set(["Gene","Mutation","Drug"])
-            for col in annotation_columns:
-                if row[col]=="":continue
-                tmp_annotation[col.lower()] = row[col]
+            tmp_annotation = {"type":row["Type"]}
+            for x in row["Info"].split(";"):
+                key,val = x.split("=")
+                tmp_annotation[key.lower()] = val
             db[locus_tag][mut]["annotations"].append(tmp_annotation)
-            db[locus_tag][mut]["hgvs_mutation"] = row["Mutation"]
-            # if row["Mutation"][0]=="p":
-            #     print(row)
-            #     codon_num = get_codon_num(row["Mutation"])
-            #     if (locus_tag,"any_missense_codon_"+codon_num,drug) in confidence:
-            #         db[locus_tag][mut]["drugs"][drug]["confidence"] = confidence[(locus_tag,"any_missense_codon_"+codon_num,drug)]
-    for row in csv.DictReader(open(args.watchlist)):
-        locus_tag = gene_info[row["Gene"]]["locus_tag"]
-        drug = row["Drug"].lower()
-        locus_tag_to_drug_dict[locus_tag].add(drug)
+            db[locus_tag][mut]["genome_positions"] = get_genome_position(genes[locus_tag],mut)
 
-    genome_file = "%s.fasta" % args.prefix
-    gff_file = "%s.gff" % args.prefix
-    ann_file = "%s.ann.txt" % args.prefix
-    barcode_file = "%s.barcode.bed" % args.prefix
-    bed_file = "%s.bed" % args.prefix
-    json_file = "%s.dr.json" % args.prefix
-    version_file = "%s.version.json" % args.prefix
+    if args.watchlist:
+        for row in csv.DictReader(open(args.watchlist)):
+            locus_tag = gene_name2gene_id[row["Gene"]]
+            drug = row["Drug"].lower()
+            locus_tag_to_drug_dict[locus_tag].add(drug)
+
+    
 
     version = {"name":args.prefix}
     if not args.custom:
@@ -248,9 +456,15 @@ def create_db(args):
         version["Author"] = args.db_author if args.db_author else "NA"
 
     json.dump(version,open(version_file,"w"))
-    open(genome_file,"w").write(">%s\n%s\n" % (chr_name,fasta_dict["Chromosome"]))
-    run_cmd("sed 's/Chromosome/%s/g' genome.gff > %s" % (chr_name,gff_file))
-    run_cmd("sed 's/Chromosome/%s/g' barcode.bed > %s" % (chr_name,barcode_file))
-    write_gene_pos("genes.txt",list(locus_tag_to_drug_dict.keys()),ann_file)
-    write_bed(locus_tag_to_drug_dict,gene_info,bed_file,chr_name)
+
+    variables = json.load(open("variables.json"))    
+    variables["chromosome_conversion"] = {"source":list(chrom_conversion.keys()),"target":list(chrom_conversion.values())}
+    json.dump(variables,open(args.prefix+".variables.json","w"))
+    if os.path.isfile("barcode.bed"):
+        with open(barcode_file,"w") as O:
+            for l in open("barcode.bed"):
+                row = l.strip().split("\t")
+                row[0] = chrom_conversion[row[0]]
+                O.write("\t".join(row)+"\n")
+    write_bed(locus_tag_to_drug_dict,genes,bed_file)
     json.dump(db,open(json_file,"w"))

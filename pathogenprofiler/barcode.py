@@ -93,28 +93,29 @@ def db_compare(mutations,db_file):
     for i in range(len(mutations["variants"])):
         #var = {'genome_pos': 6140, 'gene_id': 'Rv0005', 'chr': 'Chromosome', 'freq': 0.975609756097561, 'type': 'missense', 'change': '301V>301L'}
         var = mutations["variants"][i]
-        if var["gene_id"] in db:
-            db_var_match = None
-            if var["change"] in db[var["gene_id"]]:
-                db_var_match = db[var["gene_id"]][var["change"]]
-            elif "frameshift" in var["type"] and "frameshift" in db[var["gene_id"]]:
-                db_var_match = db[var["gene_id"]]["frameshift"]
-            elif "missense" in var["type"] and "any_missense_codon_%s" % get_missense_codon(var["change"]) in db[var["gene_id"]]:
-                db_var_match = db[var["gene_id"]]["any_missense_codon_%s" % get_missense_codon(var["change"])]
-            elif "frame" in var["type"] and "any_indel_nucleotide_%s" % get_indel_nucleotide(var["change"]) in db[var["gene_id"]]:
-                db_var_match = db[var["gene_id"]]["any_indel_nucleotide_%s" % get_indel_nucleotide(var["change"])]
-            elif "stop_gained" in var["type"] and "premature_stop" in db[var["gene_id"]]:
-                db_var_match = db[var["gene_id"]]["premature_stop"]
-            elif "large_deletion" in var["type"] and "large_deletion" in db[var["gene_id"]]:
-                db_var_match = db[var["gene_id"]]["large_deletion"]
-            if db_var_match:
+        for j in range(len(var["consequences"])):
+            csq = var["consequences"][j]
+            if csq["gene_id"] in db:
+                db_var_match = None
+                
+                if csq["nucleotide_change"] in db[csq["gene_id"]]:
+                    db_var_match = db[csq["gene_id"]][csq["nucleotide_change"]]
+                elif  csq["protein_change"] in db[csq["gene_id"]]:
+                    db_var_match = db[csq["gene_id"]][csq["protein_change"]]
+                elif "frameshift" in csq["type"] and "frameshift" in db[csq["gene_id"]]:
+                    db_var_match = db[csq["gene_id"]]["frameshift"]
+                elif "missense" in csq["type"] and "any_missense_codon_%s" % get_missense_codon(csq["protein_change"]) in db[csq["gene_id"]]:
+                    db_var_match = db[csq["gene_id"]]["any_missense_codon_%s" % get_missense_codon(csq["protein_change"])]
+                elif "frame" in csq["type"] and "any_indel_nucleotide_%s" % get_indel_nucleotide(csq["nucleotide_change"]) in db[csq["gene_id"]]:
+                    db_var_match = db[csq["gene_id"]]["any_indel_nucleotide_%s" % get_indel_nucleotide(csq["nucleotide_change"])]
+                elif "stop_gained" in csq["type"] and "premature_stop" in db[csq["gene_id"]]:
+                    db_var_match = db[csq["gene_id"]]["premature_stop"]
+                elif "large_deletion" in csq["type"] and "large_deletion" in db[csq["gene_id"]]:
+                    db_var_match = db[csq["gene_id"]]["large_deletion"]
+                if db_var_match:
 
-                if "annotation" not in annotated_results["variants"][i]:
-                    annotated_results["variants"][i]["annotation"] = []
-                for ann in db_var_match["annotations"]:
-                    annotated_results["variants"][i]["annotation"].append(ann)
-                # for key in db_var_match:
-                    # if key=="drugs": continue
-                    # annotated_results["variants"][i]["annotation"][key] = db_var_match[key]
-
+                    if "annotation" not in annotated_results["variants"][i]["consequences"][j]:
+                        annotated_results["variants"][i]["consequences"][j]["annotation"] = []
+                    for ann in db_var_match["annotations"]:
+                        annotated_results["variants"][i]["consequences"][j]["annotation"].append(ann)
     return annotated_results

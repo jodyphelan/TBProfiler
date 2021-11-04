@@ -1,8 +1,9 @@
+import sys
 import pathogenprofiler as pp
 import json
 from collections import defaultdict
 from .utils import get_genome_positions_from_json_db, get_lt2drugs,rv2genes
-
+from .xdb import *
 
 def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=0.0):
     if not columns:
@@ -18,7 +19,7 @@ def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=
     results = {}
     annotation = {}
     for key in columns:
-        if key not in json_results["dr_variants"][0]: pp.log("%s not found in variant annotation, is this a valid column in the database CSV file? Exiting!" % key,True)
+        if key not in json_results["dr_variants"][0]: pp.errlog("%s not found in variant annotation, is this a valid column in the database CSV file? Exiting!" % key,True)
     for x in json_results["dr_variants"]:
         for d in x["drugs"]:
             drug = d["drug"]
@@ -28,6 +29,17 @@ def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=
             if drug not in annotation: annotation[drug] = {key:[] for key in columns}
             for key in columns:
                 annotation[drug][key].append(x["drugs"][drug][key])
+    if "resistance_genes" in json_results:
+        for x in json_results["resistance_genes"]:
+            for d in x["drugs"]:
+                drug = d["drug"]
+                if drug not in results: results[drug] = []
+                results[d["drug"]].append("%s (resistance_gene)" % (x["gene"],))
+                if drug not in annotation: annotation[drug] = {key:[] for key in columns}
+                for key in columns:
+                    annotation[drug][key].append(x["drugs"][drug][key])
+
+
     for d in drugs:
         if d in results:
             results[d] = ", ".join(results[d]) if len(results[d])>0 else ""
@@ -41,11 +53,44 @@ def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=
         for key in columns:
             dictline[key] = annotation[d][key] if d in annotation else ""
         drug_table.append(dictline)
-    pipeline_tbl = [{"Analysis":"Mapping","Program":json_results["pipeline"]["mapper"]},{"Analysis":"Variant Calling","Program":json_results["pipeline"]["variant_caller"]}]
     new_json = json_results.copy()
     new_json["drug_table"] = drug_table
-    new_json["pipline_table"] = pipeline_tbl
     return new_json
+
+def select_most_relevant_csq(csqs):
+    rank = ["frameshift_variant","large_deletion","start_lost","disruptive_inframe_deletion","disruptive_inframe_insertion","stop_gained","stop_lost","conservative_inframe_deletion","conservative_inframe_insertion","initiator_codon_variant","missense_variant","non_coding_transcript_exon_variant","upstream_gene_variant","stop_retained_variant","synonymous_variant"]
+    ranked_csq = []
+    for csq in csqs:
+        ranked_csq.append([i for i,d in enumerate(rank) if d in csq["type"]][0])
+    csq1 = csqs[ranked_csq.index(min(ranked_csq))]
+    return csq1
+
+def set_change(var):
+    protein_csqs = ["missense_variant","stop_gained"]
+    var["change"] = var["protein_change"] if var["type"] in protein_csqs else var["nucleotide_change"]
+    return var
+
+def select_csq(dict_list):
+    for d in dict_list:
+        annotated_csq = []
+        for csq in d["consequences"]:
+            if "annotation" in csq:
+                annotated_csq.append(csq)
+        if len(annotated_csq)==0:
+            csq = select_most_relevant_csq(d["consequences"])
+            alternate_consequences = [json.dumps(x) for x in d["consequences"]]
+            alternate_consequences.remove(json.dumps(csq))
+            alternate_consequences = [json.loads(x) for x in alternate_consequences]
+        elif len(annotated_csq)==1:
+            csq = annotated_csq[0]
+            alternate_consequences = []
+        else:
+            quit("ERROR! too many csqs")
+        del d["consequences"]
+        d.update(csq)
+        d["alternate_consequences"] = alternate_consequences
+        d = set_change(d)
+    return dict_list
 
 def dict_list_add_genes(dict_list,conf):
     rv2gene = {}
@@ -103,57 +148,63 @@ def barcode2lineage(results,max_node_skip=1):
     return results
 
 
-def reformat_annotations(results,conf,reporting_af=0.1):
+def reformat_annotations(results,conf):
     #Chromosome      4998    Rv0005  -242
     lt2drugs = get_lt2drugs(conf["bed"])
-    chr2gene_pos = {}
-    for l in open(conf["ann"]):
-        row = l.rstrip().split()
-        chr2gene_pos[int(row[1])] = int(row[3])
-    for var in results["variants"]:
-        var["_internal_change"] = var["change"]
-        var["change"] = pp.reformat_mutations(var["change"],var["type"],var["locus_tag"],chr2gene_pos)
-    resistant_drugs = set()
     results["dr_variants"] = []
     results["other_variants"] = []
     for var in results["variants"]:
         if "annotation" in var:
             tmp = var.copy()
-            drvar = any([x["type"]=="drug" for x in var["annotation"]])
-            phylovar = any([x["type"]=="phylogenetic" for x in var["annotation"]])
-            if drvar:
-                tmp["drugs"] = var["annotation"]
-                del tmp["annotation"]
-                if tmp["freq"]>=reporting_af:
-                    for d in tmp["drugs"]:
-                        resistant_drugs.add(d["drug"])
+            drugs = tuple([x["drug"] for x in var["annotation"] if x["type"]=="drug" and x["confers"]=="resistance"])
+            if len(drugs)>0:
+                dr_ann = []
+                other_ann = []
+                while len(tmp["annotation"])>0:
+                    x = tmp["annotation"].pop()
+                    if x["type"]=="drug":
+                        dr_ann.append(x)
+                    else:
+                        other_ann.append(x)
+                tmp["drugs"] = dr_ann
+                tmp["annotation"] = other_ann
                 results["dr_variants"].append(tmp)
-            elif phylovar:
-                var["lineage_variant"] = var["annotation"][0]["lineage"]
-                del var["annotation"]
+            else:
+                var["gene_associated_drugs"] = lt2drugs[var["locus_tag"]]
                 results["other_variants"].append(var)
+
         else:
             var["gene_associated_drugs"] = lt2drugs[var["locus_tag"]]
             results["other_variants"].append(var)
     del results["variants"]
+    return results
 
-    FLQ_set = set(["moxifloxacin","levofloxacin","ciprofloxacin","ofloxacin"])
-    SLI_set = set(["amikacin","capreomycin","kanamycin"])
+def add_drtypes(results,reporting_af=0.1):
+    resistant_drugs = set()
+    for var in results["dr_variants"]:
+        if var["freq"]>=reporting_af:
+            for d in var["drugs"]:
+                resistant_drugs.add(d["drug"])
+
+    FLQ_set = set(["levofloxacin","moxifloxacin","ciprofloxacin","ofloxacin"])
+    groupA_set = set(["bedaquiline","linezolid"])
 
     rif = "rifampicin" in resistant_drugs
     inh = "isoniazid" in resistant_drugs
     flq = len(FLQ_set.intersection(resistant_drugs)) > 0
-    sli = len(SLI_set.intersection(resistant_drugs)) > 0
+    gpa = len(groupA_set.intersection(resistant_drugs)) > 0
 
     if len(resistant_drugs)==0:
         drtype = "Sensitive"
-    elif (rif and not inh) or (inh and not rif):
-        drtype = "Pre-MDR"
-    elif (rif and inh) and (not flq and not sli):
+    elif (rif and not inh) and (not flq and not gpa):
+        drtype = "RR-TB"
+    elif (inh and not rif) and (not flq and not gpa):
+        drtype = "HR-MDR"
+    elif (rif and inh) and (not flq and not gpa):
         drtype = "MDR"
-    elif (rif and inh) and ( (flq and not sli) or (sli and not flq) ):
+    elif (rif and inh) and (flq and not gpa):
         drtype = "Pre-XDR"
-    elif (rif and inh) and (flq and sli):
+    elif (rif and inh) and (flq and gpa):
         drtype = "XDR"
     else:
         drtype = "Other"
@@ -164,50 +215,63 @@ def reformat_annotations(results,conf,reporting_af=0.1):
 
 unlist = lambda t: [item for sublist in t for item in sublist]
 
-def reformat_missing_genome_pos(results,conf):
+def reformat_missing_genome_pos(positions,conf):
     rv2gene = rv2genes(conf["bed"])
-    dr_associated_genome_pos = get_genome_positions_from_json_db(conf["json_db"],conf["ann"])
-    genome_pos2gene_pos = {}
-    genome_pos2gene = {}
-    for l in open(conf["ann"]):
-        row = l.strip().split()
-        genome_pos2gene_pos[int(row[1])] = int(row[3])
-        genome_pos2gene[int(row[1])] = row[2]
-
-    tmp_results = defaultdict(lambda: defaultdict(list))
-    for genome_pos in results:
-        # This is a bit dangerous as it assumes all coding genes are labled with "Rv"
-        gene = genome_pos2gene[genome_pos]
-        gene_pos = genome_pos2gene_pos[genome_pos]
-        coding = True if gene[:2]=="Rv" else False
-        if coding:
-            if gene_pos>=0:
-                codon = ((gene_pos-1)//3) + 1
-                tmp_results[gene][codon].append(genome_pos)
-            else:
-                tmp_results[gene][gene_pos].append(genome_pos)
-        else:
-            tmp_results[gene][gene_pos].append(genome_pos)
+    dr_associated_genome_pos = get_genome_positions_from_json_db(conf["json_db"])
     new_results = []
-    for gene in tmp_results:
-        for pos in tmp_results[gene]:
-            genome_positions = tmp_results[gene][pos]
-            dr_position = list(set(unlist([unlist([y[2] for y in dr_associated_genome_pos[x]]) for x in genome_positions if x in dr_associated_genome_pos])))
-
-            new_results.append({"locus_tag":gene, "gene": rv2gene[gene], "genome_positions": genome_positions , "position":pos, "position_type":"codon" if (gene[:2]=="Rv" and pos>=0) else "gene", "drug_resistance_position": dr_position})
+    for pos in positions:
+        if pos in dr_associated_genome_pos:
+            tmp = dr_associated_genome_pos[pos]
+            gene = list(tmp)[0][0]
+            variants = ",".join([x[1] for x in tmp])
+            drugs = ",".join(set(unlist([x[2] for x in tmp])))
+            new_results.append({"position":pos,"locus_tag":gene, "gene": rv2gene[gene], "variants": variants, "drugs":drugs})
     return new_results
 
 
+def suspect_profiling(results):
+    new_vars = []
+    for var in results["other_variants"]:
+        if var["type"]!="missense_variant": continue
+        pred = None
+        if var["gene"]=="atpE":
+            pred = get_biosig_bdq_prediction(var["change"])
+        if var["gene"]=="pncA":
+            pred = get_biosig_pza_prediction(var["change"])
+        if pred:
+            if "annotation" in var:
+                var["annotation"].append(pred)
+            else:
+                var["annotation"] = [pred]
+            var["drugs"] = [{
+                "type":"drug",
+                "drug":"pyrazinamide" if var["gene"]=="pncA" else "bedquiline",
+                "confers": "resistance",
+                "evidence": "suspect-PZA" if var["gene"]=="pncA" else "suspect-BDQ"
+            }]
+            new_vars.append(var)
+    for v in new_vars:
+        results["dr_variants"].append(v)
+        results["other_variants"].remove(v)
+    return results
 
-def reformat(results,conf,reporting_af,mutation_metadata=False):
+    
+def reformat(results,conf,reporting_af,mutation_metadata=False,use_suspect=False):
+    results["variants"] = [x for x in results["variants"] if len(x["consequences"])>0]
+    results["variants"] = select_csq(results["variants"])
     results["variants"] = dict_list_add_genes(results["variants"],conf)
     if "gene_coverage" in results["qc"]:
         results["qc"]["gene_coverage"] = dict_list_add_genes(results["qc"]["gene_coverage"],conf)
         results["qc"]["missing_positions"] = reformat_missing_genome_pos(results["qc"]["missing_positions"],conf)
-    results = barcode2lineage(results)
-    results = reformat_annotations(results,conf,reporting_af)
+    if "barcode" in results:
+        # results["barcode"] = []
+        results = barcode2lineage(results)
+    results = reformat_annotations(results,conf)
+    results = add_drtypes(results,reporting_af)
     results["db_version"] = json.load(open(conf["version"]))
     if mutation_metadata:
         pass
         # results = add_mutation_metadata(results)
+    if use_suspect:
+        results = suspect_profiling(results)
     return results

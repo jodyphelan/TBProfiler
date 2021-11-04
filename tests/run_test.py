@@ -3,10 +3,12 @@ import pathogenprofiler as pp
 import json
 import os
 
-os.mkdir("scratch")
+if not os.path.isdir("scratch"):
+    os.mkdir("scratch")
 os.chdir("scratch")
 
-run_cmd("git clone https://github.com/jodyphelan/tb-profiler-test-data.git")
+if not os.path.isdir("tb-profiler-test-data"):
+    run_cmd("git clone https://github.com/jodyphelan/tb-profiler-test-data.git")
 
 por5_dr_variants = [
     ('rpoB', 'p.Ser450Leu'),
@@ -18,7 +20,7 @@ por5_dr_variants = [
     ('gid', 'p.Ala80Pro')
 ]
 
-collate_text = 'sample\tmain_lineage\tsub_lineage\tDR_type\tnum_dr_variants\tnum_other_variants\trifampicin\tisoniazid\tpyrazinamide\tethambutol\tstreptomycin\tfluoroquinolones\tmoxifloxacin\tofloxacin\tlevofloxacin\tciprofloxacin\taminoglycosides\tamikacin\tkanamycin\tcapreomycin\tethionamide\tpara-aminosalicylic_acid\tcycloserine\tlinezolid\tbedaquiline\tclofazimine\tdelamanid\npor5A_illumina_bwa_freebayes\tlineage4\tlineage4.3.4.2\tMDR\t7\t14\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\npor5A_illumina_bwa_gatk\tlineage4\tlineage4.3.4.2\tMDR\t7\t14\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\npor5A_illumina_bwa_bcftools\tlineage4\tlineage4.3.4.2\tMDR\t7\t14\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\npor5_vcf\tlineage4\tlineage4.3.4.2\tMDR\t7\t15\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\n'
+collate_text = 'sample\tmain_lineage\tsub_lineage\tDR_type\tnum_dr_variants\tnum_other_variants\trifampicin\tisoniazid\tpyrazinamide\tethambutol\tstreptomycin\tfluoroquinolones\tmoxifloxacin\tofloxacin\tlevofloxacin\tciprofloxacin\taminoglycosides\tamikacin\tkanamycin\tcapreomycin\tethionamide\tpara-aminosalicylic_acid\tcycloserine\tlinezolid\tbedaquiline\tclofazimine\tdelamanid\npor5A_illumina_bwa_freebayes_PE\tlineage4\tlineage4.3.4.2\tMDR\t7\t16\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\npor5A_illumina_bwa_gatk_PE\tlineage4\tlineage4.3.4.2\tMDR\t7\t16\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\npor5A_illumina_bwa_bcftools_PE\tlineage4\tlineage4.3.4.2\tMDR\t7\t16\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\npor5_vcf\tlineage4\tlineage4.3.4.2\tMDR\t7\t17\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\n'
 
 def test_revcom():
     assert pp.revcom("AGCTTGAGTC") == "GACTCAAGCT"
@@ -38,13 +40,13 @@ def test_vcf():
 
 
 def illumina_fastq(caller,mapper):
-    run_cmd(f"tb-profiler profile -1 tb-profiler-test-data/por5A.reduced_1.fastq.gz -2 tb-profiler-test-data/por5A.reduced_2.fastq.gz --mapper {mapper} --caller {caller} -p por5A_illumina_{mapper}_{caller} -t 4 --txt --csv --pdf")
-    results = json.load(open(f"results/por5A_illumina_{mapper}_{caller}.results.json"))
+    run_cmd(f"tb-profiler profile -1 tb-profiler-test-data/por5A.reduced_1.fastq.gz -2 tb-profiler-test-data/por5A.reduced_2.fastq.gz --mapper {mapper} --caller {caller} -p por5A_illumina_{mapper}_{caller}_PE -t 4 --txt --csv --pdf")
+    results = json.load(open(f"results/por5A_illumina_{mapper}_{caller}_PE.results.json"))
     return results
 
 def illumina_fastq_single(caller,mapper):
-    run_cmd(f"tb-profiler profile -1 tb-profiler-test-data/por5A.reduced_1.fastq.gz --mapper {mapper} --caller {caller} -p por5A_illumina_{mapper}_{caller} -t 4 --txt --csv --pdf")
-    results = json.load(open(f"results/por5A_illumina_{mapper}_{caller}.results.json"))
+    run_cmd(f"tb-profiler profile -1 tb-profiler-test-data/por5A.reduced_1.fastq.gz --mapper {mapper} --caller {caller} -p por5A_illumina_{mapper}_{caller}_SE -t 4 --txt --csv --pdf")
+    results = json.load(open(f"results/por5A_illumina_{mapper}_{caller}_SE.results.json"))
     return results
 
 def test_bwa_freebayes():
@@ -67,7 +69,7 @@ def test_bwa_gatk():
 
 def test_collate():
     with open("samples.txt","w") as O:
-        O.write("\n".join(["por5A_illumina_bwa_freebayes","por5A_illumina_bwa_gatk","por5A_illumina_bwa_bcftools","por5_vcf"]))
+        O.write("\n".join(["por5A_illumina_bwa_freebayes_PE","por5A_illumina_bwa_gatk_PE","por5A_illumina_bwa_bcftools_PE","por5_vcf"]))
     run_cmd("tb-profiler collate --samples samples.txt")
     assert open("tbprofiler.txt").read() == collate_text
 
