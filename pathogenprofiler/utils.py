@@ -11,8 +11,10 @@ rand_generator = random.SystemRandom()
 def infolog(x):
     sys.stderr.write('\033[94m' + str(x) + '\033[0m' + '\n')
 
-def errlog(x):
+def errlog(x,ext=False):
     sys.stderr.write('\033[91m' + str(x) + '\033[0m' + '\n')
+    if ext==True:
+        quit(1)
 
 def successlog(x):
     sys.stderr.write('\033[92m' + str(x) + '\033[0m' + '\n')
