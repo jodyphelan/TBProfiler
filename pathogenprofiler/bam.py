@@ -3,6 +3,7 @@ from .vcf import vcf, delly_bcf
 from collections import defaultdict
 import json
 from uuid import uuid4
+import os
 
 class bam:
     """
@@ -79,6 +80,7 @@ class bam:
         flagstat = json.load(open(tmpfile))
         self.num_reads_mapped = flagstat["QC-passed reads"]["mapped"]
         self.pct_reads_mapped = flagstat["QC-passed reads"]["mapped %"]
+        os.remove(tmpfile)
         return self.num_reads_mapped,self.pct_reads_mapped
 
     def get_median_coverage(self):
