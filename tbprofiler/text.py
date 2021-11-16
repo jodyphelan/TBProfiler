@@ -16,7 +16,6 @@ def lineagejson2text(x):
     return "\n".join(textlines)
 
 def return_fields(obj,args,i=0):
-    print(obj,args)
     largs = args.split(".")
     if i+1>len(largs):
         return obj
