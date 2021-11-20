@@ -79,7 +79,7 @@ class bam:
         run_cmd(f"samtools flagstat -O json {self.bam_file} > {tmpfile}")
         flagstat = json.load(open(tmpfile))
         self.num_reads_mapped = flagstat["QC-passed reads"]["mapped"]
-        self.pct_reads_mapped = flagstat["QC-passed reads"]["mapped %"]
+        self.pct_reads_mapped = round(flagstat["QC-passed reads"]["mapped"]/flagstat["QC-passed reads"]["total"]*100,2)
         os.remove(tmpfile)
         return self.num_reads_mapped,self.pct_reads_mapped
 
