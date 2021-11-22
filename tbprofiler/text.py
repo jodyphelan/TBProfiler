@@ -62,6 +62,7 @@ ID%(sep)s%(id)s
 Date%(sep)s%(date)s
 Strain%(sep)s%(strain)s
 Drug-resistance%(sep)s%(drtype)s
+Median Depth%(sep)s%(med_dp)s
 
 Lineage report
 --------------
@@ -115,6 +116,7 @@ def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="
     text_strings["date"] = time.ctime()
     text_strings["strain"] = json_results["sublin"]
     text_strings["drtype"] = json_results["drtype"]
+    text_strings["med_dp"] = json_results["qc"]["median_coverage"]
     text_strings["dr_report"] = dict_list2text(json_results["drug_table"],["Drug","Genotypic Resistance","Mutations"]+columns if columns else [],sep=sep)
     text_strings["lineage_report"] = dict_list2text(json_results["lineage"],["lin","frac","family","spoligotype","rd"],{"lin":"Lineage","frac":"Estimated fraction"},sep=sep)
     text_strings["dr_var_report"] = dict_list2text(json_results["dr_variants"],["genome_pos","locus_tag","gene","change","freq","drugs.drug"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction","drugs.drug":"Drug"},sep=sep)

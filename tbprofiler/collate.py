@@ -45,7 +45,7 @@ def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_res
 
         missing_drugs = set()
         if "missing_positions" in temp["qc"]:
-            missing_genes = [x["locus_tag"] for x in temp["qc"]["missing_positions"] if x["drug_resistance_position"]=="DR"]
+            missing_genes = [x["locus_tag"] for x in temp["qc"]["missing_positions"] if "drugs" in x]
             for locus_tag in missing_genes:
                 missing_drugs = missing_drugs.union(set(lt2drugs[locus_tag]))
 
