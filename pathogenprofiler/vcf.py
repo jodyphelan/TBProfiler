@@ -57,14 +57,14 @@ class vcf:
             self.tmp_file1 = "%s.vcf" % uuid4()
             self.tmp_file2 = "%s.vcf" % uuid4()
 
-            run_cmd("bcftools view -v snps %(filename)s | combine_vcf_variants.py --ref %(ref_file)s --gff %(gff_file)s | %(rename_cmd)s snpEff ann -noStats %(db)s - %(re_rename_cmd)s > %(tmp_file1)s" % vars(self))
-            run_cmd("bcftools view -v indels %(filename)s | %(rename_cmd)s snpEff ann -noStats %(db)s - %(re_rename_cmd)s > %(tmp_file2)s" % vars(self))
+            run_cmd("bcftools view -v snps %(filename)s | combine_vcf_variants.py --ref %(ref_file)s --gff %(gff_file)s | %(rename_cmd)s snpEff -Djava.net.useSystemProxies=true ann -noStats %(db)s - %(re_rename_cmd)s > %(tmp_file1)s" % vars(self))
+            run_cmd("bcftools view -v indels %(filename)s | %(rename_cmd)s snpEff -Djava.net.useSystemProxies=true ann -noStats %(db)s - %(re_rename_cmd)s > %(tmp_file2)s" % vars(self))
             run_cmd("bcftools concat %(tmp_file1)s %(tmp_file2)s | bcftools sort -Oz -o %(vcf_csq_file)s" % vars(self))
             rm_files([self.tmp_file1, self.tmp_file2])
 
 
         else :
-            run_cmd("bcftools view %(filename)s | %(rename_cmd)s snpEff ann %(db)s - %(re_rename_cmd)s > %(vcf_csq_file)s" % vars(self))
+            run_cmd("bcftools view %(filename)s | %(rename_cmd)s snpEff -Djava.net.useSystemProxies=true ann %(db)s - %(re_rename_cmd)s > %(vcf_csq_file)s" % vars(self))
         return vcf(self.vcf_csq_file,self.prefix)
 
         # run_cmd(f"snpEff ann {db} {self.filename} | bcftools view -Oz -o {self.prefix}.ann.vcf.gz")
