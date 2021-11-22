@@ -1,4 +1,4 @@
-from .utils import infolog, run_cmd
+from .utils import infolog, run_cmd, debug
 from .bam import bam
 from .barcode import barcode, db_compare
 from .vcf import vcf,delly_bcf
@@ -7,7 +7,7 @@ from .fasta import fasta
 
 
 
-def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagstat=False, run_delly=True, calling_params=None, delly_bcf_file=None, run_coverage=True, coverage_fraction_threshold=0, min_depth = 10, missing_cov_threshold=10, samclip=False, variant_annotations = False, call_wg=False):
+def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagstat=False, run_delly=True, calling_params=None, delly_vcf_file=None, run_coverage=True, coverage_fraction_threshold=0, min_depth = 10, missing_cov_threshold=10, samclip=False, variant_annotations = False, call_wg=False):
     infolog("Using %s\n\nPlease ensure that this BAM was made using the same reference as in the database.\nIf you are not sure what reference was used it is best to remap the reads." % bam_file)
 
     ### Put user specified arguments to lower case ###
@@ -64,34 +64,15 @@ def bam_profiler(conf, bam_file, prefix, platform, caller, threads=1, no_flagsta
 
     ### Run delly if specified ###
     if run_delly:
-        if delly_bcf_file:
-            delly_bcf_obj = delly_bcf(delly_bcf_file)
+        if delly_vcf_file:
+            delly_vcf_obj = delly_bcf(delly_vcf_file)
         else:
-            delly_bcf_obj = bam_obj.run_delly()
-        if delly_bcf_obj is not None:
+            delly_vcf_obj = bam_obj.run_delly()
+        if delly_vcf_obj is not None:
             results["delly"] = "success"
-            deletions = delly_bcf_obj.overlap_bed(conf["bed"])
-            for deletion in deletions:
-                tmp_var = {
-                    "chrom": deletion["chr"],
-                    "genome_pos": deletion["start"],
-                    "ref": None,
-                    "alt":None,
-                    "freq":1.0,
-                    "consequences":[
-                        {
-                        "gene_name":None,
-                        "gene_id":deletion["region"],
-                        "feature_id":None,
-                        "type":"large_deletion",
-                        "nucleotide_change":"%(chr)s:g.%(start)s_%(end)s" % deletion,
-                        "protein_change":None,
-                        }
-                    ]
-                }
-                
-                results["variants"].append(tmp_var)
-
+            delly_vcf_obj = delly_vcf_obj.get_robust_calls(prefix,conf["bed"])
+            ann_vcf_obj = delly_vcf_obj.run_snpeff(conf["snpEff_db"],conf["ref"],conf["gff"],rename_chroms= conf["chromosome_conversion"],split_indels=False)
+            results["variants"].extend(ann_vcf_obj.load_ann(bed_file=conf["bed"],ablation=True))
         else:
             results["delly"] = "fail"
 

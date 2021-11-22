@@ -64,14 +64,14 @@ class vcf:
 
 
         else :
-            run_cmd("bcftools view %(filename)s | %(rename_cmd)s snpEff -Djava.net.useSystemProxies=true ann %(db)s - %(re_rename_cmd)s > %(vcf_csq_file)s" % vars(self))
+            run_cmd("bcftools view %(filename)s | %(rename_cmd)s snpEff -Djava.net.useSystemProxies=true ann %(db)s - %(re_rename_cmd)s | bcftools view -Oz -o %(vcf_csq_file)s" % vars(self))
         return vcf(self.vcf_csq_file,self.prefix)
 
         # run_cmd(f"snpEff ann {db} {self.filename} | bcftools view -Oz -o {self.prefix}.ann.vcf.gz")
         # return vcf(f"{self.prefix}.ann.vcf.gz")
 
 
-    def load_ann(self,max_promoter_length=200, bed_file=None,intergenic=False,intragenic=False,upstream=False,downstream=False,noncoding=False,intronic=False,synonymous=False,splice=False):
+    def load_ann(self,max_promoter_length=200, bed_file=None,intergenic=False,intragenic=False,upstream=False,downstream=False,noncoding=False,intronic=False,synonymous=False,splice=False,ablation=False):
         filter_out = []
         if intergenic==False:
             filter_out.append("intergenic_region")
@@ -90,6 +90,8 @@ class vcf:
             filter_out.append("synonymous_variant")
         if splice==False:
             filter_out.append("splice_region_variant&intron_variant")
+        if ablation==False:
+            filter_out.append("transcript_ablation")
         
         if bed_file:
             genes_to_keep = []
@@ -98,12 +100,15 @@ class vcf:
                 genes_to_keep.append((row[3],row[4]))
 
         variants = []
-        for l in cmd_out(f"bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT\\t%ANN\\t[%AD]\\n' {self.filename}"):
+        for l in cmd_out(f"bcftools query -u -f '%CHROM\\t%POS\\t%REF\\t%ALT\\t%ANN\\t[%AD]\\n' {self.filename}"):
             chrom,pos,ref,alt_str,ann_str,ad_str = l.strip().split()
 
             alleles = [ref] + alt_str.split(",")
-            ad = [int(x) for x in ad_str.split(",")]
-            af_dict = {alleles[i]:ad[i]/sum(ad) for i in range(len(alleles))}
+            if alt_str=="<DEL>":
+                af_dict = {"<DEL>":1.0}
+            else:
+                ad = [int(x) for x in ad_str.split(",")]
+                af_dict = {alleles[i]:ad[i]/sum(ad) for i in range(len(alleles))}
             ann_list = [x.split("|") for x in ann_str.split(",")]
             for alt in alleles[1:]:
                 tmp_var = {
@@ -228,24 +233,27 @@ class vcf:
 class delly_bcf(vcf):
     def __init__(self,filename):
          vcf.__init__(self,filename)
-    def get_robust_calls(self):
-        results = []
-        for l in cmd_out("bcftools query -f '%%CHROM\\t%%POS\\t[%%END\\t%%GT\\t%%DR\\t%%DV\\t%%RR\\t%%RV]\\n' %(filename)s" % vars(self)):
-            row = l.split()
-            if row[3]!="1/1":continue
-            if int(row[2])-int(row[1])>100000: continue
-            results.append(row)
-        return results
-    def overlap_bed(self,bed_file):
-        results = []
-        bed = load_bed(bed_file,[1,2,3,4,5],4)
-        calls = self.get_robust_calls()
-        for call in calls:
-            set_call_pos = set(range(int(call[1]),int(call[2])))
-            for region in bed:
-                if bed[region][0]!=call[0]: continue
-                set_region_pos = set(range(int(bed[region][1]),int(bed[region][2])))
-                intersect = set_call_pos.intersection(set_region_pos)
-                if len(intersect)>1:
-                    results.append({"chr":call[0],"region":region,"start":int(call[1]),"end":int(call[2])})
-        return results
+    def get_robust_calls(self,prefix,bed_file = None):
+        self.tmpfile = f"{prefix}.tmp.delly.vcf.gz"
+        self.outfile = f"{prefix}.delly.vcf.gz"
+        run_cmd("bcftools view -c 2  %(filename)s | bcftools view -e '(INFO/END-POS)>=100000' -Oz -o %(tmpfile)s" % vars(self))
+        if bed_file:
+            run_cmd(f"bcftools index {self.tmpfile}")
+            run_cmd(f"bcftools view -R {bed_file} {self.tmpfile} -Oz -o {self.outfile}")
+        else:
+            self.outfile = self.tmpfile
+        return delly_bcf(self.outfile)
+
+    # def overlap_bed(self,bed_file):
+    #     results = []
+    #     bed = load_bed(bed_file,[1,2,3,4,5],4)
+    #     calls = self.get_robust_calls()
+    #     for call in calls:
+    #         set_call_pos = set(range(int(call[1]),int(call[2])))
+    #         for region in bed:
+    #             if bed[region][0]!=call[0]: continue
+    #             set_region_pos = set(range(int(bed[region][1]),int(bed[region][2])))
+    #             intersect = set_call_pos.intersection(set_region_pos)
+    #             if len(intersect)>1:
+    #                 results.append({"chr":call[0],"region":region,"start":int(call[1]),"end":int(call[2])})
+    #     return results

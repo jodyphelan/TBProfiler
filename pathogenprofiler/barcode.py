@@ -110,8 +110,8 @@ def db_compare(mutations,db_file):
                     db_var_match = db[csq["gene_id"]]["any_indel_nucleotide_%s" % get_indel_nucleotide(csq["nucleotide_change"])]
                 elif "stop_gained" in csq["type"] and "premature_stop" in db[csq["gene_id"]]:
                     db_var_match = db[csq["gene_id"]]["premature_stop"]
-                elif "large_deletion" in csq["type"] and "large_deletion" in db[csq["gene_id"]]:
-                    db_var_match = db[csq["gene_id"]]["large_deletion"]
+                elif "transcript_ablation" in csq["type"] and "transcript_ablation" in db[csq["gene_id"]]:
+                    db_var_match = db[csq["gene_id"]]["transcript_ablation"]
                 if db_var_match:
 
                     if "annotation" not in annotated_results["variants"][i]["consequences"][j]:

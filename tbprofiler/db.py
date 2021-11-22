@@ -223,6 +223,8 @@ def get_snpeff_formated_mutation_list(csv_file,ref,gff,snpEffDB):
             converted_mutations[(row["Gene"],row["Mutation"])] = row["Mutation"]
         if row["Mutation"] == "large_deletion":
             converted_mutations[(row["Gene"],row["Mutation"])] = row["Mutation"]
+        if row["Mutation"] == "transcript_ablation":
+            converted_mutations[(row["Gene"],row["Mutation"])] = row["Mutation"]
         if row["Mutation"] == "functional_gene":
             converted_mutations[(row["Gene"],row["Mutation"])] = row["Mutation"]
         if row["Mutation"][:19] == "any_missense_codon_":
@@ -242,7 +244,7 @@ def get_snpeff_formated_mutation_list(csv_file,ref,gff,snpEffDB):
 
 
 def get_genome_position(gene_object,change):
-    if change in ["frameshift","large_deletion","functional_gene"]:
+    if change in ["frameshift","large_deletion","functional_gene","transcript_ablation"]:
         return None
     if "any_missense_codon" in change:
         codon = int(change.replace("any_missense_codon_",""))

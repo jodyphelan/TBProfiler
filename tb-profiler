@@ -174,7 +174,7 @@ def main_profile(args):
         run_delly = run_delly, calling_params=args.calling_params,
         coverage_fraction_threshold=args.coverage_fraction_threshold,
         missing_cov_threshold=args.missing_cov_threshold, samclip=args.no_clip,
-        min_depth=args.min_depth,delly_bcf_file=args.delly_bcf,call_wg=args.call_whole_genome,
+        min_depth=args.min_depth,delly_vcf_file=args.delly_vcf,call_wg=args.call_whole_genome,
         variant_annotations=args.add_variant_annotations
     )
 
@@ -467,7 +467,7 @@ other=parser_sub.add_argument_group("Other options")
 other.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
 other.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 other.add_argument('--no_cleanup',action="store_true",help="Don't remove temporary files on error")
-other.add_argument('--delly_bcf',help=argparse.SUPPRESS)
+other.add_argument('--delly_vcf',help=argparse.SUPPRESS)
 parser_sub.set_defaults(func=main_profile)
 
 
