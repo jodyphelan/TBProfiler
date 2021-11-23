@@ -64,11 +64,9 @@ class vcf:
 
 
         else :
-            run_cmd("bcftools view %(filename)s | %(rename_cmd)s snpEff -Djava.net.useSystemProxies=true ann %(db)s - %(re_rename_cmd)s | bcftools view -Oz -o %(vcf_csq_file)s" % vars(self))
+            run_cmd("bcftools view %(filename)s | %(rename_cmd)s snpEff -Djava.net.useSystemProxies=true ann -noStats %(db)s - %(re_rename_cmd)s | bcftools view -Oz -o %(vcf_csq_file)s" % vars(self))
         return vcf(self.vcf_csq_file,self.prefix)
 
-        # run_cmd(f"snpEff ann {db} {self.filename} | bcftools view -Oz -o {self.prefix}.ann.vcf.gz")
-        # return vcf(f"{self.prefix}.ann.vcf.gz")
 
 
     def load_ann(self,max_promoter_length=200, bed_file=None,intergenic=False,intragenic=False,upstream=False,downstream=False,noncoding=False,intronic=False,synonymous=False,splice=False,ablation=False):
