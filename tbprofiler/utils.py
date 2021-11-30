@@ -94,10 +94,10 @@ def load_gff(gff,aslist=False):
         p1 = int(fields[3])
         p2 = int(fields[4])
         gene_length = p2-p1+1
-        re_obj = re.search("Name=([a-zA-Z0-9\.\-\_\(\)]+)",l)
-        gene_name = re_obj.group(1) if re_obj else "NA"
         re_obj = re.search("gene_id=([a-zA-Z0-9\.\-\_]+)",l)
         locus_tag = re_obj.group(1) if re_obj else "NA"
+        re_obj = re.search("Name=([a-zA-Z0-9\.\-\_\(\)]+)",l)
+        gene_name = re_obj.group(1) if re_obj else locus_tag
         start = p1
         end =  p2
         tmp = gene_class(gene_name,locus_tag,strand,chrom,start,end,gene_length)

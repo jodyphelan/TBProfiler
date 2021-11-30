@@ -97,10 +97,12 @@ def get_ann(variants,snpEffDB):
         row = l.strip().split()
         for ann in row[7].split(","):
             a = ann.split("|")
+            if len(a)!=16:continue
+
             if vals[i]["gene"] in [a[3],a[4]]:
                 results[keys[i]] = a[9] if vals[i]["type"]=="nucleotide" else a[10]
         i+=1
-    os.remove(uuid)
+    # os.remove(uuid)
     return results
 
 
@@ -112,6 +114,10 @@ def get_snpeff_formated_mutation_list(csv_file,ref,gff,snpEffDB):
     converted_mutations = {}
     for row in csv.DictReader(open(csv_file)):
         gene = [g for g in genes if g.name==row["Gene"] or g.locus_tag==row["Gene"]][0]
+        r = re.search("n.([0-9]+)([ACGT]+)>([ACGT]+)",row["Mutation"])
+        if r:
+            converted_mutations[(row["Gene"],row["Mutation"])] = row["Mutation"]
+            
         r = re.search("n.([0-9]+)([ACGT]+)>([ACGT]+)",row["Mutation"])
         if r:
             converted_mutations[(row["Gene"],row["Mutation"])] = f"n.{r.group(1)}{r.group(2).upper()}>{r.group(3).upper()}"
@@ -171,12 +177,13 @@ def get_snpeff_formated_mutation_list(csv_file,ref,gff,snpEffDB):
             del_end = int(r.group(1))
             if gene.strand == "+":
                # "embA" "c.-29_-28del"
-                genome_start = gene.start + del_start - 1
-                genome_end = gene.start + del_end + 1
+                genome_start = gene.start - del_start - 1
+                genome_end = gene.start - del_end + 1
             else:
                 # "alr" "c.-283_-280delCAAT"
-                genome_start = gene.start - del_end - 1
-                genome_end = gene.start - del_start + 1
+                genome_start = gene.start + del_end - 1
+                genome_end = gene.start + del_start + 1
+
             ref = refseq["Chromosome"][genome_start-1:genome_end-1]
             alt = ref[0]
             mutations[(row["Gene"],row["Mutation"])] = {"pos":genome_start, "ref":ref, "alt":alt,"gene":row["Gene"],"type":"nucleotide"}
@@ -199,6 +206,25 @@ def get_snpeff_formated_mutation_list(csv_file,ref,gff,snpEffDB):
             mutations[(row["Gene"],row["Mutation"])] = {"pos":genome_start, "ref":ref, "alt":alt,"gene":row["Gene"],"type":"nucleotide"}
 
         
+        r = re.search("c.(-[0-9]+)_([0-9]+)del",row["Mutation"])
+        if r:
+            del_start = int(r.group(1))
+            del_end = int(r.group(2))
+            if gene.strand == "+":
+               # "ethA" "c.-1058_968del"
+                genome_start = gene.start + del_start -1
+                genome_end = gene.start + del_end 
+                # quit("Need to define!")
+
+            else:
+               # "ethA" "c.-1058_968del"
+                genome_start = gene.start - del_end 
+                genome_end = gene.start - del_start + 1
+
+            ref = refseq["Chromosome"][genome_start-1:genome_end-1]
+            alt = ref[0]
+            mutations[(row["Gene"],row["Mutation"])] = {"pos":genome_start, "ref":ref, "alt":alt,"gene":row["Gene"],"type":"nucleotide"}
+
 
         r = re.search("c.([0-9]+)_([0-9]+)ins([ACGT]+)", row["Mutation"])
         if r:
@@ -219,6 +245,26 @@ def get_snpeff_formated_mutation_list(csv_file,ref,gff,snpEffDB):
             alt = ref + ins_seq
             mutations[(row["Gene"],row["Mutation"])] = {"pos":genome_start, "ref":ref, "alt":alt,"gene":row["Gene"],"type":"nucleotide"}
         
+
+        r = re.search("c.(-[0-9]+)_(-[0-9]+)ins([ACGT]+)",row["Mutation"])
+        if r:
+            del_start = int(r.group(1))
+            del_end = int(r.group(2))
+            ins_seq = r.group(3)
+            if gene.strand == "+":
+               # "rrs" "c.-29_-28insATAC"
+                genome_start = gene.start + del_start 
+                genome_end = gene.start + del_end 
+            else:
+                # "alr" "c.-283_-280delCAAT"
+                ins_seq = pp.revcom(ins_seq)
+                genome_start = gene.start - del_end 
+                genome_end = gene.start - del_start 
+            ref = refseq["Chromosome"][genome_start-1:genome_end-1]
+            alt = ref + ins_seq
+            mutations[(row["Gene"],row["Mutation"])] = {"pos":genome_start, "ref":ref, "alt":alt,"gene":row["Gene"],"type":"nucleotide"}
+
+
         if row["Mutation"] == "frameshift":
             converted_mutations[(row["Gene"],row["Mutation"])] = row["Mutation"]
         if row["Mutation"] == "large_deletion":
@@ -276,7 +322,7 @@ def get_genome_position(gene_object,change):
         if g.strand=="+":
             p = g.start + pos -1
             return [p]
-    r = re.search("c.([0-9]+)_([0-9]+)ins[A-Z]+",change)
+    r = re.search("[nc].([\-0-9]+)_([\-0-9]+)ins[A-Z]+",change)
     if r:
         pos = int(r.group(1))
         if g.strand=="+":
@@ -285,7 +331,7 @@ def get_genome_position(gene_object,change):
         else:
             p = g.start - pos 
             return [p, p+1]
-    r = re.search("c.([\-0-9]+)_([\-0-9]+)del[A-Z]+",change)
+    r = re.search("[nc].([\-0-9]+)_([\-0-9]+)del[A-Z]*",change)
     if r:
         pos1 = int(r.group(1))
         pos2 = int(r.group(2))
@@ -300,11 +346,12 @@ def get_genome_position(gene_object,change):
             p1 = g.start - pos1 + 1
             p2 = g.start - pos2 + 1
             if pos1<0:
-                p1+=1
-                p2+=1
-                quit(f"Don't know how to handle {change}")
+                p1-=1
+            if pos2<0:
+                p2-=1
             return list(range(p2,p1+1))
-    r = re.search("c.([0-9]+)del[A-Z]+",change)
+
+    r = re.search("[nc].([\-0-9]+)del[A-Z]+",change)
     if r:
         pos = int(r.group(1))
         if g.strand=="+":
@@ -313,7 +360,8 @@ def get_genome_position(gene_object,change):
         else:
             p = g.start - pos + 1
             return [p]
-    r = re.search("c.([0-9]+)dup[A-Z]+",change)
+
+    r = re.search("[nc].([0-9]+)dup[A-Z]+",change)
     if r:
         pos = int(r.group(1))
         if g.strand=="+":
@@ -322,7 +370,7 @@ def get_genome_position(gene_object,change):
         else:
             p = g.start - pos + 1
             return [p]
-    r = re.search("c.([0-9]+)_([0-9]+)dup[A-Z]+",change)
+    r = re.search("[nc].([0-9]+)_([0-9]+)dup[A-Z]+",change)
     if r:
         pos1 = int(r.group(1))
         pos2 = int(r.group(2))
@@ -331,10 +379,11 @@ def get_genome_position(gene_object,change):
             p2 = g.start + pos2 - 1
             return list(range(p1,p2+1))
         else:
-            p = g.start - pos + 1
-            quit(f"Don't know how to handle {change}")
-            return [p]
+            p1 = g.start - pos1 + 1
+            p2 = g.start - pos2 + 1
+            return list(range(p2,p1+1))
 
+    
 
     r = re.search("n.([0-9]+)([0-9]+)dup[A-Z]+",change)
     if r:
@@ -348,7 +397,7 @@ def get_genome_position(gene_object,change):
             p = g.start - pos + 1
             quit(f"Don't know how to handle {change}")
             return [p]
-    quit(f"Don't know how to handle {change}")
+    quit(f"Don't know how to handle {str(vars(g))} {change}")
 
 def match_ref_chrom_names(source,target):
     source_fa = fa2dict(source)
@@ -401,72 +450,77 @@ def create_db(args):
     db = {}
     locus_tag_to_drug_dict = defaultdict(set)
     mutation_lookup = get_snpeff_formated_mutation_list(args.csv,"genome.fasta","genome.gff",json.load(open("variables.json"))["snpEff_db"])
-    for row in csv.DictReader(open(args.csv)):
-        locus_tag = gene_name2gene_id[row["Gene"]]
-        drug = row["Drug"].lower()
-        mut = mutation_lookup[(row["Gene"],row["Mutation"])]
-        if mut!=row["Mutation"]:
-            print(mut,row["Mutation"])
-        locus_tag_to_drug_dict[locus_tag].add(drug)
-        if locus_tag not in db:
-            db[locus_tag] = {}
-        if mut not in db[locus_tag]:
-            db[locus_tag][mut] = {"annotations":[]}
-
-        tmp_annotation = {"type":"drug","drug":row["Drug"]}
-        annotation_columns = set(row.keys()) - set(["Gene","Mutation","Drug"])
-        for col in annotation_columns:
-            if row[col]=="":continue
-            tmp_annotation[col.lower()] = row[col]
-        db[locus_tag][mut]["annotations"].append(tmp_annotation)
-        db[locus_tag][mut]["genome_positions"] = get_genome_position(genes[locus_tag],mut)
-
-    if args.other_annotations:
-        for row in csv.DictReader(open(args.other_annotations)):
+    with open(args.prefix+".conversion.log","w") as L:
+        for row in csv.DictReader(open(args.csv)):
             locus_tag = gene_name2gene_id[row["Gene"]]
-            mut = row["Mutation"]
+            drug = row["Drug"].lower()
+            mut = mutation_lookup[(row["Gene"],row["Mutation"])]
+            row["original_mutation"] = row["Mutation"]
+            if mut!=row["Mutation"]:
+                L.write(f"Converted {row['Gene']} {row['Mutation']} to {mut}\n")
+            locus_tag_to_drug_dict[locus_tag].add(drug)
             if locus_tag not in db:
                 db[locus_tag] = {}
             if mut not in db[locus_tag]:
                 db[locus_tag][mut] = {"annotations":[]}
-            tmp_annotation = {"type":row["Type"]}
-            for x in row["Info"].split(";"):
-                key,val = x.split("=")
-                tmp_annotation[key.lower()] = val
+
+            tmp_annotation = {"type":"drug","drug":row["Drug"]}
+            annotation_columns = set(row.keys()) - set(["Gene","Mutation","Drug"])
+            for col in annotation_columns:
+                if row[col]=="":continue
+                tmp_annotation[col.lower()] = row[col]
             db[locus_tag][mut]["annotations"].append(tmp_annotation)
             db[locus_tag][mut]["genome_positions"] = get_genome_position(genes[locus_tag],mut)
 
-    if args.watchlist:
-        for row in csv.DictReader(open(args.watchlist)):
-            locus_tag = gene_name2gene_id[row["Gene"]]
-            drug = row["Drug"].lower()
-            locus_tag_to_drug_dict[locus_tag].add(drug)
+        if args.other_annotations:
+            mutation_lookup = get_snpeff_formated_mutation_list(args.other_annotations,"genome.fasta","genome.gff",json.load(open("variables.json"))["snpEff_db"])
+            for row in csv.DictReader(open(args.other_annotations)):
+                locus_tag = gene_name2gene_id[row["Gene"]]
+                mut = mutation_lookup[(row["Gene"],row["Mutation"])]
+                row["original_mutation"] = row["Mutation"]
+                if mut!=row["Mutation"]:
+                    L.write(f"Converted {row['Gene']} {row['Mutation']} to {mut}\n")
+                if locus_tag not in db:
+                    db[locus_tag] = {}
+                if mut not in db[locus_tag]:
+                    db[locus_tag][mut] = {"annotations":[]}
+                tmp_annotation = {"type":row["Type"]}
+                for x in row["Info"].split(";"):
+                    key,val = x.split("=")
+                    tmp_annotation[key.lower()] = val
+                db[locus_tag][mut]["annotations"].append(tmp_annotation)
 
-    
+        if args.watchlist:
+            for row in csv.DictReader(open(args.watchlist)):
+                locus_tag = gene_name2gene_id[row["Gene"]]
+                drug = row["Drug"].lower()
+                locus_tag_to_drug_dict[locus_tag].add(drug)
 
-    version = {"name":args.prefix}
-    if not args.custom:
-        for l in cmd_out("git log | head -4"):
-            row = l.strip().split()
-            if row == []: continue
-            version[row[0].replace(":","")] = " ".join(row[1:])
-        version["commit"] = version["commit"][:7]
-    else:
-        version["Date"] = str(datetime.now()) if not args.db_date else args.db_date
-        version["name"] = args.db_name if args.db_name else "NA"
-        version["commit"] = args.db_commit if args.db_name else "NA"
-        version["Author"] = args.db_author if args.db_author else "NA"
+        
 
-    json.dump(version,open(version_file,"w"))
+        version = {"name":args.prefix}
+        if not args.custom:
+            for l in cmd_out("git log | head -4"):
+                row = l.strip().split()
+                if row == []: continue
+                version[row[0].replace(":","")] = " ".join(row[1:])
+            version["commit"] = version["commit"][:7]
+        else:
+            version["Date"] = str(datetime.now()) if not args.db_date else args.db_date
+            version["name"] = args.db_name if args.db_name else "NA"
+            version["commit"] = args.db_commit if args.db_name else "NA"
+            version["Author"] = args.db_author if args.db_author else "NA"
 
-    variables = json.load(open("variables.json"))    
-    variables["chromosome_conversion"] = {"source":list(chrom_conversion.keys()),"target":list(chrom_conversion.values())}
-    json.dump(variables,open(args.prefix+".variables.json","w"))
-    if os.path.isfile("barcode.bed"):
-        with open(barcode_file,"w") as O:
-            for l in open("barcode.bed"):
-                row = l.strip().split("\t")
-                row[0] = chrom_conversion[row[0]]
-                O.write("\t".join(row)+"\n")
-    write_bed(locus_tag_to_drug_dict,genes,bed_file)
-    json.dump(db,open(json_file,"w"))
+        json.dump(version,open(version_file,"w"))
+
+        variables = json.load(open("variables.json"))    
+        variables["chromosome_conversion"] = {"source":list(chrom_conversion.keys()),"target":list(chrom_conversion.values())}
+        json.dump(variables,open(args.prefix+".variables.json","w"))
+        if os.path.isfile("barcode.bed"):
+            with open(barcode_file,"w") as O:
+                for l in open("barcode.bed"):
+                    row = l.strip().split("\t")
+                    row[0] = chrom_conversion[row[0]]
+                    O.write("\t".join(row)+"\n")
+        write_bed(locus_tag_to_drug_dict,genes,bed_file)
+        json.dump(db,open(json_file,"w"))
