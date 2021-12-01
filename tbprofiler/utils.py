@@ -71,6 +71,10 @@ def get_drugs2gene(bed_file):
             results[drug].append(gene)
     return dict(results)
 
+def get_drug_list(bed_file):
+    tmp = get_drugs2lt(bed_file)
+    return set(tmp.keys())
+
 class gene_class:
     def __init__(self,name,locus_tag,strand,chrom,start,end,length):
         self.name = name

@@ -7,7 +7,9 @@ import math
 import re
 rand_generator = random.SystemRandom()
 
-
+def unlist(t):
+    return [item for sublist in t for item in sublist]
+    
 def infolog(x):
     sys.stderr.write('\033[94m' + str(x) + '\033[0m' + '\n')
 

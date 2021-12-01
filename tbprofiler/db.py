@@ -4,7 +4,7 @@ import re
 from collections import defaultdict
 import sys
 from datetime import datetime
-from pathogenprofiler import run_cmd, cmd_out, errlog
+from pathogenprofiler import run_cmd, cmd_out, errlog, unlist
 from .utils import load_gff
 import os
 import shutil
@@ -52,16 +52,28 @@ def write_gene_pos(infile,genes,outfile):
                     OUT.write("%s\t%s\t%s\t%s\n" % (chr_name,chr_pos,rv,gene_start+(x*i)+y))
 
 
-def write_bed(gene_dict,gene_info,outfile):
+
+def write_bed(db,gene_dict,gene_info,outfile,padding=200):
     lines = []
     for gene in gene_dict:
         if gene not in gene_info:
             errlog("%s not found in the 'gene_info' dictionary... Exiting!" % gene)
             quit()
+        genome_positions = unlist([db[gene_info[gene].locus_tag][x]["genome_positions"] for x in db[gene_info[gene].locus_tag] if any([a["type"]=="drug" for a in db[gene_info[gene].locus_tag][x]["annotations"]])])
+        if len(genome_positions)>0 and (gene_info[gene].feature_start > min(genome_positions)):
+            genome_start = min(genome_positions) - padding
+        else:
+            genome_start = gene_info[gene].feature_start - padding
+        
+        if len(genome_positions)>0 and (gene_info[gene].feature_end < max(genome_positions)):
+            genome_end = max(genome_positions) + padding
+        else:
+            genome_end = gene_info[gene].feature_end + padding
+        
         lines.append([
             gene_info[gene].chrom,
-            str(gene_info[gene].feature_start-200),
-            str(gene_info[gene].feature_end+200),
+            str(genome_start),
+            str(genome_end),
             gene_info[gene].locus_tag,
             gene_info[gene].name,
             ",".join(gene_dict[gene])
@@ -322,19 +334,38 @@ def get_genome_position(gene_object,change):
         if g.strand=="+":
             p = g.start + pos -1
             return [p]
-    r = re.search("[nc].([\-0-9]+)_([\-0-9]+)ins[A-Z]+",change)
+    r = re.search("[nc].([\-\*0-9]+)_([\-\*0-9]+)ins[A-Z]+",change)
     if r:
-        pos = int(r.group(1))
+        if "*" in r.group(1):
+            if g.strand=="+":
+                pos = g.feature_end - g.feature_start + int(r.group(1).replace("*","")) + 1
+            else:
+                pos = g.feature_end - g.feature_start - int(r.group(1).replace("*","")) - 1
+        else:
+            pos = int(r.group(1))
         if g.strand=="+":
             p = g.start + pos -1
             return [p, p+1]
         else:
             p = g.start - pos 
             return [p, p+1]
-    r = re.search("[nc].([\-0-9]+)_([\-0-9]+)del[A-Z]*",change)
+
+    r = re.search("[nc].([\-\*0-9]+)_([\-\*0-9]+)del[A-Z]*",change)
     if r:
-        pos1 = int(r.group(1))
-        pos2 = int(r.group(2))
+        if "*" in r.group(1):
+            if g.strand=="+":
+                pos1 = g.feature_end - g.feature_start + int(r.group(1).replace("*",""))
+            else:
+                pos1 = g.feature_end - g.feature_start - int(r.group(1).replace("*",""))
+        else:
+            pos1 = int(r.group(1))
+        if "*" in r.group(2):
+            if g.strand=="+":
+                pos2 = g.feature_end - g.feature_start + int(r.group(2).replace("*",""))
+            else:
+                pos2 = g.feature_end - g.feature_start - int(r.group(2).replace("*",""))
+        else:
+            pos2 = int(r.group(2))
         if g.strand=="+":
             p1 = g.start + pos1 -1
             p2 = g.start + pos2 -1
@@ -351,9 +382,15 @@ def get_genome_position(gene_object,change):
                 p2-=1
             return list(range(p2,p1+1))
 
-    r = re.search("[nc].([\-0-9]+)del[A-Z]+",change)
+    r = re.search("[nc].([\-\*0-9]+)del[A-Z]+",change)
     if r:
-        pos = int(r.group(1))
+        if "*" in r.group(1):
+            if g.strand=="+":
+                pos = g.feature_end - g.feature_start + int(r.group(1).replace("*","")) + 1
+            else:
+                pos = g.feature_end - g.feature_start - int(r.group(1).replace("*","")) - 1
+        else:
+            pos = int(r.group(1))
         if g.strand=="+":
             p = g.start + pos - 1
             return [p]
@@ -361,7 +398,7 @@ def get_genome_position(gene_object,change):
             p = g.start - pos + 1
             return [p]
 
-    r = re.search("[nc].([0-9]+)dup[A-Z]+",change)
+    r = re.search("[nc].([\-0-9]+)dup[A-Z]+",change)
     if r:
         pos = int(r.group(1))
         if g.strand=="+":
@@ -370,7 +407,8 @@ def get_genome_position(gene_object,change):
         else:
             p = g.start - pos + 1
             return [p]
-    r = re.search("[nc].([0-9]+)_([0-9]+)dup[A-Z]+",change)
+    
+    r = re.search("[nc].([\-0-9]+)_([\-0-9]+)dup[A-Z]+",change)
     if r:
         pos1 = int(r.group(1))
         pos2 = int(r.group(2))
@@ -385,18 +423,18 @@ def get_genome_position(gene_object,change):
 
     
 
-    r = re.search("n.([0-9]+)([0-9]+)dup[A-Z]+",change)
-    if r:
-        pos1 = int(r.group(1))
-        pos2 = int(r.group(2))
-        if g.strand=="+":
-            p1 = g.start + pos1 - 1
-            p2 = g.start + pos2 - 1
-            return list(range(p1,p2+1))
-        else:
-            p = g.start - pos + 1
-            quit(f"Don't know how to handle {change}")
-            return [p]
+    # r = re.search("n.([0-9]+)([0-9]+)dup[A-Z]+",change)
+    # if r:
+    #     pos1 = int(r.group(1))
+    #     pos2 = int(r.group(2))
+    #     if g.strand=="+":
+    #         p1 = g.start + pos1 - 1
+    #         p2 = g.start + pos2 - 1
+    #         return list(range(p1,p2+1))
+    #     else:
+    #         p = g.start - pos + 1
+    #         quit(f"Don't know how to handle {change}")
+    #         return [p]
     quit(f"Don't know how to handle {str(vars(g))} {change}")
 
 def match_ref_chrom_names(source,target):
@@ -455,7 +493,8 @@ def create_db(args):
             locus_tag = gene_name2gene_id[row["Gene"]]
             drug = row["Drug"].lower()
             mut = mutation_lookup[(row["Gene"],row["Mutation"])]
-            row["original_mutation"] = row["Mutation"]
+            if args.include_original_mutation:
+                row["original_mutation"] = row["Mutation"]
             if mut!=row["Mutation"]:
                 L.write(f"Converted {row['Gene']} {row['Mutation']} to {mut}\n")
             locus_tag_to_drug_dict[locus_tag].add(drug)
@@ -477,7 +516,6 @@ def create_db(args):
             for row in csv.DictReader(open(args.other_annotations)):
                 locus_tag = gene_name2gene_id[row["Gene"]]
                 mut = mutation_lookup[(row["Gene"],row["Mutation"])]
-                row["original_mutation"] = row["Mutation"]
                 if mut!=row["Mutation"]:
                     L.write(f"Converted {row['Gene']} {row['Mutation']} to {mut}\n")
                 if locus_tag not in db:
@@ -485,10 +523,15 @@ def create_db(args):
                 if mut not in db[locus_tag]:
                     db[locus_tag][mut] = {"annotations":[]}
                 tmp_annotation = {"type":row["Type"]}
+                if args.include_original_mutation:
+                    tmp_annotation["original_mutation"] = row["Mutation"]
+
+
                 for x in row["Info"].split(";"):
                     key,val = x.split("=")
                     tmp_annotation[key.lower()] = val
                 db[locus_tag][mut]["annotations"].append(tmp_annotation)
+                db[locus_tag][mut]["genome_positions"] = get_genome_position(genes[locus_tag],mut)
 
         if args.watchlist:
             for row in csv.DictReader(open(args.watchlist)):
@@ -522,5 +565,5 @@ def create_db(args):
                     row = l.strip().split("\t")
                     row[0] = chrom_conversion[row[0]]
                     O.write("\t".join(row)+"\n")
-        write_bed(locus_tag_to_drug_dict,genes,bed_file)
+        write_bed(db,locus_tag_to_drug_dict,genes,bed_file)
         json.dump(db,open(json_file,"w"))

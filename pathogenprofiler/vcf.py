@@ -69,7 +69,7 @@ class vcf:
 
 
 
-    def load_ann(self,max_promoter_length=200, bed_file=None,intergenic=False,intragenic=False,upstream=False,downstream=False,noncoding=False,intronic=False,synonymous=False,splice=False,ablation=False):
+    def load_ann(self,max_promoter_length=1000, bed_file=None,intergenic=False,intragenic=False,upstream=False,downstream=False,noncoding=False,intronic=False,synonymous=False,splice=False,ablation=False):
         filter_out = []
         if intergenic==False:
             filter_out.append("intergenic_region")
@@ -117,8 +117,8 @@ class vcf:
                     "freq":af_dict[alt],
                     "consequences":[]
                 }
-                # if pos=="1473246":
-                #     import pdb; pdb.set_trace()
+                # if pos=="1673425":
+                    # import pdb; pdb.set_trace()
                 for ann in ann_list:
                     if ann[0]!=alt:
                         continue
