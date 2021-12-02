@@ -540,6 +540,8 @@ def create_db(args):
                 for x in row["Info"].split(";"):
                     key,val = x.split("=")
                     tmp_annotation[key.lower()] = val
+                    if key=="drug":
+                        locus_tag_to_drug_dict[locus_tag].add(val)
                 db[locus_tag][mut]["annotations"].append(tmp_annotation)
                 db[locus_tag][mut]["genome_positions"] = get_genome_position(genes[locus_tag],mut)
 
