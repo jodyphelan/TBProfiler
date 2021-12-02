@@ -4,7 +4,7 @@ import re
 from collections import defaultdict
 import sys
 from datetime import datetime
-from pathogenprofiler import run_cmd, cmd_out, errlog, unlist
+from pathogenprofiler import run_cmd, cmd_out, errlog, unlist, debug
 from .utils import load_gff
 import os
 import shutil
@@ -51,7 +51,13 @@ def write_gene_pos(infile,genes,outfile):
                         y = 1 if gene_start< gene_end else -1
                     OUT.write("%s\t%s\t%s\t%s\n" % (chr_name,chr_pos,rv,gene_start+(x*i)+y))
 
-
+def extract_genome_positions(db,gene):
+    pos = []
+    for mut in db[gene]:
+        if any([a["type"]=="drug" for a in db[gene][mut]["annotations"]]):
+            if mut in ["frameshift","large_deletion","transcript_ablation"]: continue
+            pos.extend(db[gene][mut]["genome_positions"])
+    return list(set(pos))
 
 def write_bed(db,gene_dict,gene_info,outfile,padding=200):
     lines = []
@@ -59,17 +65,21 @@ def write_bed(db,gene_dict,gene_info,outfile,padding=200):
         if gene not in gene_info:
             errlog("%s not found in the 'gene_info' dictionary... Exiting!" % gene)
             quit()
-        genome_positions = unlist([db[gene_info[gene].locus_tag][x]["genome_positions"] for x in db[gene_info[gene].locus_tag] if any([a["type"]=="drug" for a in db[gene_info[gene].locus_tag][x]["annotations"]])])
-        if len(genome_positions)>0 and (gene_info[gene].feature_start > min(genome_positions)):
-            genome_start = min(genome_positions) - padding
+        if gene_info[gene].locus_tag in db:
+            genome_positions = extract_genome_positions(db,gene_info[gene].locus_tag)
+            if len(genome_positions)>0 and (gene_info[gene].feature_start > min(genome_positions)):
+                genome_start = min(genome_positions) - padding
+            else:
+                genome_start = gene_info[gene].feature_start - padding
+            
+            if len(genome_positions)>0 and (gene_info[gene].feature_end < max(genome_positions)):
+                genome_end = max(genome_positions) + padding
+            else:
+                genome_end = gene_info[gene].feature_end + padding
         else:
             genome_start = gene_info[gene].feature_start - padding
-        
-        if len(genome_positions)>0 and (gene_info[gene].feature_end < max(genome_positions)):
-            genome_end = max(genome_positions) + padding
-        else:
             genome_end = gene_info[gene].feature_end + padding
-        
+
         lines.append([
             gene_info[gene].chrom,
             str(genome_start),
@@ -536,10 +546,10 @@ def create_db(args):
         if args.watchlist:
             for row in csv.DictReader(open(args.watchlist)):
                 locus_tag = gene_name2gene_id[row["Gene"]]
-                drug = row["Drug"].lower()
-                locus_tag_to_drug_dict[locus_tag].add(drug)
+                for d in row["Drug"].split(","):
+                    drug = d.lower()
+                    locus_tag_to_drug_dict[locus_tag].add(drug)
 
-        
 
         version = {"name":args.prefix}
         if not args.custom:
