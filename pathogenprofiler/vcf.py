@@ -100,7 +100,7 @@ class vcf:
         variants = []
         for l in cmd_out(f"bcftools query -u -f '%CHROM\\t%POS\\t%REF\\t%ALT\\t%ANN\\t[%AD]\\n' {self.filename}"):
             chrom,pos,ref,alt_str,ann_str,ad_str = l.strip().split()
-
+            
             alleles = [ref] + alt_str.split(",")
             if alt_str=="<DEL>":
                 af_dict = {"<DEL>":1.0}
