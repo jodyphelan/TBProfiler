@@ -389,9 +389,9 @@ def main_vcf_profile(args):
         files_prefix = args.dir+"/"+sample_name
         args.tmp_vcf = "%s.vcf.gz" % uuid4()
         if args.reporting_af>0:
-            pp.run_cmd("bcftools view -s %(sample_name)s -c 1 %(vcf)s | bcftools view -i 'sum(AD)>0' | bcftools +fixploidy -Oz -o %(tmp_vcf)s " % vars(args))
+            pp.run_cmd("bcftools view -s %(sample_name)s -ac 1 %(vcf)s | bcftools view -i 'sum(AD)>0' | bcftools +fixploidy -Oz -o %(tmp_vcf)s " % vars(args))
         else:
-            pp.run_cmd("bcftools view -s %(sample_name)s -c 1 %(vcf)s | bcftools +fixploidy -Oz -o %(tmp_vcf)s " % vars(args))
+            pp.run_cmd("bcftools view -s %(sample_name)s -ac 1 %(vcf)s | bcftools +fixploidy -Oz -o %(tmp_vcf)s " % vars(args))
         results = pp.vcf_profiler(conf, files_prefix, sample_name, args.tmp_vcf)
         results = tbp.reformat(results,conf,reporting_af=args.reporting_af,use_suspect=args.suspect)
         results["id"] = sample_name
