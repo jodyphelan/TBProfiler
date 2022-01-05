@@ -4,6 +4,9 @@ import re
 
 for l in sys.stdin:
 	if l[0]=="#":
+		# temp fix for issue with pilon vcf header
+		if "ID=DP,Number=1,Type=String" in l:
+			l = re.sub(r'ID=DP,Number=1,Type=String', r'ID=DP,Number=1,Type=Integer',l)
 		if "#CHROM" in l:
 			sys.stdout.write('##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths (high-quality bases)">\n')
 		sys.stdout.write(l)
