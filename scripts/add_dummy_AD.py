@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 import sys
+import re
 
 for l in sys.stdin:
 	if l[0]=="#":
@@ -12,5 +13,11 @@ for l in sys.stdin:
 			sys.stdout.write(l)
 		else:
 			row[8]+=":AD"
-			row[9]+=":0,100"
+			r = re.search("AF=([0-9\.]+)",row[7])
+			if r:
+				alt = int(100*float(r.group(1)))
+				ref = int(100-alt)
+				row[9]+=f":{ref},{alt}"
+			else:
+				row[9]+=":0,100"
 			sys.stdout.write("%s\n" % "\t".join(row))
