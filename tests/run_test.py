@@ -73,6 +73,13 @@ def test_bwa_pilon():
     assert results["main_lin"] == "lineage4"
     assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
 
+def test_bwa_lofreq():
+    results = illumina_fastq("lofreq","bwa")
+    assert results["sublin"] == "lineage4.3.4.2"
+    assert results["main_lin"] == "lineage4"
+    assert [(v["gene"],v["change"]) for v in results["dr_variants"] if v["freq"]>0.05] == por5_dr_variants
+
+
 def test_collate():
     with open("samples.txt","w") as O:
         O.write("\n".join(["por5A_illumina_bwa_freebayes_PE","por5A_illumina_bwa_gatk_PE","por5A_illumina_bwa_bcftools_PE","por5_vcf"]))
