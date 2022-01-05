@@ -48,7 +48,7 @@ def main(args):
 				
 				else:
 					alt = 100
-					ref = 100
+					ref = 0
 					row[9]+=f":{ref},{alt}"
 			if args.add_dp:
 				if "DP" not in row[8]:
