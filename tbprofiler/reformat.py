@@ -196,15 +196,15 @@ def add_drtypes(results,reporting_af=0.1):
 
     if len(resistant_drugs)==0:
         drtype = "Sensitive"
-    elif (rif and not inh) and (not flq and not gpa):
+    elif (rif and not inh) and not flq:
         drtype = "RR-TB"
-    elif (inh and not rif) and (not flq and not gpa):
+    elif (inh and not rif) and not flq:
         drtype = "HR-MDR"
-    elif (rif and inh) and (not flq and not gpa):
+    elif (rif and inh) and not flq:
         drtype = "MDR"
-    elif (rif and inh) and (flq and not gpa):
+    elif rif and (flq and not gpa):
         drtype = "Pre-XDR"
-    elif (rif and inh) and (flq and gpa):
+    elif rif and (flq and gpa):
         drtype = "XDR"
     else:
         drtype = "Other"

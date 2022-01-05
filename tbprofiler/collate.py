@@ -115,7 +115,7 @@ DATA
     OUT.close()
 
     OUT = open(prefix+".dr.itol.txt","w")
-    dr_cols = {"Sensitive":"#28a745","Pre-MDR":"#007bff","MDR":"#ffc107","Pre-XDR":"#dc3545","XDR":"#343a40","Other":"#f8f9fa"}
+    dr_cols = {"Sensitive":"#28a745","RR-MDR":"#007bff","HR-MDR":"#007bff","MDR":"#ffc107","Pre-XDR":"#dc3545","XDR":"#343a40","Other":"#f8f9fa"}
     drtypes_present = set([results[s]["drtype"] for s in samples])
     dr_cols = {key:val for key,val in dr_cols.items() if key in drtypes_present}
     OUT.write("""DATASET_COLORSTRIP
