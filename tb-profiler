@@ -123,8 +123,6 @@ def main_profile(args):
         args.no_trim=True
         run_delly = False
     else:
-        if args.caller=="pilon":
-            args.no_trim=True
         if args.no_delly:
             run_delly = False
         else:
