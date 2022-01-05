@@ -241,10 +241,30 @@ def bwa_index(ref):
         cmd = "bwa index %s" % ref
         run_cmd(cmd)
 
+def which(program):
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return True
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return True
+    return False
+
+
 def run_cmd(cmd,verbose=1,target=None,terminate_on_error=True):
     """
     Wrapper to run a command using subprocess with 3 levels of verbosity and automatic exiting if command failed
     """
+    programs = set([x.strip().split()[0] for x in re.split("[|&;]",cmd) if x!=""])
+    missing = [p for p in programs if which(p)==False]
+    if len(missing)>0:
+        raise ValueError("Cant find programs: %s\n" % (", ".join(missing)))
     if target and filecheck(target): return True
     cmd = "set -u pipefail; " + cmd
     if verbose>0:
