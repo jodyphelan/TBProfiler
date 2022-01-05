@@ -60,7 +60,7 @@ def main(args):
 parser = argparse.ArgumentParser(description='add required annotations',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--ref',type=str,help='Reference file (lofreq required)')
 parser.add_argument('--sample-name',type=str,help='Sample name (lofreq required)')
-parser.add_argument('--add-dp',action="store_true",type=str,help='Add FORMAT/DP (lofreq required)')
+parser.add_argument('--add-dp',action="store_true",help='Add FORMAT/DP (lofreq required)')
 parser.set_defaults(func=main)
 args = parser.parse_args()
 args.func(args)
