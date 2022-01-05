@@ -50,15 +50,17 @@ def main(args):
 					alt = 100
 					ref = 100
 					row[9]+=f":{ref},{alt}"
-			if "DP" not in row[8]:
-				row[8]+=":DP"
-				row[9]+=f":{ref+alt}"
+			if args.add_dp:
+				if "DP" not in row[8]:
+					row[8]+=":DP"
+					row[9]+=f":{ref+alt}"
 		
 			sys.stdout.write("%s\n" % "\t".join(row))
 
 parser = argparse.ArgumentParser(description='add required annotations',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--ref',type=str,help='')
-parser.add_argument('--sample-name',type=str,help='')
+parser.add_argument('--ref',type=str,help='Reference file (lofreq required)')
+parser.add_argument('--sample-name',type=str,help='Sample name (lofreq required)')
+parser.add_argument('--add-dp',action="store_true",type=str,help='Add FORMAT/DP (lofreq required)')
 parser.set_defaults(func=main)
 args = parser.parse_args()
 args.func(args)
