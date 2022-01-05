@@ -447,7 +447,7 @@ output.add_argument('--call_whole_genome',action="store_true",help="Call whole g
 
 algorithm=parser_sub.add_argument_group("Algorithm options")
 algorithm.add_argument('--mapper',default="bwa", choices=["bwa","minimap2","bowtie2","bwa-mem2"],help="Mapping tool to use. If you are using nanopore data it will default to minimap2",type=str)
-algorithm.add_argument('--caller',default="freebayes", choices=["bcftools","gatk","freebayes"],help="Variant calling tool to use.",type=str)
+algorithm.add_argument('--caller',default="freebayes", choices=["bcftools","gatk","freebayes","pilon"],help="Variant calling tool to use.",type=str)
 algorithm.add_argument('--calling_params',type=str,help='Override default parameters for variant calling')
 algorithm.add_argument('--min_depth',default=10,type=int,help='Minimum depth required to call variant. Bases with depth below this cutoff will be marked as missing')
 algorithm.add_argument('--af',default=0.1,type=float,help='Minimum allele frequency to call variants')
