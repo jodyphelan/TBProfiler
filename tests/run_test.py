@@ -67,6 +67,12 @@ def test_bwa_gatk():
     assert results["main_lin"] == "lineage4"
     assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
 
+def test_bwa_pilon():
+    results = illumina_fastq("pilon","bwa")
+    assert results["sublin"] == "lineage4.3.4.2"
+    assert results["main_lin"] == "lineage4"
+    assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
+
 def test_collate():
     with open("samples.txt","w") as O:
         O.write("\n".join(["por5A_illumina_bwa_freebayes_PE","por5A_illumina_bwa_gatk_PE","por5A_illumina_bwa_bcftools_PE","por5_vcf"]))
