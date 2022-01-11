@@ -569,7 +569,7 @@ def create_db(args):
         json.dump(version,open(version_file,"w"))
 
         variables = json.load(open("variables.json"))    
-        variables["chromosome_conversion"] = {"source":list(chrom_conversion.keys()),"target":list(chrom_conversion.values())}
+        variables["chromosome_conversion"] = {"target":list(chrom_conversion.keys()),"source":list(chrom_conversion.values())}
         json.dump(variables,open(args.prefix+".variables.json","w"))
         if os.path.isfile("barcode.bed"):
             with open(barcode_file,"w") as O:
