@@ -72,6 +72,7 @@ def main_reprofile(args):
         conf = tbp.get_conf_dict_with_path(args.external_db)
     else:
         conf = tbp.get_conf_dict(args.db)
+    new_locus_tag_list = [x.strip().split()[3] for x in open(conf["bed"])]
     columns = {
         "gene":"gene_name",
         "locus_tag":"gene_id",
@@ -84,7 +85,9 @@ def main_reprofile(args):
     new_results = old_results.copy()
     new_results["variants"] = []
     for var in old_results["dr_variants"]+old_results["other_variants"]:
-
+        if var["locus_tag"] not in new_locus_tag_list:
+            pp.infolog(f"Skipping {var['gene']} {var['change']} because the gene isn't in the new db!")
+            continue
         if "drugs" in var:
             del var["drugs"]
         if "gene_associated_drugs" in var:
