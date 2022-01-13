@@ -198,14 +198,14 @@ def add_drtypes(results,reporting_af=0.1):
         drtype = "Sensitive"
     elif (rif and not inh) and not flq:
         drtype = "RR-TB"
-    elif (inh and not rif) and not flq:
-        drtype = "HR-MDR"
+    elif (inh and not rif):
+        drtype = "HR-TB"
     elif (rif and inh) and not flq:
-        drtype = "MDR"
+        drtype = "MDR-TB"
     elif rif and (flq and not gpa):
-        drtype = "Pre-XDR"
+        drtype = "Pre-XDR-TB"
     elif rif and (flq and gpa):
-        drtype = "XDR"
+        drtype = "XDR-TB"
     else:
         drtype = "Other"
 

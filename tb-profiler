@@ -3,6 +3,7 @@ import sys
 import pathogenprofiler as pp
 import argparse
 import json
+from pathogenprofiler.utils import debug
 import tbprofiler as tbp
 import os
 import csv
@@ -64,33 +65,57 @@ except:
     sys.base_prefix = getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', sys.prefix))
 
 def main_reprofile(args):
+    #{'chrom': 'Chromosome', 'genome_pos': 6140, 'ref': 'G', 'alt': 'T', 'freq': 1.0, 'consequences': [{'gene_name': 'gyrB', 'gene_id': 'Rv0005', 'feature_id': 'CCP42727', 'type': 'missense_variant', 'nucleotide_change': 'c.901G>T', 'protein_change': 'p.Val301Leu'}]}
     if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
         pp.errlog("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
     if args.external_db:
         conf = tbp.get_conf_dict_with_path(args.external_db)
     else:
         conf = tbp.get_conf_dict(args.db)
+    new_locus_tag_list = [x.strip().split()[3] for x in open(conf["bed"])]
+    columns = {
+        "gene":"gene_name",
+        "locus_tag":"gene_id",
+        "protein_change":"protein_change",
+        "nucleotide_change":"nucleotide_change",
+        "type":"type",
+        "feature_id":"feature_id"
+    }
     old_results = json.load(open(args.json))
     new_results = old_results.copy()
-    variant_dump = {}
-    for var in old_results["dr_variants"]:
-        del var["drug"]
-        var["gene_id"] = var["locus_tag"]
-        var["change"] = var["_internal_change"]
-        variant_dump[(var["locus_tag"],var["change"])] = var
-    for var in old_results["other_variants"]:
-        var["gene_id"] = var["locus_tag"]
-        var["change"] = var["_internal_change"]
-        variant_dump[(var["locus_tag"],var["change"])] = var
-    new_results["variants"] = list(variant_dump.values())
+    new_results["variants"] = []
+    for var in old_results["dr_variants"]+old_results["other_variants"]:
+        if var["locus_tag"] not in new_locus_tag_list:
+            pp.infolog(f"Skipping {var['gene']} {var['change']} because the gene isn't in the new db!")
+            continue
+        if "drugs" in var:
+            del var["drugs"]
+        if "gene_associated_drugs" in var:
+            del var["gene_associated_drugs"]
+        del var["change"]
+        tmp_csq = {}
+        for k,v in columns.items():
+            tmp_csq[v] = var[k]
+            del var[k]
+
+        var["consequences"] = var["alternate_consequences"]
+        var["consequences"].append(tmp_csq)
+        del var["alternate_consequences"]
+        if "annotation" in var:
+            del var["annotation"]
+        new_results["variants"].append(var)
+
+
     del new_results["other_variants"]
     del new_results["dr_variants"]
+    del new_results["qc"]["gene_coverage"]
+
+
+
+
     new_results = pp.db_compare(db_file=conf["json_db"],mutations=new_results)
-    tbp.reformat_annotations(new_results,conf)
-    for var in new_results["dr_variants"]:
-        del var["gene_id"]
-    for var in new_results["other_variants"]:
-        del var["gene_id"]
+    new_results = tbp.reformat(new_results, conf, reporting_af=args.reporting_af, mutation_metadata=args.add_mutation_metadata)
+
     new_results["db_version"] = json.load(open(conf["version"]))
     json.dump(new_results,open("%s.results.json"%args.prefix,"w"))
 
@@ -104,9 +129,6 @@ def main_profile(args):
     else:
         conf = tbp.get_conf_dict(args.db)
 
-
-    ###### TESTING ######
-    # conf["snpEff_db"] = "Mycobacterium_tuberculosis_h37rv"
 
 
     ### Create folders for results if they don't exist ###
@@ -537,6 +559,10 @@ parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix
 parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
 parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
+parser_sub.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to use variants for prediction')
+parser_sub.add_argument('--add_mutation_metadata',action="store_true",help=argparse.SUPPRESS)
+
+
 parser_sub.set_defaults(func=main_reprofile)
 
 
