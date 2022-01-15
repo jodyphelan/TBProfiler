@@ -84,10 +84,17 @@ def main_reprofile(args):
     old_results = json.load(open(args.json))
     new_results = old_results.copy()
     new_results["variants"] = []
+    if args.extra_consequences:
+        extra_csq_data = json.load(open(args.extra_consequences))
     for var in old_results["dr_variants"]+old_results["other_variants"]:
         if var["locus_tag"] not in new_locus_tag_list:
-            pp.infolog(f"Skipping {var['gene']} {var['change']} because the gene isn't in the new db!")
-            continue
+            k = f"{var['locus_tag']}_{var['nucleotide_change']}"
+            if k in extra_csq_data:
+                for c,v in columns.items():
+                    var[c] = extra_csq_data[k][v]
+            else:
+                pp.infolog(f"Skipping {var['gene']} {var['change']} because the gene isn't in the new db!")
+                continue
         if "drugs" in var:
             del var["drugs"]
         if "gene_associated_drugs" in var:
@@ -100,6 +107,13 @@ def main_reprofile(args):
 
         var["consequences"] = var["alternate_consequences"]
         var["consequences"].append(tmp_csq)
+        # if args.extra_consequences:
+        #     # pp.debug(extra_csq_data)
+        #     for csq in var["consequences"]:
+        #         k = f"{csq['gene_id']}_{csq['nucleotide_change']}"
+        #         pp.debug(k)
+        #         if k in extra_csq_data:
+        #             var["consequences"] += extra_csq_data[k]
         del var["alternate_consequences"]
         if "annotation" in var:
             del var["annotation"]
@@ -199,7 +213,9 @@ def main_profile(args):
         min_depth=args.min_depth,delly_vcf_file=args.delly_vcf,call_wg=args.call_whole_genome,
         variant_annotations=args.add_variant_annotations
     )
-
+    for var in results["variants"]:
+        if any([csq["gene_id"]=="Rv1483" for csq in var["consequences"]]):
+            pp.debug(json.dumps(var["consequences"]))
     ### Reformat the results to TB-Profiler style ###
     results = tbp.reformat(results, conf, reporting_af=args.reporting_af, mutation_metadata=args.add_mutation_metadata)
     results["id"] = args.prefix
@@ -561,6 +577,7 @@ parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (
 parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to use variants for prediction')
 parser_sub.add_argument('--add_mutation_metadata',action="store_true",help=argparse.SUPPRESS)
+parser_sub.add_argument('--extra_consequences',help=argparse.SUPPRESS)
 
 
 parser_sub.set_defaults(func=main_reprofile)
