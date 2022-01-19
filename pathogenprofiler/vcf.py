@@ -5,18 +5,18 @@ import re
 from uuid import uuid4
 import sys
 
-re_seq = re.compile("([0-9\-]*)([A-Z\*]+)")
-re_I = re.compile("([A-Z\*]+)")
-number_re = re.compile("[0-9\-]+")
+# re_seq = re.compile("([0-9\-]*)([A-Z\*]+)")
+# re_I = re.compile("([A-Z\*]+)")
+# number_re = re.compile("[0-9\-]+")
 
-def parse_mutation(x):
-    tmp = x.split(">")
-    aa_changed = True if len(tmp)>1 else False
-    re_obj = re_seq.search(tmp[0])
-    change_num = re_obj.group(1)
-    ref_aa = re_obj.group(2)
-    alt_aa = re_seq.search(tmp[1]).group(2) if aa_changed else None
-    return change_num,ref_aa,alt_aa
+# def parse_mutation(x):
+#     tmp = x.split(">")
+#     aa_changed = True if len(tmp)>1 else False
+#     re_obj = re_seq.search(tmp[0])
+#     change_num = re_obj.group(1)
+#     ref_aa = re_obj.group(2)
+#     alt_aa = re_seq.search(tmp[1]).group(2) if aa_changed else None
+#     return change_num,ref_aa,alt_aa
 
 class vcf:
     def __init__(self,filename,prefix=None,threads=1):
@@ -156,31 +156,31 @@ class vcf:
         return vcf(self.new_file,self.prefix)
 
 
-    def load_variants(self):
-        variants = defaultdict(lambda:defaultdict(lambda:defaultdict(dict)))
-        raw_variants = defaultdict(lambda:defaultdict(lambda:defaultdict(dict)))
-        cmd = "bcftools query -u -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%TGT:%%AD]\\n' %s  | sed 's/\.\/\./N\/N/g'" % self.filename
-        for l in cmd_out(cmd):
-            row = l.split()
-            alts = row[3].split(",")
-            alleles = [row[2]]+alts
-            for i in range(len(self.samples)):
-                calls,ad = row[i+4].split(":")
-                if calls=="N/N":
-                    raw_variants[row[0]][row[1]][self.samples[i]]["N"] = 1.0
-                    continue
-                elif calls=="%s/%s" % (row[2],row[2]) and ad==".":
-                    raw_variants[row[0]][row[1]][self.samples[i]][row[2]] = 1.0
-                    continue
-                ad = [int(x) if x!="." else 0 for x in ad.split(",")] if ad!="." else [0,100]
-                sum_ad = sum(ad)
-                for j in range(1,len(alleles)):
-                    if ad[j]==0: continue
-                    raw_variants[row[0]][row[1]][self.samples[i]][alleles[j]] = ad[j]/sum_ad
-        for tchrom in raw_variants:
-            for tpos in raw_variants[tchrom]:
-                variants[tchrom][int(tpos)] = raw_variants[tchrom][tpos]
-        return variants
+    # def load_variants(self):
+    #     variants = defaultdict(lambda:defaultdict(lambda:defaultdict(dict)))
+    #     raw_variants = defaultdict(lambda:defaultdict(lambda:defaultdict(dict)))
+    #     cmd = "bcftools query -u -f '%%CHROM\\t%%POS\\t%%REF\\t%%ALT[\\t%%TGT:%%AD]\\n' %s  | sed 's/\.\/\./N\/N/g'" % self.filename
+    #     for l in cmd_out(cmd):
+    #         row = l.split()
+    #         alts = row[3].split(",")
+    #         alleles = [row[2]]+alts
+    #         for i in range(len(self.samples)):
+    #             calls,ad = row[i+4].split(":")
+    #             if calls=="N/N":
+    #                 raw_variants[row[0]][row[1]][self.samples[i]]["N"] = 1.0
+    #                 continue
+    #             elif calls=="%s/%s" % (row[2],row[2]) and ad==".":
+    #                 raw_variants[row[0]][row[1]][self.samples[i]][row[2]] = 1.0
+    #                 continue
+    #             ad = [int(x) if x!="." else 0 for x in ad.split(",")] if ad!="." else [0,100]
+    #             sum_ad = sum(ad)
+    #             for j in range(1,len(alleles)):
+    #                 if ad[j]==0: continue
+    #                 raw_variants[row[0]][row[1]][self.samples[i]][alleles[j]] = ad[j]/sum_ad
+    #     for tchrom in raw_variants:
+    #         for tpos in raw_variants[tchrom]:
+    #             variants[tchrom][int(tpos)] = raw_variants[tchrom][tpos]
+    #     return variants
 
     def get_positions(self):
         results = []
