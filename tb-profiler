@@ -107,13 +107,6 @@ def main_reprofile(args):
 
         var["consequences"] = var["alternate_consequences"]
         var["consequences"].append(tmp_csq)
-        # if args.extra_consequences:
-        #     # pp.debug(extra_csq_data)
-        #     for csq in var["consequences"]:
-        #         k = f"{csq['gene_id']}_{csq['nucleotide_change']}"
-        #         pp.debug(k)
-        #         if k in extra_csq_data:
-        #             var["consequences"] += extra_csq_data[k]
         del var["alternate_consequences"]
         if "annotation" in var:
             del var["annotation"]
@@ -213,9 +206,6 @@ def main_profile(args):
         min_depth=args.min_depth,delly_vcf_file=args.delly_vcf,call_wg=args.call_whole_genome,
         variant_annotations=args.add_variant_annotations
     )
-    for var in results["variants"]:
-        if any([csq["gene_id"]=="Rv1483" for csq in var["consequences"]]):
-            pp.debug(json.dumps(var["consequences"]))
     ### Reformat the results to TB-Profiler style ###
     results = tbp.reformat(results, conf, reporting_af=args.reporting_af, mutation_metadata=args.add_mutation_metadata)
     results["id"] = args.prefix
