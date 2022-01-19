@@ -82,7 +82,7 @@ def test_bwa_lofreq():
 
 def test_collate():
     with open("samples.txt","w") as O:
-        O.write("\n".join(["por5A_illumina_bwa_freebayes_PE","por5A_illumina_bwa_gatk_PE","por5A_illumina_bwa_bcftools_PE","por5_vcf"]))
+        O.write("\n".join(["por5A_illumina_bwa_freebayes_PE","por5A_illumina_bwa_gatk_PE","por5A_illumina_bwa_bcftools_PE","por5A_illumina_bwa_pilon_PE","por5A_illumina_bwa_lofreq_PE","por5_vcf"]))
     run_cmd("tb-profiler collate --samples samples.txt")
     assert open("tbprofiler.txt").read() == collate_text
 
