@@ -124,7 +124,7 @@ def get_ann(variants,snpEffDB):
             if vals[i]["gene"] in [a[3],a[4]]:
                 results[keys[i]] = a[9] if vals[i]["type"]=="nucleotide" else a[10]
         i+=1
-    # os.remove(uuid)
+    os.remove(uuid)
     return results
 
 
