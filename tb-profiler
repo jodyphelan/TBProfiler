@@ -89,7 +89,7 @@ def main_reprofile(args):
     for var in old_results["dr_variants"]+old_results["other_variants"]:
         if var["locus_tag"] not in new_locus_tag_list:
             k = f"{var['locus_tag']}_{var['nucleotide_change']}"
-            if k in extra_csq_data:
+            if args.extra_consequences and k in extra_csq_data:
                 for c,v in columns.items():
                     var[c] = extra_csq_data[k][v]
             else:

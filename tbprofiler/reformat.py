@@ -39,6 +39,14 @@ def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=
                 for key in columns:
                     annotation[drug][key].append(x["drugs"][drug][key])
 
+    drug_types = {"fluoroquinolones":["ofloxacin","moxifloxacin","levofloxacin","ciprofloxacin"]}
+    for d in drug_types:
+        if d not in results:
+            muts = set()
+            for x in drug_types[d]:
+                if x in results:
+                    muts = muts.union(set(results[x]))
+            results[d] = list(muts)
 
     for d in drugs:
         if d in results:

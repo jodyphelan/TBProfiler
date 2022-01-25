@@ -109,6 +109,12 @@ Genome Medicine 11, 41. 2019
 def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="\t"):
     json_results = get_summary(json_results,conf,columns = columns,reporting_af=reporting_af)
     drug_list = get_drug_list(conf["bed"])
+    drug_types = {"fluoroquinolones":["ofloxacin","moxifloxacin","levofloxacin","ciprofloxacin"]}
+    for dt in drug_types:
+        if dt not in drug_list:
+            for d in drug_types[dt]:
+                if d in drug_list:
+                    _DRUGS.append(d)
     json_results["drug_table"] = [[y for y in json_results["drug_table"] if y["Drug"].upper()==d.upper()][0] for d in _DRUGS if d in drug_list]
     for var in json_results["dr_variants"]:
         var["drug"] = "; ".join([d["drug"] for d in var["drugs"]])
