@@ -55,7 +55,7 @@ def extract_genome_positions(db,gene):
     pos = []
     for mut in db[gene]:
         if any([a["type"]=="drug" for a in db[gene][mut]["annotations"]]):
-            if mut in ["frameshift","large_deletion","transcript_ablation"]: continue
+            if mut in ["functional_gene","frameshift","large_deletion","transcript_ablation"]: continue
             pos.extend(db[gene][mut]["genome_positions"])
     return list(set(pos))
 
