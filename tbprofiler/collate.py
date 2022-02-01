@@ -117,7 +117,6 @@ DATA
     OUT = open(prefix+".dr.itol.txt","w")
     dr_cols = {"Sensitive":"#28a745","RR-TB":"#007bff","HR-TB":"#E0ACD5","MDR-TB":"#ffc107","Pre-XDR-TB":"#dc3545","XDR-TB":"#343a40","Other":"#f8f9fa"}
     drtypes_present = set([results[s]["drtype"] for s in samples])
-    debug(drtypes_present)
     dr_cols = {key:val for key,val in dr_cols.items() if key in drtypes_present}
     OUT.write("""DATASET_COLORSTRIP
 SEPARATOR TAB
