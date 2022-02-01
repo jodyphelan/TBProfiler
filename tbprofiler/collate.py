@@ -4,7 +4,7 @@ import sys
 from collections import defaultdict
 from tqdm import tqdm
 from .utils import get_lt2drugs
-from pathogenprofiler import errlog
+from pathogenprofiler import errlog,debug
 def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_results=True,full_variant_results=True,reporting_af=0.1,mark_missing=False):
     if not os.path.isdir(result_dir):
         errlog("\nERROR: Can't find directory %s\n" % result_dir )
@@ -115,8 +115,9 @@ DATA
     OUT.close()
 
     OUT = open(prefix+".dr.itol.txt","w")
-    dr_cols = {"Sensitive":"#28a745","RR-MDR-TB":"#007bff","HR-MDR-TB":"#E0ACD5","MDR-TB":"#ffc107","Pre-XDR-TB":"#dc3545","XDR-TB":"#343a40","Other":"#f8f9fa"}
+    dr_cols = {"Sensitive":"#28a745","RR-TB":"#007bff","HR-TB":"#E0ACD5","MDR-TB":"#ffc107","Pre-XDR-TB":"#dc3545","XDR-TB":"#343a40","Other":"#f8f9fa"}
     drtypes_present = set([results[s]["drtype"] for s in samples])
+    debug(drtypes_present)
     dr_cols = {key:val for key,val in dr_cols.items() if key in drtypes_present}
     OUT.write("""DATASET_COLORSTRIP
 SEPARATOR TAB
@@ -138,7 +139,7 @@ DATA
 
     drug_list = ['rifampicin', 'isoniazid', 'ethambutol', 'pyrazinamide', 'streptomycin', 'fluoroquinolones', 'aminoglycosides', 'kanamycin', 'amikacin', 'capreomycin', 'ethionamide', 'para-aminosalicylic_acid', 'clofazimine', 'linezolid', 'bedaquiline', 'delamanid']
     OUT = open(prefix+".dr.indiv.itol.txt","w")
-    dr_cols = {"Sensitive":"#80FF00","Drug-resistant":"#00FFFF","MDR":"#8000FF","XDR":"#FF0000"}
+    # dr_cols = {"Sensitive":"#80FF00","Drug-resistant":"#00FFFF","MDR":"#8000FF","XDR":"#FF0000"}
     legend_shapes = "\t".join(["2" for x in drug_list])
     legend_colours = "\t".join(["black" for x in drug_list])
     legend_labels = "\t".join(drug_list)
