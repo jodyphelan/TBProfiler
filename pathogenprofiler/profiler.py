@@ -102,7 +102,7 @@ def fasta_profiler(conf, prefix, filename):
     run_cmd("rm %s" % wg_vcf_file)
     return results
 
-def vcf_profiler(conf, prefix, sample_name, vcf_file):
+def vcf_profiler(conf, prefix, sample_name, vcf_file,delly_vcf_file):
     vcf_targets_file = "%s.targets.vcf.gz" % prefix
     run_cmd("bcftools view -T %s %s -Oz -o %s" % (conf["bed"],vcf_file,vcf_targets_file))
     vcf_obj = vcf(vcf_targets_file)
@@ -110,6 +110,13 @@ def vcf_profiler(conf, prefix, sample_name, vcf_file):
     ann = vcf_obj.load_ann(bed_file=conf["bed"],upstream=True,synonymous=True,noncoding=True)
     results = {"variants":[],"missing_pos":[],"qc":{"pct_reads_mapped":"NA","num_reads_mapped":"NA"}}
     results["variants"]  = ann
+
+    if delly_vcf_file:
+        delly_vcf_obj = delly_bcf(delly_vcf_file)
+        delly_vcf_obj = delly_vcf_obj.get_robust_calls(prefix,conf["bed"])
+        ann_vcf_obj = delly_vcf_obj.run_snpeff(conf["snpEff_db"],conf["ref"],conf["gff"],rename_chroms= conf["chromosome_conversion"],split_indels=False)
+        results["variants"].extend(ann_vcf_obj.load_ann(bed_file=conf["bed"],ablation=True))
+ 
     mutations = vcf(vcf_file).get_bed_gt(conf["barcode"], conf["ref"])
     if "C" in mutations["Chromosome"][325505] and  mutations["Chromosome"][325505]["C"]==50:  mutations["Chromosome"][325505] = {"T":25}
     if "G" in mutations["Chromosome"][599868] and  mutations["Chromosome"][599868]["G"]==50:  mutations["Chromosome"][599868] = {"A":25}

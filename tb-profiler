@@ -420,7 +420,7 @@ def main_vcf_profile(args):
             pp.run_cmd("bcftools view -s %(sample_name)s -ac 1 %(vcf)s | bcftools view -i 'sum(AD)>0' | bcftools +fixploidy -Oz -o %(tmp_vcf)s " % vars(args))
         else:
             pp.run_cmd("bcftools view -s %(sample_name)s -ac 1 %(vcf)s | bcftools +fixploidy -Oz -o %(tmp_vcf)s " % vars(args))
-        results = pp.vcf_profiler(conf, files_prefix, sample_name, args.tmp_vcf)
+        results = pp.vcf_profiler(conf, files_prefix, sample_name, args.tmp_vcf,args.delly_vcf)
         results = tbp.reformat(results,conf,reporting_af=args.reporting_af,use_suspect=args.suspect)
         results["id"] = sample_name
         results["tbprofiler_version"] = tbp.__version__
@@ -513,6 +513,8 @@ parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
 parser_sub.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and csv results")
 parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
 parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
+parser_sub.add_argument('--delly_vcf',help=argparse.SUPPRESS)
+
 parser_sub.set_defaults(func=main_vcf_profile)
 
 
