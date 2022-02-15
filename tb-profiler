@@ -209,6 +209,7 @@ def main_profile(args):
     ### Reformat the results to TB-Profiler style ###
     results = tbp.reformat(results, conf, reporting_af=args.reporting_af, mutation_metadata=args.add_mutation_metadata)
     results["id"] = args.prefix
+    results["input_data_source"] = "fastq" if args.read1 else "bam"
     results["tbprofiler_version"] = tbp.__version__
     results["pipeline"] = [
         {"Analysis":"Mapping","Program":args.mapper if not args.bam else "N/A"},
@@ -349,6 +350,7 @@ def main_fasta_profile(args):
     results = tbp.reformat(results,conf,reporting_af=0,use_suspect=args.suspect)
     results["id"] = args.prefix
     results["tbprofiler_version"] = tbp.__version__
+    results["input_data_source"] = "fasta"
     results["pipeline"] = [{"Analysis":"Variant_calling","Program":"paftools.js"}]
 
 
@@ -423,6 +425,7 @@ def main_vcf_profile(args):
         results = pp.vcf_profiler(conf, files_prefix, sample_name, args.tmp_vcf,args.delly_vcf)
         results = tbp.reformat(results,conf,reporting_af=args.reporting_af,use_suspect=args.suspect)
         results["id"] = sample_name
+        results["input_data_source"] = "vcf"
         results["tbprofiler_version"] = tbp.__version__
         results["pipeline"] = []
 

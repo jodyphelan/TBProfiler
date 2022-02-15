@@ -31,7 +31,7 @@ def test_db():
 
 
 def test_vcf():
-    run_cmd("tb-profiler vcf_profile tb-profiler-test-data/por5A1.vcf.gz")
+    run_cmd("tb-profiler vcf_profile tb-profiler-test-data/por5A1.vcf.gz --txt --csv")
     results = json.load(open("results/por5_vcf.results.json"))
     assert results["sublin"] == "lineage4.3.4.2"
     assert results["main_lin"] == "lineage4"
@@ -112,7 +112,7 @@ def test_nanopore():
     assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
 
 def test_fasta():
-    run_cmd("tb-profiler fasta_profile -f ~/tbprofiler_test_data/por5A1.fasta  -p por5A_fasta")
+    run_cmd("tb-profiler fasta_profile -f ~/tbprofiler_test_data/por5A1.fasta  -p por5A_fasta --txt --csv")
     results = json.load(open("results/por5A_fasta.results.json"))
     assert results["sublin"] == "lineage4.3.4.2"
     assert results["main_lin"] == "lineage4"
