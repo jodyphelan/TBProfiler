@@ -13,6 +13,33 @@ import pathogenprofiler as pp
 
 chr_name = "Chromosome"
 
+def generate_kmer_database(kmer_file,outfile):
+    from itertools import combinations, product
+
+    def generate(s, d=1):
+        N = len(s)
+        letters = 'ACGT'
+        pool = list(s)
+
+        for indices in combinations(range(N), d):
+            for replacements in product(letters, repeat=d):
+                skip = False
+                for i, a in zip(indices, replacements):
+                    if pool[i] == a: skip = True
+                if skip: continue
+
+                keys = dict(zip(indices, replacements))
+                yield ''.join([pool[i] if i not in indices else keys[i] 
+                            for i in range(N)])
+
+    with open(outfile,"w") as O:
+        for l in open(kmer_file):
+            row = l.strip().split()
+            kmers = [row[0]] + list(generate(row[0]))
+            O.write("%s\t%s\t%s\n" % (row[1],len(kmers),"\t".join(kmers)))
+
+
+
 def fa2dict(filename):
     fa_dict = {}
     seq_name = ""
@@ -579,3 +606,6 @@ def create_db(args):
                     O.write("\t".join(row)+"\n")
         write_bed(db,locus_tag_to_drug_dict,genes,bed_file)
         json.dump(db,open(json_file,"w"))
+        if args.spoligotypes:
+            spoligotype_file = args.prefix+".spoligotype_spacers.txt"
+            generate_kmer_database("spoligotype_spacers.txt", spoligotype_file)

@@ -8,7 +8,7 @@ import os
 
 
 def get_conf_dict_with_path(library_path):
-    files = {"gff":".gff","ref":".fasta","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
+    files = {"gff":".gff","ref":".fasta","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json","spacers":".spoligotype_spacers.txt"}
     conf = {}
     for key in files:
         pp.infolog("Using %s file: %s" % (key,library_path+files[key]))

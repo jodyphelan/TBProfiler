@@ -50,6 +50,22 @@ def variable2string(var,quote=False):
     else:
         return "%s%s%s" % (q,str(var),q)
 
+def load_spoligotype_report(text_strings):
+    return r"""
+TBProfiler spoligotype report
+=================
+
+Summary
+-------
+ID%(sep)s%(id)s
+Binary-spoligotype%(sep)s%(binary)s
+Octal-spologotype%(sep)s%(octal)s
+
+Spacers
+-------
+%(spacer_report)s
+""" % text_strings
+
 def load_text(text_strings):
     return r"""
 TBProfiler report
@@ -105,6 +121,14 @@ technology for rapid detection of resistance to anti-tuberculous drugs.
 Genome Medicine 11, 41. 2019
 """ % text_strings
 
+def write_spoligotype_report(json_results,conf,outfile,sep="\t"):
+    json_results["spacer_report"] = dict_list2text(json_results["spacers"],["name","count"],{"name":"Spacer","count":"Count"},sep=sep)
+    if sep=="\t":
+        json_results["sep"] = ": "
+    else:
+        json_results["sep"] = ","
+    with open(outfile,"w") as O:
+        O.write(load_spoligotype_report(json_results))
 
 def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="\t"):
     json_results = get_summary(json_results,conf,columns = columns,reporting_af=reporting_af)

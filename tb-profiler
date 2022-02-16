@@ -267,14 +267,14 @@ def main_create_db(args):
 
 def main_load_library(args):
     lib_prefix = args.prefix.split("/")[-1]
-    files = {"gff":".gff","ref":".fasta","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json","variables":".variables.json"}
+    files = {"gff":".gff","ref":".fasta","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json","variables":".variables.json","spacers":".spoligotype_spacers.txt"}
     if pp.nofolder(sys.base_prefix+"/share/tbprofiler"):
         pp.run_cmd("mkdir %s " % (sys.base_prefix+"/share/tbprofiler/"))
     for key in files:
         new_file_location = sys.base_prefix+"/share/tbprofiler/"+lib_prefix+files[key]
         pp.run_cmd("cp %s %s" % (args.prefix+files[key],new_file_location))
     pp.run_cmd("samtools faidx %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
-    pp.bwa_index(sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
+    pp.run_cmd("bwa index %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
     if os.path.isfile("%s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".dict"):
         pp.run_cmd("rm %s" % sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".dict")
     pp.create_seq_dict(sys.base_prefix+"/share/tbprofiler/"+lib_prefix+".fasta")
@@ -303,6 +303,36 @@ def main_lineage(args):
     elif args.outfmt=="txt":
         O.write(tbp.text.lineagejson2text(results["lineage"]))
     O.close()
+
+def main_spoligotype(args):
+    if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
+        pp.errlog("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+    if args.external_db:
+        conf = tbp.get_conf_dict_with_path(args.external_db)
+    else:
+        conf = tbp.get_conf_dict(args.db)
+
+    global files_prefix
+    args.tmp_prefix = str(uuid4())
+    files_prefix = args.dir+"/"+args.tmp_prefix
+
+    pp.run_cmd(f"samtools view -b {args.bam} Chromosome:3117003-3127206 | samtools fastq > {files_prefix}.fq")
+    fastq = pp.fastq(files_prefix+".fq")
+    counts = fastq.get_kmer_counts(conf['spacers'])
+    binary,octal = tbp.counts2spoligotype(counts)
+    results = {"id":args.prefix,"binary":binary,"octal":octal,"spacers":counts}
+    
+
+    json_output = args.dir+"/"+args.prefix+".spoligotype.json"
+    text_output = args.dir+"/"+args.prefix+".spoligotype.txt"
+    csv_output = args.dir+"/"+args.prefix+".spoligotype.csv"
+
+
+    json.dump(results,open(json_output,"w"))
+    if args.txt:
+        tbp.write_spoligotype_report(results,conf,text_output,sep="\t")
+    if args.csv:
+        tbp.write_spoligotype_report(results,conf,csv_output,sep=",")
 
 def main_collate(args):
     if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
@@ -549,6 +579,19 @@ parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (
 parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.set_defaults(func=main_lineage)
 
+parser_sub = subparsers.add_parser('spoligotype', help='Profile spoligotype', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub.add_argument('--bam','-a',required=True, help='BAM file. Make sure it has been generated using the H37Rv genome (GCA_000195955.2)')
+parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
+parser_sub.add_argument('--txt',action="store_true",help="Add text output")
+parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
+parser_sub.add_argument('--platform','-m',choices=["illumina","nanopore"],default="illumina",help='NGS Platform used to generate data')
+parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
+parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
+parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
+parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+
+parser_sub.set_defaults(func=main_spoligotype)
+
 parser_sub = subparsers.add_parser('collate', help='Collate results form multiple samples together', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
 parser_sub.add_argument('--samples',help='File with samples (one per line)')
@@ -592,6 +635,7 @@ parser_sub = subparsers.add_parser('create_db', help='Generate the files require
 parser_sub.add_argument('--prefix','-p',default="tbdb",type=str,help='The input CSV file containing the mutations')
 parser_sub.add_argument('--csv','-c',default="tbdb.csv",type=str,help='The prefix for all output files')
 parser_sub.add_argument('--watchlist','-w',default="tbdb.watchlist.csv",type=str,help='A csv file containing genes to profile but without any specific associated mutations')
+parser_sub.add_argument('--spoligotypes',type=str,help='A file containing a list of spoligotype spacers')
 parser_sub.add_argument('--match_ref',type=str,help='The prefix for all output files')
 parser_sub.add_argument('--other_annotations',default="tbdb.other_annotations.csv",type=str,help="A CSV containing gene, mutation, drug and confidence columns")
 parser_sub.add_argument('--custom',action="store_true",help='Tells the script this is a custom database, this is used to alter the generation of the version file')
