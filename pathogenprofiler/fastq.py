@@ -120,4 +120,5 @@ class fastq:
             if l[0]=="#": continue
             row = l.strip().split()
             results.append({"name":row[0],"count":int(row[2])})
+        os.remove(tmpfile)
         return results

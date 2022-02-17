@@ -322,7 +322,7 @@ def main_spoligotype(args):
     binary,octal = tbp.counts2spoligotype(counts)
     results = {"id":args.prefix,"binary":binary,"octal":octal,"spacers":counts}
     
-
+    os.remove(fastq.r1)
     json_output = args.dir+"/"+args.prefix+".spoligotype.json"
     text_output = args.dir+"/"+args.prefix+".spoligotype.txt"
     csv_output = args.dir+"/"+args.prefix+".spoligotype.csv"
