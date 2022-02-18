@@ -113,6 +113,12 @@ class fastq:
     
     def get_kmer_counts(self,kmer_db_file):
         tmpfile = str(uuid4())
+        if os.path.getsize(self.r1)==0:
+            with open(self.r1,"w") as O:
+                O.write(">dummy\naaa\n")
+        if self.r2 and os.path.getsize(self.r2)==0:
+            with open(self.r2,"w") as O:
+                O.write(">dummy\naaa\n")
         cmd = f"gmer_counter -db {kmer_db_file} --total {self.r1}" + (f" {self.r2}" if self.r2 else "") + f" > {tmpfile}"
         run_cmd(cmd)
         results = []

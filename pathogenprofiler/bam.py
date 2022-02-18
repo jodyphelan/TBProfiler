@@ -157,13 +157,16 @@ class bam:
             else:
                 ref_nt[(tmp_chrom,tmp_pos)] = l.strip()
 
-        for l in cmd_out(f"samtools view -Mb -L {bed_file} {self.bam_file} | bedtools coverage -a {bed_file} -b - -d -sorted"):
+        for l in cmd_out(f"samtools view -Mb -L {bed_file} {self.prefix}.tmp.bam | bedtools coverage -a {bed_file} -b - -d -sorted"):
             row = l.strip().split()
             chrom = row[0]
             pos = int(row[2])
             cov = int(row[-1])
             if chrom not in results or pos not in results[chrom]:
                 results[chrom][pos] = {ref_nt[(chrom,pos)]:cov}
+
+        os.remove(f"{self.prefix}.tmp.bam")
+        os.remove(f"{self.prefix}.tmp.bam.bai")
 
         return results
 
