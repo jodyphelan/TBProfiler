@@ -48,6 +48,7 @@ It is possible to install manually. The following pre-requisites will be needed 
 To install the library run the following code:
 ```bash
 pip3 install git+https://github.com/jodyphelan/TBProfiler.git
+pip3 install git+https://github.com/jodyphelan/pathogen-profiler.git
 mkdir `python -c "import sys; print(getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', sys.prefix)));"`
 tb-profiler update_tbdb
 ```
@@ -70,13 +71,18 @@ The prefix is usefull when you need to run more that one sample. This will store
 
 #### Example run
 
-```text
-mkdir test_run; cd test_run
+```bash
+mkdir test_run
+cd test_run
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR166/009/ERR1664619/ERR1664619_1.fastq.gz
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR166/009/ERR1664619/ERR1664619_2.fastq.gz
-tb-profiler profile -1 ERR1664619_1.fastq.gz -2 ERR1664619_2.fastq.gz -t 4 -p ERR1664619
-cat results/ERR1664619.results.json
+tb-profiler profile -1 ERR1664619_1.fastq.gz -2 ERR1664619_2.fastq.gz -t 4 -p ERR1664619 --txt
+cat results/ERR1664619.results.txt
 ```
+
+#### Spoligotyping
+
+Experimental spoligotyping can be performed by adding `--spoligotype` to the command. This is enabled for bam and fastq input.
 
 #### Running with an existing BAM file
 
