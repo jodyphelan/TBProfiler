@@ -1,5 +1,15 @@
 import os 
+import pathogenprofiler as pp
 
+def bam2spoligotype(bamfile,files_prefix,conf):
+    chrom = open(conf['bed']).readline().split()[0]
+    pp.run_cmd(f"samtools view -b {bamfile} {chrom}:3117003-3127206 | samtools fastq > {files_prefix}.spacers.fq")
+    fastq = pp.fastq(files_prefix+".spacers.fq")
+    kmers = fastq.get_kmer_counts(files_prefix,klen=25)
+    counts = kmers.load_kmer_counts(conf['spoligotype_spacers'])
+    binary,octal = counts2spoligotype(counts)
+    os.remove(f"{files_prefix}.spacers.fq")
+    return {"binary":binary,"octal":octal,"spacers":counts}
 
 def counts2spoligotype(counts,cutoff=None):
     spacers = []
@@ -19,7 +29,6 @@ def counts2spoligotype(counts,cutoff=None):
         elif tmp=="101":octal.append("5")
         elif tmp=="110":octal.append("6")
         elif tmp=="111":octal.append("7")
-        # else:ps.log("Don't know what to do with %s" % tmp,ext=T)
 
     octal.append("0" if spacers[42]=="0" else "1")
     sitvit_str = "".join(["n" if x=="1" else "o" for x in spacers])

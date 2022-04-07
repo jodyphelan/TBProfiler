@@ -67,7 +67,7 @@ Spacers
 """ % text_strings
 
 def load_text(text_strings):
-    return r"""
+    txt = r"""
 TBProfiler report
 =================
 
@@ -84,7 +84,17 @@ Median Depth%(sep)s%(med_dp)s
 Lineage report
 --------------
 %(lineage_report)s
+""" % text_strings
 
+    if "spacers" in text_strings:
+        txt += """
+Spoligotype report
+------------------
+Binary%(sep)s%(binary)s
+Octal%(sep)s%(octal)s
+""" % text_strings
+
+    txt += """
 Resistance report
 -----------------
 %(dr_report)s
@@ -104,7 +114,14 @@ Coverage report
 Missing positions report
 ---------------------
 %(missing_report)s
+""" % text_strings
+    if "spacers" in text_strings:
+        txt += """Spoligotype spacers
+-------------------
+%(spacers)s
+""" % text_strings
 
+    txt += """
 Analysis pipeline specifications
 --------------------------------
 Pipeline version%(sep)s%(version)s
@@ -120,7 +137,7 @@ Phelan, JE. et al. Integrating informatics tools and portable sequencing
 technology for rapid detection of resistance to anti-tuberculous drugs. 
 Genome Medicine 11, 41. 2019
 """ % text_strings
-
+    return txt
 def write_spoligotype_report(json_results,conf,outfile,sep="\t"):
     json_results["spacer_report"] = dict_list2text(json_results["spacers"],["name","count"],{"name":"Spacer","count":"Count"},sep=sep)
     if sep=="\t":
@@ -149,6 +166,10 @@ def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="
     text_strings["strain"] = json_results["sublin"]
     text_strings["drtype"] = json_results["drtype"]
     text_strings["med_dp"] = json_results["qc"]["median_coverage"] if json_results['input_data_source'] in ('bam','fastq') else "NA"
+    if "spoligotype" in json_results:
+        text_strings["binary"] = json_results["spoligotype"]["binary"]
+        text_strings["octal"] = json_results["spoligotype"]["octal"]
+        text_strings["spacers"] = dict_list2text(json_results["spoligotype"]["spacers"],["name","count"])
     text_strings["dr_report"] = dict_list2text(json_results["drug_table"],["Drug","Genotypic Resistance","Mutations"]+columns if columns else [],sep=sep)
     text_strings["lineage_report"] = dict_list2text(json_results["lineage"],["lin","frac","family","spoligotype","rd"],{"lin":"Lineage","frac":"Estimated fraction"},sep=sep)
     text_strings["dr_var_report"] = dict_list2text(json_results["dr_variants"],["genome_pos","locus_tag","gene","change","freq","drugs.drug"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction","drugs.drug":"Drug"},sep=sep)

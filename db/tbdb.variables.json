@@ -1,1 +1,1 @@
-{"snpEff_db": "Mycobacterium_tuberculosis_h37rv", "chromosome_conversion": {"source": ["Chromosome"], "target": ["Chromosome"]}}
+{"snpEff_db": "Mycobacterium_tuberculosis_h37rv", "chromosome_conversion": {"target": ["Chromosome"], "source": ["Chromosome"]}, "files": {"ref": "tbdb.fasta", "gff": "tbdb.gff", "bed": "tbdb.bed", "version": "tbdb.version.json", "json_db": "tbdb.dr.json", "variables": "tbdb.variables.json", "barcode": "tbdb.barcode.bed", "spoligotype_spacers": "tbdb.spoligotype_spacers.txt"}}
