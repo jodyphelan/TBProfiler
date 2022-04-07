@@ -17,7 +17,7 @@ __softwarename__ = 'tbprofiler'
 @atexit.register
 def cleanup():
     if "last_traceback" in vars(sys):
-        if args.files_prefix and not args.no_cleanup:
+        if args.files_prefix and not args.no_clean:
             sys.stderr.write("Cleaning up after failed run\n")
             for f in glob.glob(args.files_prefix+"*"):
                 os.remove(f)
@@ -411,9 +411,6 @@ def main_test(args):
 #### Argument Parsing ####
 
 parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter,add_help=False)
-parser.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
-parser.add_argument('--dir','-d',default=".",help='Storage directory')
-parser.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
 subparsers = parser.add_subparsers(help="Task to perform")
 
 # Profile #
@@ -435,6 +432,7 @@ output.add_argument('--pdf',action="store_true",help="Add PDF output. This requi
 output.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and csv results")
 output.add_argument('--add_mutation_metadata',action="store_true",help=argparse.SUPPRESS)
 output.add_argument('--call_whole_genome',action="store_true",help="Call whole genome")
+output.add_argument('--dir','-d',default=".",help='Storage directory')
 
 algorithm=parser_sub.add_argument_group("Algorithm options")
 algorithm.add_argument('--mapper',default="bwa", choices=["bwa","minimap2","bowtie2","bwa-mem2"],help="Mapping tool to use. If you are using nanopore data it will default to minimap2",type=str)
@@ -457,8 +455,10 @@ algorithm.add_argument('--threads','-t',default=1,help='Threads to use',type=int
 
 other=parser_sub.add_argument_group("Other options")
 other.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
-other.add_argument('--no_cleanup',action="store_true",help="Don't remove temporary files on error")
 other.add_argument('--delly_vcf',help=argparse.SUPPRESS)
+other.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
+other.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
+
 parser_sub.set_defaults(func=main_profile)
 
 
@@ -475,7 +475,9 @@ parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
 parser_sub.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and csv results")
 parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
 parser_sub.add_argument('--delly_vcf',help=argparse.SUPPRESS)
-
+parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
+parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.set_defaults(func=main_vcf_profile)
 
 
@@ -490,6 +492,9 @@ parser_sub.add_argument('--txt',action="store_true",help="Add text output")
 parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
 parser_sub.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and csv results")
 parser_sub.add_argument('--verbose','-v',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
+parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
+parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.set_defaults(func=main_fasta_profile)
 
 
@@ -503,6 +508,9 @@ parser_sub.add_argument('--platform','-m',choices=["illumina","nanopore"],defaul
 parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
 parser_sub.add_argument('--spoligotype',action="store_true",help="Perform in-silico spoligotyping (experimental)")
 parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
+parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
+parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.set_defaults(func=main_lineage)
 
 parser_sub = subparsers.add_parser('spoligotype', help='Profile spoligotype', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -513,6 +521,9 @@ parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
 parser_sub.add_argument('--platform','-m',choices=["illumina","nanopore"],default="illumina",help='NGS Platform used to generate data')
 parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
 parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
+parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
+parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.set_defaults(func=main_spoligotype)
 
 parser_sub = subparsers.add_parser('collate', help='Collate results form multiple samples together', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -524,6 +535,9 @@ parser_sub.add_argument('--mark_missing',action="store_true",help='An asteriks w
 parser_sub.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to call variants')
 parser_sub.add_argument('--db',default='tbdb',help='Full path to mutation database json file to use')
 parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
+parser_sub.add_argument('--dir','-d',default="results",help='Storage directory')
+parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
+parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.set_defaults(func=main_collate)
 
 
@@ -536,8 +550,9 @@ parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (
 parser_sub.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to use variants for prediction')
 parser_sub.add_argument('--add_mutation_metadata',action="store_true",help=argparse.SUPPRESS)
 parser_sub.add_argument('--extra_consequences',help=argparse.SUPPRESS)
-
-
+parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
+parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.set_defaults(func=main_reprofile)
 
 
@@ -545,9 +560,11 @@ parser_sub = subparsers.add_parser('reformat', help='Reformat json results into 
 parser_sub.add_argument('json',default="tbprofiler",help='Sample prefix')
 parser_sub.add_argument('--txt',action="store_true",help="Add text output")
 parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
-# parser_sub.add_argument('--pdf',action="store_true",help="Add PDF output. This requires pdflatex to be installed")
 parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
 parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
+parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
+parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.set_defaults(func=main_reformat)
 
 parser_sub = subparsers.add_parser('create_db', help='Generate the files required to run TBProfiler', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -566,14 +583,25 @@ parser_sub.add_argument('--db_author',help='Overrides the author of the database
 parser_sub.add_argument('--db_date',help='Overrides the date of the database in the version file')
 parser_sub.add_argument('--include_original_mutation',action="store_true", help='Include the original mutation (before reformatting) as part of the variant annotaion')
 parser_sub.add_argument('--load',action="store_true", help='Automaticaly load database')
+parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
+parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.set_defaults(func=main_create_db)
 
-parser_sub = subparsers.add_parser('update_tbdb', help='Pull the latest tbdb library and load', formatter_class=argparse.ArgumentDefaultsHelpFormatter, parents = [parser])
+parser_sub = subparsers.add_parser('update_tbdb', help='Pull the latest tbdb library and load', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_sub.add_argument('--match_ref',type=str,help='The prefix for all output files')
+parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
+parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.set_defaults(func=main_update_tbdb)
 
 parser_sub = subparsers.add_parser('version', help='Output program version and exit', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
+parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.set_defaults(func=main_version)
+
+
 args = parser.parse_args()
 if hasattr(args, 'func'):
     args.software_name = __softwarename__
