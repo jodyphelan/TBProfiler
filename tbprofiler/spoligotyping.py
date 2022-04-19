@@ -1,22 +1,45 @@
-import os 
+import os
 import pathogenprofiler as pp
 
-def bam2spoligotype(bamfile,files_prefix,conf):
-    chrom = open(conf['bed']).readline().split()[0]
-    pp.run_cmd(f"samtools view -b {bamfile} {chrom}:3117003-3127206 | samtools fastq > {files_prefix}.spacers.fq")
-    fastq = pp.fastq(files_prefix+".spacers.fq")
+def spoligotype(args):
+    if "bam_file" in vars(args) and args.bam_file:
+        return bam2spoligotype(args.bam_file,args.files_prefix,args.conf)
+    elif args.read1:
+        return fq2spoligotype(args.read1,args.files_prefix,args.conf,args.read2)
+    elif args.fasta:
+        return fa2spoligotype(args.fasta,args.files_prefix,args.conf)
+
+def fa2spoligotype(fasta,files_prefix,conf):
+    fasta = pp.fasta(fasta)
+    kmers = fasta.get_kmer_counts(files_prefix,klen=25)
+    counts = kmers.load_kmer_counts(conf['spoligotype_spacers'])
+    binary,octal = counts2spoligotype(counts,cutoff=1)
+    return {"binary":binary,"octal":octal,"spacers":counts}
+
+
+def fq2spoligotype(r1,files_prefix,conf,r2=None):
+    fastq = pp.fastq(r1,r2)
     kmers = fastq.get_kmer_counts(files_prefix,klen=25)
     counts = kmers.load_kmer_counts(conf['spoligotype_spacers'])
     binary,octal = counts2spoligotype(counts)
-    os.remove(f"{files_prefix}.spacers.fq")
     return {"binary":binary,"octal":octal,"spacers":counts}
+
+def bam2spoligotype(bamfile,files_prefix,conf):
+    chrom = open(conf['bed']).readline().split()[0]
+    tmp_fq_file = f"{files_prefix}.spacers.fq"
+    pp.run_cmd(f"samtools view -b {bamfile} {chrom}:3117003-3127206 | samtools fastq > {tmp_fq_file}")
+    results = fq2spoligotype(tmp_fq_file,files_prefix,conf)
+    os.remove(tmp_fq_file)
+    return results
+
+
 
 def counts2spoligotype(counts,cutoff=None):
     spacers = []
     if cutoff==None:
         cutoff = min([10,max([x["count"] for x in counts])*0.2])
     for k in counts:
-        spacers.append("1" if k['count']>cutoff else "0")
+        spacers.append("1" if k['count']>=cutoff else "0")
     
     octal = []
     for i in range(0,40,3):
