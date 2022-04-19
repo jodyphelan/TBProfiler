@@ -1,9 +1,9 @@
 import time
-from .reformat import get_summary
+from pathogenprofiler import get_summary
 from pathogenprofiler import errlog, debug, unlist
 from .utils import get_drug_list
 
-_DRUGS = [
+__drugs__ = [
     'rifampicin', 'isoniazid', 'ethambutol', 'pyrazinamide', 'streptomycin',
     'fluoroquinolones', 'amikacin', 'capreomycin', 'kanamycin',
     'cycloserine',  'ethionamide', 'clofazimine', 'para-aminosalicylic_acid',
@@ -148,6 +148,7 @@ def write_spoligotype_report(json_results,conf,outfile,sep="\t"):
         O.write(load_spoligotype_report(json_results))
 
 def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="\t"):
+    # conf["drugs"] = __drugs__
     json_results = get_summary(json_results,conf,columns = columns,reporting_af=reporting_af)
     drug_list = get_drug_list(conf["bed"])
     drug_types = {"fluoroquinolones":["ofloxacin","moxifloxacin","levofloxacin","ciprofloxacin"]}
@@ -155,8 +156,8 @@ def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="
         if dt not in drug_list:
             for d in drug_types[dt]:
                 if d in drug_list:
-                    _DRUGS.append(d)
-    json_results["drug_table"] = [[y for y in json_results["drug_table"] if y["Drug"].upper()==d.upper()][0] for d in _DRUGS if d in drug_list]
+                    conf["drugs"].append(d)
+    json_results["drug_table"] = [[y for y in json_results["drug_table"] if y["Drug"].upper()==d.upper()][0] for d in conf["drugs"] if d in drug_list]
     for var in json_results["dr_variants"]:
         var["drug"] = "; ".join([d["drug"] for d in var["drugs"]])
 
@@ -175,7 +176,7 @@ def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="
     text_strings["dr_var_report"] = dict_list2text(json_results["dr_variants"],["genome_pos","locus_tag","gene","change","freq","drugs.drug"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction","drugs.drug":"Drug"},sep=sep)
     text_strings["other_var_report"] = dict_list2text(json_results["other_variants"],["genome_pos","locus_tag","gene","change","freq"],{"genome_pos":"Genome Position","locus_tag":"Locus Tag","freq":"Estimated fraction"},sep=sep)
     text_strings["coverage_report"] = dict_list2text(json_results["qc"]["gene_coverage"], ["gene","locus_tag","cutoff","fraction"],sep=sep) if "gene_coverage" in json_results["qc"] else "Not available"
-    text_strings["missing_report"] = dict_list2text(json_results["qc"]["missing_positions"],["gene","locus_tag","position","variants","drugs"],sep=sep) if "gene_coverage" in json_results["qc"] else "Not available"
+    text_strings["missing_report"] = dict_list2text(json_results["qc"]["missing_positions"],["gene","locus_tag","position","variants","drugs"],sep=sep) if "missing_positions" in json_results["qc"] else "Not available"
     text_strings["pipeline"] = dict_list2text(json_results["pipeline"],["Analysis","Program"],sep=sep)
     text_strings["version"] = json_results["tbprofiler_version"]
     tmp = json_results["db_version"]

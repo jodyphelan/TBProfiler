@@ -5,113 +5,8 @@ from collections import defaultdict
 from .utils import get_genome_positions_from_json_db, get_lt2drugs,rv2genes
 from .xdb import *
 
-def get_summary(json_results,conf,columns = None,drug_order = None,reporting_af=0.0):
-    if not columns:
-        columns=[]
-    drugs = set()
-    for l in open(conf["bed"]):
-        arr = l.rstrip().split()
-        for d in arr[5].split(","):
-            drugs.add(d)
-    if drug_order:
-        drugs = drug_order
-    drug_table = []
-    results = {}
-    annotation = {}
-    for key in columns:
-        if key not in json_results["dr_variants"][0]: pp.errlog("%s not found in variant annotation, is this a valid column in the database CSV file? Exiting!" % key,True)
-    for x in json_results["dr_variants"]:
-        for d in x["drugs"]:
-            drug = d["drug"]
-            if float(x["freq"])<reporting_af:continue
-            if drug not in results: results[drug] = []
-            results[d["drug"]].append("%s %s (%.2f)" % (x["gene"],x["change"],float(x["freq"])))
-            if drug not in annotation: annotation[drug] = {key:[] for key in columns}
-            for key in columns:
-                annotation[drug][key].append(x["drugs"][drug][key])
-    if "resistance_genes" in json_results:
-        for x in json_results["resistance_genes"]:
-            for d in x["drugs"]:
-                drug = d["drug"]
-                if drug not in results: results[drug] = []
-                results[d["drug"]].append("%s (resistance_gene)" % (x["gene"],))
-                if drug not in annotation: annotation[drug] = {key:[] for key in columns}
-                for key in columns:
-                    annotation[drug][key].append(x["drugs"][drug][key])
 
-    drug_types = {"fluoroquinolones":["ofloxacin","moxifloxacin","levofloxacin","ciprofloxacin"]}
-    for d in drug_types:
-        if d not in results:
-            muts = set()
-            for x in drug_types[d]:
-                if x in results:
-                    muts = muts.union(set(results[x]))
-            results[d] = list(muts)
 
-    for d in drugs:
-        if d in results:
-            results[d] = ", ".join(results[d]) if len(results[d])>0 else ""
-            r = "R" if len(results[d])>0 else ""
-            for key in columns:
-                annotation[d][key] = ", ".join(annotation[d][key]) if len(annotation[d][key])>0 else ""
-        else:
-            results[d] = ""
-            r = ""
-        dictline = {"Drug":d.capitalize(),"Genotypic Resistance":r,"Mutations":results[d]}
-        for key in columns:
-            dictline[key] = annotation[d][key] if d in annotation else ""
-        drug_table.append(dictline)
-    new_json = json_results.copy()
-    new_json["drug_table"] = drug_table
-    return new_json
-
-def select_most_relevant_csq(csqs):
-    rank = ["transcript_ablation","frameshift_variant","large_deletion","start_lost","disruptive_inframe_deletion","disruptive_inframe_insertion","stop_gained","stop_lost","conservative_inframe_deletion","conservative_inframe_insertion","initiator_codon_variant","missense_variant","non_coding_transcript_exon_variant","upstream_gene_variant","stop_retained_variant","synonymous_variant"]
-    ranked_csq = []
-    for csq in csqs:
-        ranked_csq.append([i for i,d in enumerate(rank) if d in csq["type"]][0])
-    csq1 = csqs[ranked_csq.index(min(ranked_csq))]
-    return csq1
-
-def set_change(var):
-    protein_csqs = ["missense_variant","stop_gained"]
-    var["change"] = var["protein_change"] if var["type"] in protein_csqs else var["nucleotide_change"]
-    return var
-
-def select_csq(dict_list):
-    for d in dict_list:
-        annotated_csq = []
-        for csq in d["consequences"]:
-            if "annotation" in csq:
-                annotated_csq.append(csq)
-        if len(annotated_csq)==0:
-            csq = select_most_relevant_csq(d["consequences"])
-            alternate_consequences = [json.dumps(x) for x in d["consequences"]]
-            alternate_consequences.remove(json.dumps(csq))
-            alternate_consequences = [json.loads(x) for x in alternate_consequences]
-        elif len(annotated_csq)==1:
-            csq = annotated_csq[0]
-            alternate_consequences = []
-        else:
-            quit("ERROR! too many csqs")
-        del d["consequences"]
-        d.update(csq)
-        d["alternate_consequences"] = alternate_consequences
-        d = set_change(d)
-    return dict_list
-
-def dict_list_add_genes(dict_list,conf):
-    rv2gene = {}
-    for l in open(conf["bed"]):
-        row = l.rstrip().split()
-        rv2gene[row[3]] = row[4]
-    for d in dict_list:
-        d["locus_tag"] = d["gene_id"]
-        d["gene"] = rv2gene[d["gene_id"]]
-        del d["gene_id"]
-        if "gene_name" in d:
-            del d["gene_name"]
-    return dict_list
 
 def get_main_lineage(lineage_dict_list,max_node_skip=1):
     def collapse_paths(paths):
@@ -156,36 +51,7 @@ def barcode2lineage(results,max_node_skip=1):
     return results
 
 
-def reformat_annotations(results,conf):
-    #Chromosome      4998    Rv0005  -242
-    lt2drugs = get_lt2drugs(conf["bed"])
-    results["dr_variants"] = []
-    results["other_variants"] = []
-    for var in results["variants"]:
-        if "annotation" in var:
-            tmp = var.copy()
-            drugs = tuple([x["drug"] for x in var["annotation"] if x["type"]=="drug" and x["confers"]=="resistance"])
-            if len(drugs)>0:
-                dr_ann = []
-                other_ann = []
-                while len(tmp["annotation"])>0:
-                    x = tmp["annotation"].pop()
-                    if x["type"]=="drug":
-                        dr_ann.append(x)
-                    else:
-                        other_ann.append(x)
-                tmp["drugs"] = dr_ann
-                tmp["annotation"] = other_ann
-                results["dr_variants"].append(tmp)
-            else:
-                var["gene_associated_drugs"] = lt2drugs[var["locus_tag"]]
-                results["other_variants"].append(var)
 
-        else:
-            var["gene_associated_drugs"] = lt2drugs[var["locus_tag"]]
-            results["other_variants"].append(var)
-    del results["variants"]
-    return results
 
 def add_drtypes(results,reporting_af=0.1):
     resistant_drugs = set()
@@ -223,18 +89,6 @@ def add_drtypes(results,reporting_af=0.1):
 
 unlist = lambda t: [item for sublist in t for item in sublist]
 
-def reformat_missing_genome_pos(positions,conf):
-    rv2gene = rv2genes(conf["bed"])
-    dr_associated_genome_pos = get_genome_positions_from_json_db(conf["json_db"])
-    new_results = []
-    for pos in positions:
-        if pos in dr_associated_genome_pos:
-            tmp = dr_associated_genome_pos[pos]
-            gene = list(tmp)[0][0]
-            variants = ",".join([x[1] for x in tmp])
-            drugs = ",".join(set(unlist([x[2] for x in tmp])))
-            new_results.append({"position":pos,"locus_tag":gene, "gene": rv2gene[gene], "variants": variants, "drugs":drugs})
-    return new_results
 
 
 def suspect_profiling(results):
@@ -266,15 +120,15 @@ def suspect_profiling(results):
     
 def reformat(results,conf,reporting_af,mutation_metadata=False,use_suspect=False):
     results["variants"] = [x for x in results["variants"] if len(x["consequences"])>0]
-    results["variants"] = select_csq(results["variants"])
-    results["variants"] = dict_list_add_genes(results["variants"],conf)
+    results["variants"] = pp.select_csq(results["variants"])
+    results["variants"] = pp.dict_list_add_genes(results["variants"],conf)
     if "gene_coverage" in results["qc"]:
-        results["qc"]["gene_coverage"] = dict_list_add_genes(results["qc"]["gene_coverage"],conf)
-        results["qc"]["missing_positions"] = reformat_missing_genome_pos(results["qc"]["missing_positions"],conf)
+        results["qc"]["gene_coverage"] = pp.dict_list_add_genes(results["qc"]["gene_coverage"],conf)
+    if "missing_positions" in results["qc"]:
+        results["qc"]["missing_positions"] = pp.reformat_missing_genome_pos(results["qc"]["missing_positions"],conf)
     if "barcode" in results:
-        # results["barcode"] = []
         results = barcode2lineage(results)
-    results = reformat_annotations(results,conf)
+    results = pp.reformat_annotations(results,conf)
     results = add_drtypes(results,reporting_af)
     results["db_version"] = json.load(open(conf["version"]))
     if mutation_metadata:
