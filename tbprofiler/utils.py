@@ -5,42 +5,6 @@ import sys
 import pathogenprofiler as pp
 import os
 
-
-
-# def get_conf_dict_with_path(library_path):
-#     files = {"gff":".gff","ref":".fasta","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json","spacers":".spoligotype_spacers.txt"}
-#     conf = {}
-#     for key in files:
-#         pp.infolog("Using %s file: %s" % (key,library_path+files[key]))
-#         if os.path.isfile(library_path+files[key]):
-#             conf[key] = pp.filecheck(library_path+files[key])
-#     pp.infolog("Using variables file: %s" % (library_path+".variables.json"))
-#     conf.update(json.load(open(pp.filecheck(library_path+".variables.json"))))
-# #     test = json.load(open(conf["json_db"]))["Rv1908c"]["p.Ser315Thr"]
-# #     if "annotation" not in test and "drugs" in test:
-# #         quit("""\n
-# # ################################# ERROR #######################################
-
-# # The database has different format than expected. Since tb-profiler v2.4 the
-# # database is parsed using tb-profiler code. Please run the following code to get
-# # the latest version of the database or load your own:
-
-# # tb-profiler update_tbdb
-
-# # or
-
-# # tb-profiler load_library /path/to/custom_library
-
-# # ###############################################################################
-# # """)
-
-
-#     return conf
-
-# def get_conf_dict(library_prefix):
-#     library_prefix = "%s/share/tbprofiler/%s" % (sys.base_prefix,library_prefix)
-#     return get_conf_dict_with_path(library_prefix)
-
 def get_lt2drugs(bed_file):
     lt2drugs = {}
     for l in open(bed_file):

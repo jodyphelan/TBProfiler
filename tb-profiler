@@ -143,30 +143,7 @@ def main_profile(args):
             run_delly = True
 
     ### Create bam file if fastq has been supplied ###
-    if args.bam==None:
-        if args.read1 and args.read2 and args.no_trim:
-            # Paired + no trimming
-            fastq_obj = pp.fastq(args.read1,args.read2)
-        elif args.read1 and args.read2 and not args.no_trim:
-            # Paired + trimming
-            untrimmed_fastq_obj = pp.fastq(args.read1,args.read2)
-            fastq_obj = untrimmed_fastq_obj.trim(args.files_prefix,threads=args.threads)
-        elif args.read1 and not args.read2 and args.no_trim:
-            # Unpaired + trimming
-            fastq_obj = pp.fastq(args.read1,args.read2)
-        elif args.read1 and not args.read2 and not args.no_trim:
-            # Unpaired + trimming
-            untrimmed_fastq_obj = pp.fastq(args.read1)
-            fastq_obj = untrimmed_fastq_obj.trim(args.files_prefix,threads=args.threads)
-        else:
-            exit("\nPlease provide a bam file or a fastq file(s)...Exiting!\n")
-        bam_obj = fastq_obj.map_to_ref(
-            ref_file=args.conf["ref"], prefix=args.files_prefix,sample_name=args.prefix,
-            aligner=args.mapper, platform=args.platform, threads=args.threads
-        )
-        bam_file = bam_obj.bam_file
-    else:
-        bam_file = args.bam
+    bam_file = pp.get_bam_file(args)
 
     if not args.missing_cov_threshold:
         args.missing_cov_threshold = args.min_depth
@@ -206,20 +183,8 @@ def main_profile(args):
         if pp.nofolder(args.dir+"/"+x):
             os.mkdir(args.dir+"/"+x)
 
-    json_output = args.dir+"/results/"+args.prefix+".results.json"
-    text_output = args.dir+"/results/"+args.prefix+".results.txt"
-    csv_output = args.dir+"/results/"+args.prefix+".results.csv"
-    pdf_output = args.dir+"/results/"+args.prefix+".results.pdf"
-
-    results["timestamp"] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-    json.dump(results,open(json_output,"w"))
-    extra_columns = [x.lower() for x in args.add_columns.split(",")] if args.add_columns else []
-    if args.pdf:
-        tbp.write_pdf(results,args.conf,pdf_output)
-    if args.txt:
-        tbp.write_text(results,args.conf,text_output,extra_columns,reporting_af=args.reporting_af,sep="\t")
-    if args.csv:
-        tbp.write_text(results,args.conf,csv_output,extra_columns,reporting_af=args.reporting_af,sep=",")
+    tbp.write_outputs(args,results)
+    
 
     ### Move files to respective directories ###
     result_files = {
