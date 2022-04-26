@@ -32,7 +32,7 @@ def cleanup():
             O.write("# tb-profiler error report\n\n")
             O.write("* OS: %s\n" % sys.platform)
             O.write("* Program version: %s\n" % tbp.__version__)
-            O.write("* Database version: %s\n" % json.load(open(args.conf["version"]))["commit"]) if "conf" in vars(args) else ""
+            O.write("* Database version: %s\n" % args.conf["version"]["commit"]) if "conf" in vars(args) else ""
             O.write("* Program call:\n")
             O.write("```\n")
             O.write("%s\n" % vars(args))
@@ -118,7 +118,7 @@ def main_reprofile(args):
     new_results = pp.db_compare(db_file=args.conf["json_db"],mutations=new_results)
     new_results = tbp.reformat(new_results, args.conf, reporting_af=args.reporting_af, mutation_metadata=args.add_mutation_metadata)
 
-    new_results["db_version"] = json.load(open(args.conf["version"]))
+    new_results["db_version"] = args.conf["version"]
     json.dump(new_results,open("%s.results.json"%args.prefix,"w"))
 
 def main_profile(args):

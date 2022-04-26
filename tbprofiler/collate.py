@@ -70,7 +70,7 @@ def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_res
             results[s]["drtype"] = temp["drtype"]
     if full_variant_results:
 
-        all_vars = json.load(open(conf["json_db"]))
+        all_vars = conf["json_db"]
         lt2gene = {}
         for l in open(conf["bed"]):
             #Chromosome      5240    7267    Rv0005  gyrB    FLUOROQUINOLONES
