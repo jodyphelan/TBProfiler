@@ -130,7 +130,7 @@ def reformat(results,conf,reporting_af,mutation_metadata=False,use_suspect=False
         results = barcode2lineage(results)
     results = pp.reformat_annotations(results,conf)
     results = add_drtypes(results,reporting_af)
-    results["db_version"] = json.load(open(conf["version"]))
+    results["db_version"] = conf["version"]
     if mutation_metadata:
         pass
         # results = add_mutation_metadata(results)
