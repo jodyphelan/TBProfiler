@@ -75,19 +75,19 @@ def load_gff(gff,aslist=False):
     else:
         return genes
 
-# def get_genome_positions_from_json_db(json_file):
-#     genome_positions = defaultdict(set)
-#     db = json.load(open(json_file))
-#     for gene in db:
-#         for var in db[gene]:
-#             drugs = tuple([x["drug"] for x in db[gene][var]["annotations"] if x["type"]=="drug"])
-#             if len(drugs)==0:
-#                 continue
-#             if db[gene][var]["genome_positions"]:
-#                 for pos in db[gene][var]["genome_positions"]:
-#                     genome_positions[pos].add((gene,var,drugs))
+def get_genome_positions_from_json_db(json_file):
+    genome_positions = defaultdict(set)
+    db = json.load(open(json_file))
+    for gene in db:
+        for var in db[gene]:
+            drugs = tuple([x["drug"] for x in db[gene][var]["annotations"] if x["type"]=="drug"])
+            if len(drugs)==0:
+                continue
+            if db[gene][var]["genome_positions"]:
+                for pos in db[gene][var]["genome_positions"]:
+                    genome_positions[pos].add((gene,var,drugs))
 
-#     return genome_positions
+    return genome_positions
 
 
 def rv2genes(bed_file):
