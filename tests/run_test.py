@@ -30,7 +30,7 @@ def test_db():
     run_cmd("tb-profiler update_tbdb")
 
 
-def test_vcf():
+def test_vcf1():
     run_cmd("tb-profiler vcf_profile tb-profiler-test-data/por5A1.vcf.gz --txt --csv")
     results = json.load(open("results/por5_vcf.results.json"))
     assert results["sublin"] == "lineage4.3.4.2"
@@ -38,6 +38,14 @@ def test_vcf():
     assert len(results["dr_variants"]) == 7
     assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
 
+def test_vcf2():
+    run_cmd("tb-profiler profile -v tb-profiler-test-data/por5A1.vcf.gz --txt --csv --prefix por5A1_vcf2")
+    results1 = json.load(open("results/por5_vcf.results.json"))
+    results2 = json.load(open("results/por5A1_vcf2.results.json"))
+    for key in ["timestamp","id","pipeline"]:
+        del results1[key]
+        del results2[key]
+    assert results1 == results2
 
 def illumina_fastq(caller,mapper):
     run_cmd(f"tb-profiler profile -1 tb-profiler-test-data/por5A.reduced_1.fastq.gz -2 tb-profiler-test-data/por5A.reduced_2.fastq.gz --mapper {mapper} --caller {caller} -p por5A_illumina_{mapper}_{caller}_PE -t 4 --txt --csv --pdf")
@@ -112,11 +120,21 @@ def test_nanopore():
     assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
 
 def test_fasta():
-    run_cmd("tb-profiler fasta_profile -f ~/tbprofiler_test_data/por5A1.fasta  -p por5A_fasta --txt --csv")
+    run_cmd("tb-profiler fasta_profile -f tb-profiler-test-data/por5A1.fasta  -p por5A_fasta --txt --csv")
     results = json.load(open("results/por5A_fasta.results.json"))
     assert results["sublin"] == "lineage4.3.4.2"
     assert results["main_lin"] == "lineage4"
     assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
+
+def test_fasta2():
+    run_cmd("tb-profiler profile -f tb-profiler-test-data/por5A1.fasta --txt --csv --prefix por5A1_fasta2")
+    results1 = json.load(open("results/por5A_fasta.results.json"))
+    results2 = json.load(open("results/por5A1_fasta2.results.json"))
+    for key in ["timestamp","id","pipeline"]:
+        del results1[key]
+        del results2[key]
+    assert results1 == results2
+
 
 def test_seqs_from_bam():
     assert pp.get_seqs_from_bam("bam/por5A_illumina_nanopore.bam") == ['Chromosome']
