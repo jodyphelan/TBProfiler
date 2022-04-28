@@ -2,11 +2,7 @@ import sys
 import pathogenprofiler as pp
 import json
 from collections import defaultdict
-from .utils import get_genome_positions_from_json_db, get_lt2drugs,rv2genes
 from .xdb import *
-
-
-
 
 def get_main_lineage(lineage_dict_list,max_node_skip=1):
     def collapse_paths(paths):
