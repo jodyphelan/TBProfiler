@@ -192,6 +192,8 @@ def main_update_tbdb(args):
     if pp.nofolder("tbdb"):
         pp.run_cmd("git clone https://github.com/jodyphelan/tbdb.git")
     os.chdir("tbdb")
+    pp.run_cmd(f'git checkout {args.branch}')
+
     pp.run_cmd("git pull")
     tmp = "--match_ref %s" % args.match_ref if args.match_ref else ""
     pp.run_cmd("tb-profiler create_db %s --load" % tmp)
@@ -263,6 +265,7 @@ def main_reformat(args):
 
 
 def main_fasta_profile(args):
+    pp.warninglog("*Deprecated, please use "tb-profiler profile --fasta <fasta_file>"*. This function will be removed in future releases*")
     for x in ["bam","vcf","results"]:
         if pp.nofolder(args.dir+"/"+x):
             os.mkdir(args.dir+"/"+x)
@@ -282,6 +285,7 @@ def main_fasta_profile(args):
 
 
 def main_vcf_profile(args):
+    pp.warninglog("*Deprecated, please use "tb-profiler profile --vcf <vcf_file>". This function will be removed in future releases.*")
     for x in ["bam","vcf","results"]:
         if pp.nofolder(args.dir+"/"+x):
             os.mkdir(args.dir+"/"+x)
@@ -420,7 +424,7 @@ parser_sub.set_defaults(func=main_vcf_profile)
 
 
 # Fasta profile #
-parser_sub = subparsers.add_parser('fasta_profile', help='Run profiling pipeline on Fasta file. Warning: this assumes that this is a good quality assembly which coveres all drug resistance loci *Deprecated, please use "tb-profiler profile -f <fasta_file>"*', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub = subparsers.add_parser('fasta_profile', help='Run profiling pipeline on Fasta file. Warning: this assumes that this is a good quality assembly which coveres all drug resistance loci', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_sub.add_argument('--fasta','-f',help='VCF file',required=True)
 parser_sub.add_argument('--prefix','-p',help='VCF file',required=True)
 parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
@@ -527,6 +531,7 @@ parser_sub.add_argument('--version', action='version', version="TBProfiler versi
 parser_sub.set_defaults(func=main_create_db)
 
 parser_sub = subparsers.add_parser('update_tbdb', help='Pull the latest tbdb library and load', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub.add_argument('--branch','-b',default="main",help='Storage directory')
 parser_sub.add_argument('--match_ref',type=str,help='The prefix for all output files')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
