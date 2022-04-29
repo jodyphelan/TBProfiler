@@ -3,6 +3,8 @@ import pathogenprofiler as pp
 import json
 import os
 
+collate_text = open("example_collate.txt").read()
+
 if not os.path.isdir("scratch"):
     os.mkdir("scratch")
 os.chdir("scratch")
@@ -20,7 +22,6 @@ por5_dr_variants = [
     ('gid', 'p.Ala80Pro')
 ]
 
-collate_text = 'sample\tmain_lineage\tsub_lineage\tDR_type\tnum_dr_variants\tnum_other_variants\trifampicin\tisoniazid\tpyrazinamide\tethambutol\tstreptomycin\tfluoroquinolones\tmoxifloxacin\tofloxacin\tlevofloxacin\tciprofloxacin\taminoglycosides\tamikacin\tkanamycin\tcapreomycin\tethionamide\tpara-aminosalicylic_acid\tcycloserine\tlinezolid\tbedaquiline\tclofazimine\tdelamanid\npor5A_illumina_bwa_freebayes_PE\tlineage4\tlineage4.3.4.2\tMDR-TB\t7\t16\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\npor5A_illumina_bwa_gatk_PE\tlineage4\tlineage4.3.4.2\tMDR-TB\t7\t16\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\npor5A_illumina_bwa_bcftools_PE\tlineage4\tlineage4.3.4.2\tMDR-TB\t7\t16\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\npor5A_illumina_bwa_pilon_PE\tlineage4\tlineage4.3.4.2\tMDR-TB\t7\t16\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\npor5A_illumina_bwa_lofreq_PE\tlineage4\tlineage4.3.4.2\tMDR-TB\t7\t16\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\npor5_vcf\tlineage4\tlineage4.3.4.2\tMDR-TB\t7\t17\trpoB_p.Ser450Leu\tfabG1_c.-15C>T, inhA_p.Ile194Thr\tpncA_p.Val125Gly\tembB_p.Met306Val, embB_p.Met423Thr\tgid_p.Ala80Pro\t-\t-\t-\t-\t-\t-\t-\t-\t-\tfabG1_c.-15C>T, inhA_p.Ile194Thr\t-\t-\t-\t-\t-\t-\n'
 
 def test_revcom():
     assert pp.revcom("AGCTTGAGTC") == "GACTCAAGCT"

@@ -68,6 +68,9 @@ def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_res
             results[s]["main_lin"] = temp["main_lin"]
             results[s]["sublin"] = temp["sublin"]
             results[s]["drtype"] = temp["drtype"]
+        results[s]["pct_reads_mapped"] = temp["qc"].get("pct_reads_mapped","NA")
+        results[s]["num_reads_mapped"] = temp["qc"].get("num_reads_mapped","NA")
+        results[s]["median_coverage"] = temp["qc"].get("median_coverage","NA")
     if full_variant_results:
 
         all_vars = conf["json_db"]
@@ -86,13 +89,16 @@ def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_res
         VAR.close()
     
     OUT = open(prefix+".txt","w")
-    OUT.write("sample\tmain_lineage\tsub_lineage\tDR_type\tnum_dr_variants\tnum_other_variants\t%s" % "\t".join(drug_list)+"\n")
+    OUT.write("sample\tmain_lineage\tsub_lineage\tDR_type\tpct_reads_mapped\tnum_reads_mapped\tmedian_coverage\tnum_dr_variants\tnum_other_variants\t%s" % "\t".join(drug_list)+"\n")
     for s in samples:
         results[s]["num_dr_variants"] = len(sample_dr_mutations_set[s])
         results[s]["num_other_variants"] = len(sample_other_mutations_set[s])
-        OUT.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" %(s,results[s]["main_lin"],results[s]["sublin"],results[s]["drtype"],results[s]["num_dr_variants"],results[s]["num_other_variants"],"\t".join([results[s][x] for x in drug_list])))
+        OUT.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" %(s,results[s]["main_lin"],results[s]["sublin"],results[s]["drtype"],results[s]["pct_reads_mapped"],results[s]["num_reads_mapped"],results[s]["median_coverage"],results[s]["num_dr_variants"],results[s]["num_other_variants"],"\t".join([results[s][x] for x in drug_list])))
     OUT.close()
     json.dump(results,open(prefix+".json","w"))
+    
+    
+    
     lineage_cols = {"lineage1":"#104577","lineage2":"#ab2323","lineage3":"#18a68c","lineage4":"#f68e51","lineage5":"#7cb5d2","lineage6":"#fde05e","lineage7":"#bc94b7","lineage8":"#ccc9e7","lineage9":"#bd9391","Animal strains":"#f8e0c8","Other":"#000000"}
     lineage_aggregation = {"M.caprae":"Animal strains","M.bovis":"Animal strains","M.orygis":"Animal strains"}
     lineages_present = set([lineage_aggregation.get(results[s]["main_lin"],results[s]["main_lin"]) if ";" not in results[s]["main_lin"] else "Other" for s in samples])
