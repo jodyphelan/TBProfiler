@@ -116,7 +116,7 @@ def main_reprofile(args):
 
 
 
-    new_results = pp.db_compare(db_file=args.conf["json_db"],mutations=new_results)
+    new_results = pp.db_compare(mutations=new_results,db=args.conf["json_db"])
     new_results = tbp.reformat(new_results, args.conf, reporting_af=args.reporting_af, mutation_metadata=args.add_mutation_metadata)
 
     new_results["db_version"] = args.conf["version"]
