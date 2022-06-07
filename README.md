@@ -86,10 +86,10 @@ Experimental spoligotyping can be performed by adding `--spoligotype` to the com
 
 #### Running with an existing BAM file
 
-By using the -a option you can specify to use an existing BAM file instead of fastq files. **Warning!!!**: The BAM files must have been created using the version of the genome as the database which can be downloaded [here](ftp://ftp.ensemblgenomes.org/pub/release-32/bacteria//fasta/bacteria_0_collection/mycobacterium_tuberculosis_h37rv/dna/Mycobacterium_tuberculosis_h37rv.ASM19595v2.dna.toplevel.fa.gz). Confusingly, this genome has multiple accession numbers \(ASM19595v2,NC\_000962.3,GCF\_000195955.2, etc...\). If you believe your reference to be the exact same sequence \(length should be 4411532\) then you can create a database with the same sequence name as used in your BAM file. For example if your sequence name is "NC\_000962.3" you can run
+By using the -a option you can specify to use an existing BAM file instead of fastq files. **Warning!!!**: The BAM files must have been created using the version of the genome as the database which can be downloaded [here](ftp://ftp.ensemblgenomes.org/pub/release-32/bacteria//fasta/bacteria_0_collection/mycobacterium_tuberculosis_h37rv/dna/Mycobacterium_tuberculosis_h37rv.ASM19595v2.dna.toplevel.fa.gz). Confusingly, this genome has multiple accession numbers \(ASM19595v2,NC\_000962.3,GCF\_000195955.2, etc...\). If you believe your reference to be the exact same sequence \(length should be 4411532\) then you can create a database with the same sequence name as used in your BAM file. For example if your sequence name is "NC\_000962.3" you can run the following command with your reference fasta file:
 
 ```bash
-tb-profiler update_tbdb --seqname NC_000962.3
+tb-profiler update_tbdb --match_ref /path/to/your/reference/fasta
 ```
 
 ### Summarising runs
