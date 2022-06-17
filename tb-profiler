@@ -170,7 +170,7 @@ def main_profile(args):
         if pp.nofolder(args.dir+"/"+x):
             os.mkdir(args.dir+"/"+x)
 
-    tbp.write_outputs(args,results)
+    tbp.write_outputs(args,results,template_file=args.output_template)
     
 
     ### Move files to respective directories ###
@@ -221,18 +221,18 @@ def main_lineage(args):
     results["pipeline"] = [
         {"Analysis":"Variant calling","Program":args.caller}
     ]
-
+    args.bam_file = args.bam
     bam = pp.bam(args.bam,args.bam,args.conf["ref"])
     mutations = bam.get_bed_gt(args.conf["barcode"],args.conf["ref"],args.caller,args.platform)
 
     snps_file = args.prefix+".lineage.snps.txt" if args.snps else None
 
     if args.spoligotype:
-        results["spoligotype"] = tbp.bam2spoligotype(args.bam,args.files_prefix,args.conf)
+        results["spoligotype"] = tbp.spoligotype(args)
 
     results["barcode"] = pp.barcode(mutations,args.conf["barcode"],snps_file=snps_file)
     tbp.barcode2lineage(results)
-    tbp.write_outputs(args,results)
+    tbp.write_outputs(args,results,template_file=args.output_template)
 
 def main_spoligotype(args):
     if args.bam:
@@ -246,24 +246,7 @@ def main_spoligotype(args):
     results["pipeline"] = [
         {"Analysis":"Kmer-counting","Program":"kmc"}
     ]
-    tbp.write_outputs(args,results)
-    
-    
-    # results = tbp.bam2spoligotype(args.bam,args.files_prefix,args.conf)
-    # pp.debug(results)
-    # json_output = args.dir+"/"+args.prefix+".spoligotype.json"
-    # text_output = args.dir+"/"+args.prefix+".spoligotype.txt"
-    # csv_output = args.dir+"/"+args.prefix+".spoligotype.csv"
-    # pp.debug(json_output)
-
-    # json.dump(results,open(json_output,"w"))
-    # if args.txt:
-    #     tbp.write_spoligotype_report(results,args.conf,text_output,sep="\t")
-    # if args.csv:
-    #     tbp.write_spoligotype_report(results,args.conf,csv_output,sep=",")
-
-    # pp.run_cmd("rm %s*" % args.files_prefix)
-    # pp.successlog("\nSpoligotyping finished sucessfully!")
+    tbp.write_outputs(args,results,template_file=args.output_template)
 
 def main_collate(args):
     tbp.collate_results(args.prefix,args.conf,sample_file=args.samples,result_dir=args.dir,reporting_af=args.reporting_af,mark_missing=args.mark_missing)
@@ -390,6 +373,7 @@ output.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix for
 output.add_argument('--csv',action="store_true",help="Add CSV output")
 output.add_argument('--txt',action="store_true",help="Add text output")
 output.add_argument('--pdf',action="store_true",help="Add PDF output. This requires pdflatex to be installed")
+output.add_argument('--output_template',type=str,help='Jinja2 formatted template for output')
 output.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and csv results")
 output.add_argument('--add_mutation_metadata',action="store_true",help=argparse.SUPPRESS)
 output.add_argument('--call_whole_genome',action="store_true",help="Call whole genome")
@@ -470,6 +454,7 @@ parser_sub.add_argument('--platform','-m',choices=["illumina","nanopore"],defaul
 parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
 parser_sub.add_argument('--spoligotype',action="store_true",help="Perform in-silico spoligotyping (experimental feature)")
 parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
+parser_sub.add_argument('--output_template',type=str,help='Jinja2 formatted template for output')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
@@ -485,6 +470,7 @@ group.add_argument('--fasta','-f',help='Fasta file')
 parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
 parser_sub.add_argument('--txt',action="store_true",help="Add text output")
 parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
+parser_sub.add_argument('--output_template',type=str,help='Jinja2 formatted template for output')
 parser_sub.add_argument('--platform','-m',choices=["illumina","nanopore"],default="illumina",help='NGS Platform used to generate data')
 parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
 parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
