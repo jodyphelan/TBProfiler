@@ -1,13 +1,17 @@
 import os
 import pathogenprofiler as pp
+import csv
 
 def spoligotype(args):
     if "bam_file" in vars(args) and args.bam_file:
-        return bam2spoligotype(args.bam_file,args.files_prefix,args.conf)
+        result = bam2spoligotype(args.bam_file,args.files_prefix,args.conf)
     elif args.read1:
-        return fq2spoligotype(args.read1,args.files_prefix,args.conf,args.read2)
+        result = fq2spoligotype(args.read1,args.files_prefix,args.conf,args.read2)
     elif args.fasta:
-        return fa2spoligotype(args.fasta,args.files_prefix,args.conf)
+        result = fa2spoligotype(args.fasta,args.files_prefix,args.conf)
+    ann = get_spoligotype_annotation(result["octal"],args.conf['spoligotype_annotations'])
+    result.update(ann)
+    return result
 
 def fa2spoligotype(fasta,files_prefix,conf):
     fasta = pp.fasta(fasta)
@@ -32,7 +36,18 @@ def bam2spoligotype(bamfile,files_prefix,conf):
     os.remove(tmp_fq_file)
     return results
 
-
+def get_spoligotype_annotation(octal,annotation_csv):
+    result = {
+        "family": None,
+        "SIT": None,
+        "countries": None
+    }
+    for row in csv.DictReader(open(annotation_csv)):
+        if row["Spoligo Octal"][1:]==octal:
+            result["family"] = row["Lineage (SITVIT2)"]
+            result["SIT"] = row["SIT"]
+            result["countries"] = row["Country Distribution (SITVIT2)"]
+    return result
 
 def counts2spoligotype(counts,cutoff=None):
     spacers = []
@@ -57,4 +72,6 @@ def counts2spoligotype(counts,cutoff=None):
     sitvit_str = "".join(["n" if x=="1" else "o" for x in spacers])
     binary_str = "".join(spacers)
     octal_str = "".join(octal)
-    return binary_str,octal_str
+
+    return binary_str,octal_str    
+

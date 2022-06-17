@@ -203,20 +203,28 @@ def main_update_tbdb(args):
 
 def main_create_db(args):
     extra_files = {
-        "spoligotype_spacers": args.spoligotypes
+        "spoligotype_spacers": args.spoligotypes,
+        "spoligotype_annotations": args.spoligotype_annotations
     }
     if args.barcode:
         extra_files["barcode"] = args.barcode
+
     pp.create_db(args,extra_files=extra_files)
 
 
 def main_lineage(args):
+    results = {
+        "id":args.prefix,
+        "tbprofiler_version": tbp.__version__,
+        "db_version": args.conf["version"]
+    }
+    results["pipeline"] = [
+        {"Analysis":"Variant calling","Program":args.caller}
+    ]
 
-    pp.filecheck(args.bam)
     bam = pp.bam(args.bam,args.bam,args.conf["ref"])
     mutations = bam.get_bed_gt(args.conf["barcode"],args.conf["ref"],args.caller,args.platform)
 
-    results = {}
     snps_file = args.prefix+".lineage.snps.txt" if args.snps else None
 
     if args.spoligotype:
@@ -224,31 +232,38 @@ def main_lineage(args):
 
     results["barcode"] = pp.barcode(mutations,args.conf["barcode"],snps_file=snps_file)
     tbp.barcode2lineage(results)
-    outfile = "%s.lineage.%s" % (args.prefix,args.outfmt)
-    O = open(outfile,"w")
-    if args.outfmt=="json":
-        json.dump(results,O)
-    elif args.outfmt=="txt":
-        O.write(tbp.text.lineagejson2text(results["lineage"]))
-    O.close()
+    tbp.write_outputs(args,results)
 
 def main_spoligotype(args):
+    if args.bam:
+        args.bam_file = args.bam
+    results = {
+        "id":args.prefix,
+        "tbprofiler_version": tbp.__version__,
+        "spoligotype":tbp.spoligotype(args),
+        "db_version": args.conf["version"]
+    }
+    results["pipeline"] = [
+        {"Analysis":"Kmer-counting","Program":"kmc"}
+    ]
+    tbp.write_outputs(args,results)
+    
+    
+    # results = tbp.bam2spoligotype(args.bam,args.files_prefix,args.conf)
+    # pp.debug(results)
+    # json_output = args.dir+"/"+args.prefix+".spoligotype.json"
+    # text_output = args.dir+"/"+args.prefix+".spoligotype.txt"
+    # csv_output = args.dir+"/"+args.prefix+".spoligotype.csv"
+    # pp.debug(json_output)
 
-    results = tbp.bam2spoligotype(args.bam,args.files_prefix,args.conf)
+    # json.dump(results,open(json_output,"w"))
+    # if args.txt:
+    #     tbp.write_spoligotype_report(results,args.conf,text_output,sep="\t")
+    # if args.csv:
+    #     tbp.write_spoligotype_report(results,args.conf,csv_output,sep=",")
 
-    json_output = args.dir+"/"+args.prefix+".spoligotype.json"
-    text_output = args.dir+"/"+args.prefix+".spoligotype.txt"
-    csv_output = args.dir+"/"+args.prefix+".spoligotype.csv"
-
-
-    json.dump(results,open(json_output,"w"))
-    if args.txt:
-        tbp.write_spoligotype_report(results,args.conf,text_output,sep="\t")
-    if args.csv:
-        tbp.write_spoligotype_report(results,args.conf,csv_output,sep=",")
-
-    pp.run_cmd("rm %s*" % args.files_prefix)
-    pp.successlog("\nSpoligotyping finished sucessfully!")
+    # pp.run_cmd("rm %s*" % args.files_prefix)
+    # pp.successlog("\nSpoligotyping finished sucessfully!")
 
 def main_collate(args):
     tbp.collate_results(args.prefix,args.conf,sample_file=args.samples,result_dir=args.dir,reporting_af=args.reporting_af,mark_missing=args.mark_missing)
@@ -447,7 +462,8 @@ parser_sub.set_defaults(func=main_fasta_profile)
 parser_sub = subparsers.add_parser('lineage', help='Profile only lineage', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_sub.add_argument('--bam','-a',required=True, help='BAM file. Make sure it has been generated using the H37Rv genome (GCA_000195955.2)')
 parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
-parser_sub.add_argument('--outfmt',default='json',choices=["json","txt"],type=str,help="Output format")
+parser_sub.add_argument('--txt',action="store_true",help="Add text output")
+parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
 parser_sub.add_argument('--snps',action="store_true",help='Sample prefix')
 parser_sub.add_argument('--caller',default='freebayes',choices=["bcftools","freebayes","gatk"],type=str,help="Variant caller")
 parser_sub.add_argument('--platform','-m',choices=["illumina","nanopore"],default="illumina",help='NGS Platform used to generate data')
@@ -460,7 +476,12 @@ parser_sub.add_argument('--version', action='version', version="TBProfiler versi
 parser_sub.set_defaults(func=main_lineage)
 
 parser_sub = subparsers.add_parser('spoligotype', help='Profile spoligotype (experimental feature)', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser_sub.add_argument('--bam','-a',required=True, help='BAM file. Make sure it has been generated using the H37Rv genome (GCA_000195955.2)')
+group = parser_sub.add_mutually_exclusive_group(required=True)
+group.add_argument('--read1','-1',help='First read file')
+parser_sub.add_argument('--read2','-2',help='Second read file')
+group.add_argument('--bam','-a',help='BAM file. Make sure it has been generated using the H37Rv genome (GCA_000195955.2)')
+group.add_argument('--fasta','-f',help='Fasta file')
+
 parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
 parser_sub.add_argument('--txt',action="store_true",help="Add text output")
 parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
@@ -518,6 +539,7 @@ parser_sub.add_argument('--prefix','-p',default="tbdb",type=str,help='The input 
 parser_sub.add_argument('--csv','-c',default="tbdb.csv",type=str,help='The prefix for all output files')
 parser_sub.add_argument('--watchlist','-w',default="tbdb.watchlist.csv",type=str,help='A csv file containing genes to profile but without any specific associated mutations')
 parser_sub.add_argument('--spoligotypes',default="spoligotype_spacers.txt",type=str,help='A file containing a list of spoligotype spacers')
+parser_sub.add_argument('--spoligotype_annotations',default="spoligotype_list.csv")
 parser_sub.add_argument('--barcode',default="barcode.bed",type=str,help='A bed file containing lineage barcode SNPs')
 parser_sub.add_argument('--amplicon_primers',type=str,help='A file containing a list of amplicon primers')
 parser_sub.add_argument('--match_ref',type=str,help='The prefix for all output files')
