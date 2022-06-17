@@ -4,7 +4,7 @@ from datetime import datetime
 from pathogenprofiler import infolog
 import json
 
-def write_outputs(args,results):
+def write_outputs(args,results,template_file = None):
     infolog("\nWriting outputs")
     infolog("---------------")
     json_output = args.dir+"/results/"+args.prefix+".results.json"
@@ -25,7 +25,7 @@ def write_outputs(args,results):
         write_pdf(results,args.conf,pdf_output)
     if args.txt:
         infolog(f"Writing text file: {text_output}")
-        write_text(results,args.conf,text_output,extra_columns,reporting_af=args.reporting_af,sep="\t")
+        write_text(results,args.conf,text_output,extra_columns,reporting_af=args.reporting_af,sep="\t",template_file=template_file)
     if args.csv:
         infolog(f"Writing csv file: {csv_output}")
-        write_text(results,args.conf,csv_output,extra_columns,reporting_af=args.reporting_af,sep=",")
+        write_text(results,args.conf,csv_output,extra_columns,reporting_af=args.reporting_af,sep=",",template_file = template_file)
