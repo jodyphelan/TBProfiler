@@ -258,12 +258,7 @@ def main_reformat(args):
 
     results = json.load(open(args.json))
     args.prefix = results["id"]
-    csv_output = args.prefix+".results.csv"
-    text_output = args.prefix+".results.txt"
-    if args.txt:
-        tbp.write_text(results,args.conf,text_output)
-    if args.csv:
-        tbp.write_text(results,args.conf,csv_output,sep=",")
+    tbp.write_outputs(args,results,template_file=args.output_template)
 
 
 def main_fasta_profile(args):
@@ -348,8 +343,26 @@ def main_vcf_profile(args):
 def main_test(args):
     pp.run_cmd("tb-profiler profile -1 %s" % (sys.base_prefix+"/share/tbprofiler/tbprofiler.test.fq.gz"),verbose=2)
 
-
-
+def main_batch(args):
+    if args.args==None:
+        args.args=""
+    script_file = str(uuid4())
+    with open(script_file,"w") as O:
+        for row in csv.DictReader(open(args.csv)):
+            line = f"tb-profiler profile -p {row['id']}"
+            if "bam" in row:
+                line += f" -a {row['bam']}" 
+            elif "read1" in row:
+                line += f" -1 {row['read1']}"
+                if "read2" in row:
+                    line += f" -2 {row['read2']}"
+            elif "vcf" in row:
+                line += f" -v {row['vcf']}"
+            elif "fasta" in row:
+                line += f" -f {row['fasta']}"
+            O.write(line + " " + args.args + "\n")
+    print(script_file)
+    pp.run_cmd(f"cat {script_file} | parallel -j {args.threads}")
 #### Argument Parsing ####
 
 parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter,add_help=False)
@@ -513,6 +526,7 @@ parser_sub = subparsers.add_parser('reformat', help='Reformat json results into 
 parser_sub.add_argument('json',default="tbprofiler",help='Sample prefix')
 parser_sub.add_argument('--txt',action="store_true",help="Add text output")
 parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
+parser_sub.add_argument('--output_template',type=str,help='Jinja2 formatted template for output')
 parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
 parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
@@ -549,6 +563,15 @@ parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 parser_sub.set_defaults(func=main_update_tbdb)
+
+parser_sub = subparsers.add_parser('batch', help='Run tb-profiler for several samples', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub.add_argument('--csv',help='CSV with samples and files',required=True)
+parser_sub.add_argument('--args',type=str, help='Arguments to use with tb-profiler')
+parser_sub.add_argument('--threads','-t',default=1,help='Threads to use',type=int)
+parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
+parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
+parser_sub.set_defaults(func=main_batch)
 
 parser_sub = subparsers.add_parser('version', help='Output program version and exit', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
