@@ -87,31 +87,7 @@ unlist = lambda t: [item for sublist in t for item in sublist]
 
 
 
-def suspect_profiling(results):
-    new_vars = []
-    for var in results["other_variants"]:
-        if var["type"]!="missense_variant": continue
-        pred = None
-        if var["gene"]=="atpE":
-            pred = get_biosig_bdq_prediction(var["change"])
-        if var["gene"]=="pncA":
-            pred = get_biosig_pza_prediction(var["change"])
-        if pred:
-            if "annotation" in var:
-                var["annotation"].append(pred)
-            else:
-                var["annotation"] = [pred]
-            var["drugs"] = [{
-                "type":"drug",
-                "drug":"pyrazinamide" if var["gene"]=="pncA" else "bedquiline",
-                "confers": "resistance",
-                "evidence": "suspect-PZA" if var["gene"]=="pncA" else "suspect-BDQ"
-            }]
-            new_vars.append(var)
-    for v in new_vars:
-        results["dr_variants"].append(v)
-        results["other_variants"].remove(v)
-    return results
+
 
     
 def reformat(results,conf,reporting_af,mutation_metadata=False,use_suspect=False):
