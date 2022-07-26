@@ -157,7 +157,7 @@ def main_profile(args):
 
 
     ### Reformat the results to TB-Profiler style ###
-    results = tbp.reformat(results, args.conf, reporting_af=args.reporting_af, mutation_metadata=args.add_mutation_metadata)
+    results = tbp.reformat(results, args.conf, reporting_af=args.reporting_af, mutation_metadata=args.add_mutation_metadata,use_suspect=args.suspect)
     results["id"] = args.prefix
 
     

@@ -91,7 +91,11 @@ def stringify_annotations(annotation):
         annotations.append("|".join([f'{key}={val}' for key,val in ann.items()]))
     return ";".join(annotations)
 
-def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="\t",add_annotations=True,template_file = None):
+def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="\t",add_annotations=True,template_file = None,use_suspect=False):
+    if columns==None:
+        columns = []
+    if use_suspect:
+        columns.append("evidence")
     text_strings = json_results
     text_strings["id"] = json_results["id"]
     text_strings["date"] = time.ctime()
@@ -111,7 +115,7 @@ def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="
             var["drug"] = "; ".join([d["drug"] for d in var["drugs"]])
 
         text_strings["dr_report"] = dict_list2text(json_results["drug_table"],["Drug","Genotypic Resistance","Mutations"]+columns if columns else [],sep=sep)
-        text_strings["dr_var_report"] = dict_list2text(json_results["dr_variants"],mappings={"genome_pos":"Genome Position","locus_tag":"Locus Tag","gene":"Gene","type":"Variant type","change": "Change","freq":"Estimated fraction","drugs.drug":"Drug"},sep=sep)
+        text_strings["dr_var_report"] = dict_list2text(json_results["dr_variants"],mappings={"genome_pos":"Genome Position","locus_tag":"Locus Tag","gene":"Gene","type":"Variant type","change": "Change","freq":"Estimated fraction","drugs.drug":"Drug","annotation_str":"Annotation"},sep=sep)
         text_strings["other_var_report"] = dict_list2text(json_results["other_variants"],mappings={"genome_pos":"Genome Position","locus_tag":"Locus Tag","gene":"Gene","type":"Variant type","change": "Change","freq":"Estimated fraction","annotation_str":"Annotation"},sep=sep)
         text_strings["drtype"] = json_results["drtype"]
        
