@@ -356,7 +356,7 @@ def main_batch(args):
     script_file = str(uuid4())
     with open(script_file,"w") as O:
         for row in csv.DictReader(open(args.csv)):
-            line = f"tb-profiler profile -p {row['id']}"
+            line = f"tb-profiler profile -p {row['id']} --threads {args.threads_per_job}"
             if "bam" in row:
                 line += f" -a {row['bam']}" 
             elif "read1" in row:
@@ -368,7 +368,8 @@ def main_batch(args):
             elif "fasta" in row:
                 line += f" -f {row['fasta']}"
             O.write(line + " " + args.args + "\n")
-    pp.run_cmd(f"cat {script_file} | parallel -j {args.threads}")
+    pp.run_cmd(f"cat {script_file} | parallel -j {args.jobs}")
+    os.remove(script_file)
 #### Argument Parsing ####
 
 def main_list_db(args):
@@ -580,7 +581,8 @@ parser_sub.set_defaults(func=main_update_tbdb)
 parser_sub = subparsers.add_parser('batch', help='Run tb-profiler for several samples', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_sub.add_argument('--csv',help='CSV with samples and files',required=True)
 parser_sub.add_argument('--args',type=str, help='Arguments to use with tb-profiler')
-parser_sub.add_argument('--threads','-t',default=1,help='Threads to use',type=int)
+parser_sub.add_argument('--jobs','-j',default=1,help='Threads to use',type=int)
+parser_sub.add_argument('--threads_per_job','-t',default=1,help='Threads to use',type=int)
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
