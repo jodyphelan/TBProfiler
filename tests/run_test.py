@@ -54,7 +54,7 @@ def illumina_fastq(caller,mapper):
     return results
 
 def illumina_fastq_single(caller,mapper):
-    run_cmd(f"tb-profiler profile -1 tb-profiler-test-data/por5A.reduced_1.fastq.gz --mapper {mapper} --caller {caller} -p por5A_illumina_{mapper}_{caller}_SE -t 4 --txt --csv --pdf")
+    run_cmd(f"tb-profiler profile -1 tb-profiler-test-data/por5A.reduced_1.fastq.gz --spoligotype --mapper {mapper} --caller {caller} -p por5A_illumina_{mapper}_{caller}_SE -t 4 --txt --csv --pdf")
     results = json.load(open(f"results/por5A_illumina_{mapper}_{caller}_SE.results.json"))
     return results
 
