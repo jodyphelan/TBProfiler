@@ -124,7 +124,7 @@ def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="
 
     if "sublin" in json_results:
         text_strings["strain"] = json_results["sublin"]
-        text_strings["lineage_report"] = dict_list2text(json_results["lineage"],["lin","frac","family","spoligotype","rd"],{"lin":"Lineage","frac":"Estimated fraction"},sep=sep)
+        text_strings["lineage_report"] = dict_list2text(json_results["lineage"],["lin","frac","family","spoligotype","rd"],{"lin":"Lineage","frac":"Estimated fraction","spoligotype":"Spoligotype","rd":"Rd"},sep=sep)
         
     if "qc" in json_results:
         text_strings["med_dp"] = json_results["qc"]["median_coverage"] if json_results['input_data_source'] in ('bam','fastq') else "NA"
@@ -136,7 +136,7 @@ def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="
         text_strings["SIT"] = json_results["spoligotype"]["SIT"]
         text_strings["family"] = json_results["spoligotype"]["family"]
         text_strings["spacers"] = dict_list2text(json_results["spoligotype"]["spacers"],["name","count"])
-    
+
 
         
     text_strings["pipeline"] = dict_list2text(json_results["pipeline"],["Analysis","Program"],sep=sep)
