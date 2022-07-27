@@ -4,6 +4,7 @@ from pathogenprofiler import get_summary
 from pathogenprofiler import errlog, debug, unlist, dict_list2text
 from .utils import get_drug_list
 import jinja2
+from copy import copy
 
 def lineagejson2text(x):
     textlines = []
@@ -92,6 +93,7 @@ def stringify_annotations(annotation):
     return ";".join(annotations)
 
 def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="\t",add_annotations=True,template_file = None,use_suspect=False):
+    json_results = copy(json_results)
     if columns==None:
         columns = []
     if use_suspect:
