@@ -375,7 +375,8 @@ def main_batch(args):
 def main_list_db(args):
     dbs = pp.list_db(args.software_name)
     for db in dbs:
-        print("%(name)s\t%(commit)s\t%(Author)s\t%(Date)s" % db)
+        db['location'] = f"{sys.base_prefix}/share/{args.software_name}/{db['name']}"
+        sys.stdout.write("%(name)s\t%(commit)s\t%(Author)s\t%(Date)s\t%(location)s\n" % db)
 
 
 parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter,add_help=False)
