@@ -13,5 +13,5 @@ setuptools.setup(
 	scripts= [
 		'tb-profiler',
 		],
-	data_files=[('share/tbprofiler',["db/tbdb.spoligotype_spacers.txt","tbdb.spoligotype_list.csv","db/tbdb.barcode.bed","db/tbdb.bed","db/tbdb.dr.json","db/tbdb.fasta","db/tbdb.gff","db/tbdb.version.json","db/tbdb.variables.json","example_data/tbprofiler.test.fq.gz"])]
+	data_files=[('share/tbprofiler',["db/tbdb.spoligotype_spacers.txt","db/tbdb.spoligotype_list.csv","db/tbdb.barcode.bed","db/tbdb.bed","db/tbdb.dr.json","db/tbdb.fasta","db/tbdb.gff","db/tbdb.version.json","db/tbdb.variables.json","example_data/tbprofiler.test.fq.gz"])]
 )
