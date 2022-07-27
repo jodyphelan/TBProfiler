@@ -53,6 +53,8 @@ def counts2spoligotype(counts,cutoff=None):
     spacers = []
     if cutoff==None:
         cutoff = min([10,max([x["count"] for x in counts])*0.2])
+        if cutoff<10:
+            cutoff = 10
     for k in counts:
         spacers.append("1" if k['count']>=cutoff else "0")
     
