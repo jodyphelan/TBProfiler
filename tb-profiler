@@ -191,13 +191,13 @@ def main_profile(args):
 
 def main_update_tbdb(args):
     if pp.nofolder("tbdb"):
-        pp.run_cmd("git clone https://github.com/jodyphelan/tbdb.git")
+        pp.run_cmd(f"git clone {args.repo}")
     os.chdir("tbdb")
     pp.run_cmd(f'git checkout {args.branch}')
 
     pp.run_cmd("git pull")
     tmp = "--match_ref %s" % args.match_ref if args.match_ref else ""
-    pp.run_cmd("tb-profiler create_db %s --load" % tmp)
+    pp.run_cmd(f"tb-profiler create_db --prefix {args.prefix} {tmp} --load")
     os.chdir("../")
     pp.successlog("Sucessfully updated TBDB")
 
@@ -591,7 +591,9 @@ parser_sub.add_argument('--version', action='version', version="TBProfiler versi
 parser_sub.set_defaults(func=main_load_library)
 
 parser_sub = subparsers.add_parser('update_tbdb', help='Pull the latest tbdb library and load', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser_sub.add_argument('--branch','-b',default="master",help='Storage directory')
+parser_sub.add_argument('--prefix','-p',default="tbdb",help='Database name')
+parser_sub.add_argument('--repo','-r',default="https://github.com/jodyphelan/tbdb.git",help='Repository to pull from')
+parser_sub.add_argument('--branch','-b',default="master",help='Branch to pull from')
 parser_sub.add_argument('--match_ref',type=str,help='The prefix for all output files')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
