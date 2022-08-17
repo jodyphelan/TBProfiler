@@ -108,7 +108,7 @@ def main_reprofile(args):
             del var["annotation"]
         new_results["variants"].append(var)
 
-    new_results["qc"]["missing_positions"] = [x["position"] for x inzold_results["qc"]["missing_positions"]]
+    new_results["qc"]["missing_positions"] = [x["position"] for x in old_results["qc"]["missing_positions"]]
     del new_results["other_variants"]
     del new_results["dr_variants"]
     del new_results["qc"]["gene_coverage"]
