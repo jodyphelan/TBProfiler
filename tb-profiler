@@ -196,6 +196,8 @@ def main_update_tbdb(args):
     pp.run_cmd(f'git checkout {args.branch}')
 
     pp.run_cmd("git pull")
+    if args.commit:
+        pp.run_cmd(f"git checkout {args.commit}")
     tmp = "--match_ref %s" % args.match_ref if args.match_ref else ""
     pp.run_cmd(f"tb-profiler create_db --prefix {args.prefix} {tmp} --load")
     os.chdir("../")
@@ -594,6 +596,7 @@ parser_sub = subparsers.add_parser('update_tbdb', help='Pull the latest tbdb lib
 parser_sub.add_argument('--prefix','-p',default="tbdb",help='Database name')
 parser_sub.add_argument('--repo','-r',default="https://github.com/jodyphelan/tbdb.git",help='Repository to pull from')
 parser_sub.add_argument('--branch','-b',default="master",help='Branch to pull from')
+parser_sub.add_argument('--commit','-c',help='Git commit hash to checkout (default: latest)')
 parser_sub.add_argument('--match_ref',type=str,help='The prefix for all output files')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
