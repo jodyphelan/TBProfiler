@@ -250,6 +250,8 @@ def main_lineage(args):
     tbp.write_outputs(args,results,template_file=args.output_template)
 
 def main_spoligotype(args):
+    if pp.nofolder("results"):
+        os.mkdir("results")
     if args.bam:
         args.bam_file = args.bam
     results = {
