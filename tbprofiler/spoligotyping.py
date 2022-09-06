@@ -4,35 +4,35 @@ import csv
 
 def spoligotype(args):
     if "bam_file" in vars(args) and args.bam_file:
-        result = bam2spoligotype(args.bam_file,args.files_prefix,args.conf)
+        result = bam2spoligotype(args.bam_file,args.files_prefix,args.conf,threads=args.threads,max_mem=args.ram)
     elif args.read1:
-        result = fq2spoligotype(args.read1,args.files_prefix,args.conf,args.read2)
+        result = fq2spoligotype(r1=args.read1,r2=args.read2,files_prefix=args.files_prefix,conf=args.conf,threads=args.threads,max_mem=args.ram)
     elif args.fasta:
-        result = fa2spoligotype(args.fasta,args.files_prefix,args.conf)
+        result = fa2spoligotype(args.fasta,args.files_prefix,args.conf,threads=args.threads,max_mem=args.ram)
     ann = get_spoligotype_annotation(result["octal"],args.conf['spoligotype_annotations'])
     result.update(ann)
     return result
 
-def fa2spoligotype(fasta,files_prefix,conf):
+def fa2spoligotype(fasta,files_prefix,conf,threads=1,max_mem=2):
     fasta = pp.fasta(fasta)
-    kmers = fasta.get_kmer_counts(files_prefix,klen=25)
+    kmers = fasta.get_kmer_counts(files_prefix,klen=25,threads=threads,max_mem=max_mem)
     counts = kmers.load_kmer_counts(conf['spoligotype_spacers'])
     binary,octal = counts2spoligotype(counts,cutoff=1)
     return {"binary":binary,"octal":octal,"spacers":counts}
 
 
-def fq2spoligotype(r1,files_prefix,conf,r2=None):
+def fq2spoligotype(r1,files_prefix,conf,r2=None,threads=1,max_mem=2):
     fastq = pp.fastq(r1,r2)
-    kmers = fastq.get_kmer_counts(files_prefix,klen=25)
+    kmers = fastq.get_kmer_counts(files_prefix,klen=25,threads=threads,max_mem=max_mem)
     counts = kmers.load_kmer_counts(conf['spoligotype_spacers'])
     binary,octal = counts2spoligotype(counts)
     return {"binary":binary,"octal":octal,"spacers":counts}
 
-def bam2spoligotype(bamfile,files_prefix,conf):
+def bam2spoligotype(bamfile,files_prefix,conf,threads=1,max_mem=2):
     chrom = open(conf['bed']).readline().split()[0]
     tmp_fq_file = f"{files_prefix}.spacers.fq"
     pp.run_cmd(f"samtools view -b {bamfile} {chrom}:3117003-3127206 | samtools fastq > {tmp_fq_file}")
-    results = fq2spoligotype(tmp_fq_file,files_prefix,conf)
+    results = fq2spoligotype(tmp_fq_file,files_prefix,conf,threads=threads,max_mem=max_mem)
     os.remove(tmp_fq_file)
     return results
 

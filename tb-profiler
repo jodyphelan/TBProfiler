@@ -518,6 +518,9 @@ parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
+parser_sub.add_argument('--threads','-t',default=1,help='Threads to use',type=int)
+parser_sub.add_argument('--ram','-r',default=2,help='Maximum memory to use',type=int)
+
 parser_sub.set_defaults(func=main_spoligotype)
 
 parser_sub = subparsers.add_parser('collate', help='Collate results form multiple samples together', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
