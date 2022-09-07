@@ -46,3 +46,9 @@ def rv2genes(bed_file):
         row = l.strip().split()
         rv2gene[row[3]] = row[4]
     return rv2gene
+
+def genes2rv(bed_file):
+    #Chromosome      759310  763325  Rv0667  rpoB    rifampicin
+    rv2g = rv2genes(bed_file)
+    gene2rv = {v:k for k,v in rv2g.items()}
+    return gene2rv
