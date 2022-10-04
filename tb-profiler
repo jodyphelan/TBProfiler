@@ -29,6 +29,7 @@ def cleanup():
             outfile = "%s.errlog.txt" % args.vcf.split("/")[-1]
         else:
             outfile = "%s.errlog.txt" % uuid4() 
+        del args.conf['json_db']
         with open(outfile, "w") as O:
             O.write("# tb-profiler error report\n\n")
             O.write("* OS: %s\n" % sys.platform)
@@ -180,6 +181,7 @@ def main_profile(args):
         "%s.vcf.gz" % args.files_prefix: "%s/vcf/%s.vcf.gz" % (args.dir,args.prefix),
         "%s.bam" % args.files_prefix: "%s/bam/%s.bam" % (args.dir,args.prefix),
         "%s.bam.bai" % args.files_prefix: "%s/bam/%s.bam.bai" % (args.dir,args.prefix),
+        "%s.non_ref.qkl"% args.files_prefix: "%s/results/%s.non_ref.qkl" % (args.dir,args.prefix),
     }
     for file,target in result_files.items():
         if os.path.isfile(file):
@@ -213,7 +215,8 @@ def main_create_db(args):
 
     extra_files = {
         "spoligotype_spacers": args.spoligotypes,
-        "spoligotype_annotations": args.spoligotype_annotations
+        "spoligotype_annotations": args.spoligotype_annotations,
+        "bedmask": {"name":args.bedmask,"convert":1}
     }
     if args.barcode:
         extra_files["barcode"] = args.barcode
@@ -584,6 +587,7 @@ parser_sub.add_argument('--watchlist','-w',default="tbdb.watchlist.csv",type=str
 parser_sub.add_argument('--spoligotypes',default="spoligotype_spacers.txt",type=str,help='A file containing a list of spoligotype spacers')
 parser_sub.add_argument('--spoligotype_annotations',default="spoligotype_list.csv")
 parser_sub.add_argument('--barcode',default="barcode.bed",type=str,help='A bed file containing lineage barcode SNPs')
+parser_sub.add_argument('--bedmask',default="mask.bed",type=str,help='A bed file containing a list of low-complexity regions')
 parser_sub.add_argument('--amplicon_primers',type=str,help='A file containing a list of amplicon primers')
 parser_sub.add_argument('--match_ref',type=str,help='The prefix for all output files')
 parser_sub.add_argument('--other_annotations',default="tbdb.other_annotations.csv",type=str,help="A CSV containing gene, mutation, drug and confidence columns")
