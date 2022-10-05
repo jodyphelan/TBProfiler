@@ -155,7 +155,8 @@ def main_profile(args):
         else:
             results["spoligotype"] = tbp.spoligotype(args)
         
-
+    if args.snp_dist:
+        tbp.run_snp_dists(args,results)
 
     ### Reformat the results to TB-Profiler style ###
     results = tbp.reformat(results, args.conf, reporting_af=args.reporting_af, mutation_metadata=args.add_mutation_metadata,use_suspect=args.suspect)
@@ -444,6 +445,7 @@ algorithm.add_argument('--coverage_fraction_threshold',default=0,type=int,help='
 algorithm.add_argument('--missing_cov_threshold',type=int,help='Cutoff used to positions/codons in genes which are missing (this argument has now been merged with --min_depth argument and will be deprecated in future releases)')
 algorithm.add_argument('--suspect',action="store_true",help="Use the suspect suite of tools to add ML predictions")
 algorithm.add_argument('--spoligotype',action="store_true",help="Perform in-silico spoligotyping (experimental feature)")
+algorithm.add_argument('--snp_dist',type=int,help="Get all samples with snp distance less than this cutoff (experimental feature)")
 algorithm.add_argument('--no_trim',action="store_true",help="Don't trim files using trimmomatic")
 algorithm.add_argument('--no_flagstat',action="store_true",help="Don't collect flagstats")
 algorithm.add_argument('--no_clip',action="store_false",help="Don't clip reads")
