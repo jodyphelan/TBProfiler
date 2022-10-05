@@ -1,7 +1,9 @@
 import quickle
-from pathogenprofiler import cmd_out,debug,vcf
+from pathogenprofiler import cmd_out,debug,vcf,infolog
 import os
 import json
+from .output import write_outputs
+from copy import copy
 
 class variant_set:
     def __init__(self, vcf_file, exclude_bed, min_cov=10, min_freq=0.8):
@@ -55,15 +57,22 @@ class variant_set:
 
 
 def run_snp_dists(args,results):
+    infolog("\nCalculating SNP distances to look for closely related samples")
+    infolog("-------------------------------------------------------------")
     wg_vcf = args.files_prefix + ".vcf.gz"
     var_set = variant_set(wg_vcf,exclude_bed=args.conf['bedmask'])
     results["close_samples"] = var_set.get_close_samples(os.path.join(args.dir,"results"),cutoff=args.snp_dist)
-    for s in results['close_samples']:
-        debug(s)
+    for i,s in enumerate(results['close_samples']):
+        infolog("Close sample found: %s (%s). Updating result files" % (s['sample'],s['distance']))
+
         f = os.path.join(args.dir,"results",f"{s['sample']}.results.json")
-        j = json.load(open(f))
-        j['close_samples'].append({
+        data = json.load(open(f))
+        data['close_samples'].append({
             "sample":args.prefix,
             "distance":s['distance']
         })
-        json.dump(j,open(f,'w'))
+        temp_args = copy(args)
+        temp_args.prefix = s['sample']
+        write_outputs(temp_args,data,template_file=args.output_template)
+    infolog(f"\nSearched across {i+1} samples and found {len(results['close_samples'])} close samples")
+    infolog("-------------------------------------------------------------\n")
