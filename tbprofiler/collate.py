@@ -39,6 +39,7 @@ def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_res
             results[s][d] = set()
     lt2drugs = get_lt2drugs(conf["bed"])
 
+    tmp_edges = set()
     for s in tqdm(samples):
         dr_drugs[s] = set()
         temp = json.load(open("%s/%s.results.json" % (result_dir,s)))
@@ -71,6 +72,12 @@ def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_res
         results[s]["pct_reads_mapped"] = temp["qc"].get("pct_reads_mapped","NA")
         results[s]["num_reads_mapped"] = temp["qc"].get("num_reads_mapped","NA")
         results[s]["median_coverage"] = temp["qc"].get("median_coverage","NA")
+
+        if "close_samples" in temp:
+            for d in temp['close_samples']:
+                sorted_samples = sorted([s,d['sample']])
+                tmp_edges.add((sorted_samples[0],sorted_samples[1],d['distance']))
+
     if full_variant_results:
 
         all_vars = conf["json_db"]
@@ -163,3 +170,12 @@ DATA
     for s in samples:
         OUT.write("%s\t%s\n" % (s,"\t".join(["1" if d in dr_drugs[s] else "0" for d in drug_list])))
     OUT.close()
+
+    if len(tmp_edges)>0:
+        graph = []
+
+        for i,e in enumerate(tmp_edges):
+            graph.append({"data":{"id":e[0],"colour":dr_cols[results[e[0]]["drtype"]]}})
+            graph.append({"data":{"id":e[1],"colour":dr_cols[results[e[1]]["drtype"]]}})
+            graph.append({"data":{"id":i,"source":e[0],"target":e[1],"distance":e[2]}})
+        json.dump(graph,open(prefix+".transmission_graph.json","w"))
