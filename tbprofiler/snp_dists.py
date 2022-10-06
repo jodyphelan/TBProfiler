@@ -62,6 +62,7 @@ def run_snp_dists(args,results):
     wg_vcf = args.files_prefix + ".vcf.gz"
     var_set = variant_set(wg_vcf,exclude_bed=args.conf['bedmask'])
     results["close_samples"] = var_set.get_close_samples(os.path.join(args.dir,"results"),cutoff=args.snp_dist)
+    i=0
     for i,s in enumerate(results['close_samples']):
         infolog("Close sample found: %s (%s). Updating result files" % (s['sample'],s['distance']))
 
