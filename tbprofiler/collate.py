@@ -173,9 +173,9 @@ DATA
 
     if len(tmp_edges)>0:
         graph = []
-
         for i,e in enumerate(tmp_edges):
-            graph.append({"data":{"id":e[0],"colour":dr_cols[results[e[0]]["drtype"]]}})
-            graph.append({"data":{"id":e[1],"colour":dr_cols[results[e[1]]["drtype"]]}})
-            graph.append({"data":{"id":i,"source":e[0],"target":e[1],"distance":e[2]}})
+            if e[0] in results and e[1] in results:
+                graph.append({"data":{"id":e[0],"colour":dr_cols[results[e[0]]["drtype"]]}})
+                graph.append({"data":{"id":e[1],"colour":dr_cols[results[e[1]]["drtype"]]}})
+                graph.append({"data":{"id":i,"source":e[0],"target":e[1],"distance":e[2]}})
         json.dump(graph,open(prefix+".transmission_graph.json","w"))
