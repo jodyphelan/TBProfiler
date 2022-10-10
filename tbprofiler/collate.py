@@ -1,10 +1,10 @@
 import json
 import os
-import sys
 from collections import defaultdict
 from tqdm import tqdm
 from .utils import get_lt2drugs
 from pathogenprofiler import errlog,debug
+
 def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_results=True,full_variant_results=True,reporting_af=0.1,mark_missing=False):
     if not os.path.isdir(result_dir):
         errlog("\nERROR: Can't find directory %s\n" % result_dir )

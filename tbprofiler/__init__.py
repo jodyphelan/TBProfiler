@@ -6,5 +6,5 @@ from .utils import *
 from .spoligotyping import *
 from .output import *
 from .snp_dists import *
-import os
+
 __version__ = "4.4.0"

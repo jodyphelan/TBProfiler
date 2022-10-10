@@ -1,7 +1,4 @@
-import sys
 import pathogenprofiler as pp
-import json
-from collections import defaultdict
 from .xdb import *
 
 def get_main_lineage(lineage_dict_list,max_node_skip=1):
