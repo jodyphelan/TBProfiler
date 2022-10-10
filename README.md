@@ -35,10 +35,10 @@ Then you can install tb-profiler and all of its dependancies from the bioconda c
 conda install -c bioconda tb-profiler
 ```
 
-#### OSX
+#### macOS
 
 ```bash
-conda install -c bioconda tb-profiler samtools=1.9=h7c4ea83_11 ncurses=6.1=h0a44026_1002
+conda install -c bioconda tb-profiler 
 ```
 
 ### Manually
