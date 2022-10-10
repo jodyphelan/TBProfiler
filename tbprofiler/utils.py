@@ -1,9 +1,4 @@
-import json
-import re
 from collections import defaultdict
-import sys
-import pathogenprofiler as pp
-import os
 
 def get_lt2drugs(bed_file):
     lt2drugs = {}
