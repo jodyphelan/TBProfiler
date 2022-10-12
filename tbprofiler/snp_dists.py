@@ -4,6 +4,7 @@ import os
 import json
 from .output import write_outputs
 from copy import copy
+import filelock
 
 class variant_set:
     def __init__(self, vcf_file, exclude_bed, min_cov=10, min_freq=0.8):
@@ -65,15 +66,16 @@ def run_snp_dists(args,results):
     i=0
     for i,s in enumerate(results['close_samples']):
         infolog("Close sample found: %s (%s). Updating result files" % (s['sample'],s['distance']))
-
         f = os.path.join(args.dir,"results",f"{s['sample']}.results.json")
-        data = json.load(open(f))
-        data['close_samples'].append({
-            "sample":args.prefix,
-            "distance":s['distance']
-        })
-        temp_args = copy(args)
-        temp_args.prefix = s['sample']
-        write_outputs(temp_args,data,template_file=args.output_template)
+        lock = filelock.FileLock(f + ".lock")
+        with lock:
+            data = json.load(open(f))
+            data['close_samples'].append({
+                "sample":args.prefix,
+                "distance":s['distance']
+            })
+            temp_args = copy(args)
+            temp_args.prefix = s['sample']
+            write_outputs(temp_args,data,template_file=args.output_template)
     infolog(f"\nSearched across {i+1} samples and found {len(results['close_samples'])} close samples")
     infolog("-------------------------------------------------------------\n")
