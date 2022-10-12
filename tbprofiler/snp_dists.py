@@ -60,7 +60,10 @@ class variant_set:
 def run_snp_dists(args,results):
     infolog("\nCalculating SNP distances to look for closely related samples")
     infolog("-------------------------------------------------------------")
-    wg_vcf = args.files_prefix + ".vcf.gz"
+    if args.vcf:
+        wg_vcf = args.vcf
+    else:
+        wg_vcf = args.files_prefix + ".vcf.gz"
     var_set = variant_set(wg_vcf,exclude_bed=args.conf['bedmask'])
     results["close_samples"] = var_set.get_close_samples(os.path.join(args.dir,"results"),cutoff=args.snp_dist)
     i=0
