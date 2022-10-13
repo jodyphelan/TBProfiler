@@ -49,6 +49,7 @@ class variant_set:
         return len(pairwise_dists)
     def get_close_samples(self,dir,cutoff=20):
         directory_files = [f for f in os.listdir(dir) if f.endswith(".qkl")]
+        infolog("Searching across {len(directory_files)} files")
         for f in directory_files:
             if f==self.filename: continue
             dist = self.get_snp_dist(os.path.join(dir,f))
@@ -82,5 +83,5 @@ def run_snp_dists(args,results):
             temp_args = copy(args)
             temp_args.prefix = s['sample']
             write_outputs(temp_args,data,template_file=args.output_template)
-    infolog(f"\nSearched across {i+1} samples and found {len(results['close_samples'])} close samples")
+    infolog(f"\nFound {len(results['close_samples'])} close samples")
     infolog("-------------------------------------------------------------\n")
