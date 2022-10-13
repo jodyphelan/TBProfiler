@@ -1,5 +1,5 @@
 import quickle
-from pathogenprofiler import cmd_out,debug,vcf,infolog
+from pathogenprofiler import cmd_out,debug,infolog
 import os
 import json
 from .output import write_outputs
@@ -7,9 +7,9 @@ from copy import copy
 import filelock
 
 class variant_set:
-    def __init__(self, vcf_file, exclude_bed, min_cov=10, min_freq=0.8):
+    def __init__(self, vcf_file, prefix, exclude_bed, min_cov=10, min_freq=0.8):
         self.vcf_file = vcf_file
-        self.prefix = vcf(vcf_file).prefix
+        self.prefix = prefix
         self.min_cov = min_cov
         self.min_freq = min_freq
         self.write_set(exclude_bed)
@@ -66,7 +66,7 @@ def run_snp_dists(args,results):
         wg_vcf = args.vcf
     else:
         wg_vcf = args.files_prefix + ".vcf.gz"
-    var_set = variant_set(wg_vcf,exclude_bed=args.conf['bedmask'])
+    var_set = variant_set(wg_vcf,args.files_prefix,exclude_bed=args.conf['bedmask'])
     results["close_samples"] = var_set.get_close_samples(os.path.join(args.dir,"results"),cutoff=args.snp_dist)
     i=0
     for i,s in enumerate(results['close_samples']):
