@@ -22,6 +22,8 @@ class variant_set:
             row = l.strip().split()
             pos = int(row[0])
             gt,ad = row[1].split(":")
+            if ad==".": # delly
+                continue
             if gt==".": 
                 missing.add(pos)
                 continue
