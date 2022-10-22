@@ -76,7 +76,12 @@ def run_snp_dists(args,results):
     var_set = write_variant_set(wg_vcf,args.files_prefix,exclude_bed=args.conf['bedmask'])
     results["close_samples"] = var_set.get_close_samples(os.path.join(args.dir,"results"),cutoff=args.snp_dist)
     results["close_samples"] = [d for d in results["close_samples"] if d["sample"]!=results["id"]]
-    i=0
+    t2 = time()
+    dt = int(t2-t1)
+    infolog(f"\nFound {len(results['close_samples'])} close samples in {dt} seconds")
+    infolog("-------------------------------------------------------------\n")
+
+def update_neighbour_snp_dist_output(args,results):
     for s in results['close_samples']:
         infolog("Close sample found: %s (%s). Updating result files" % (s['sample'],s['distance']))
         f = os.path.join(args.dir,"results",f"{s['sample']}.results.json")
@@ -91,16 +96,12 @@ def run_snp_dists(args,results):
                 temp_args = copy(args)
                 temp_args.prefix = s['sample']
                 write_outputs(temp_args,data,template_file=args.output_template)
-    t2 = time()
-    dt = int(t2-t1)
-    infolog(f"\nFound {len(results['close_samples'])} close samples in {dt} seconds")
-    infolog("-------------------------------------------------------------\n")
-
 
 def make_nj_tree(args,results):
-    from skbio import DistanceMatrix
-    from skbio.tree import nj
+    
     neighbours = [s['sample'] for s in results['close_samples']]
+    if len(neighbours)<2:
+        return None
     all_samps = neighbours + [results['id']]
     if len(neighbours)==0: return
     dist_dict = {}
@@ -130,7 +131,8 @@ def make_nj_tree(args,results):
                 d = si_set.get_snp_dist(sj_set_file)
                 row.append(d)
         dists.append(row)
-
+    from skbio import DistanceMatrix
+    from skbio.tree import nj
     dm = DistanceMatrix(dists, all_samps)
     tree = nj(dm)
     tree = tree.root_at_midpoint()

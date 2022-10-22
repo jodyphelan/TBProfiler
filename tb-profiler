@@ -155,7 +155,7 @@ def main_profile(args):
         else:
             results["spoligotype"] = tbp.spoligotype(args)
 
-    nj_tree = None    
+  
     if args.snp_dist:
         tbp.run_snp_dists(args,results)
 
@@ -175,7 +175,8 @@ def main_profile(args):
             os.mkdir(args.dir+"/"+x)
 
     tbp.write_outputs(args,results,template_file=args.output_template)
-    
+    if args.snp_dist:
+        tbp.update_neighbour_snp_dist_output(args,results)
 
     ### Move files to respective directories ###
     result_files = {
