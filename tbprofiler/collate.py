@@ -179,3 +179,18 @@ DATA
                 graph.append({"data":{"id":e[1],"drtype":results[e[1]]["drtype"],"lineage":results[e[1]]["main_lin"]}})
                 graph.append({"data":{"id":i,"source":e[0],"target":e[1],"distance":e[2]}})
         json.dump(graph,open(prefix+".transmission_graph.json","w"))
+
+        with open(prefix+".distance_matrix.txt","w") as MAT:
+            MAT.write("samples\t%s\n" % "\t".join(samples))
+            transformed_edges = {}
+            for e in tmp_edges:
+                transformed_edges[(e[0],e[1])] = e[2]
+            for si in samples:
+                row = [si]
+                for sj in samples:
+                    ss = tuple(sorted([si,sj]))
+                    if si==sj:
+                        row.append("0")
+                    else:
+                        row.append(str(transformed_edges[ss]) if ss in transformed_edges else "NA")
+                MAT.write("%s\n" % "\t".join(row))

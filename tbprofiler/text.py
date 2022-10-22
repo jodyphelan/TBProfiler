@@ -42,6 +42,11 @@ Close samples report
 --------------------
 {{d['close_samples']}}
 {% endif %}
+{% if 'tree' in d %}
+Neighbour joining tree
+--------------------
+{{d['tree']}}
+{% endif %}
 Resistance report
 -----------------
 {{d['dr_report']}}
@@ -144,7 +149,10 @@ def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="
 
     if "close_samples" in json_results:
         text_strings["close_samples"] = dict_list2text(json_results["close_samples"],["sample","distance"],sep=sep)
-        
+
+    if "tree" in json_results:
+        text_strings["tree"] = json_results["tree"]
+
     text_strings["pipeline"] = dict_list2text(json_results["pipeline"],["Analysis","Program"],sep=sep)
     text_strings["version"] = json_results["tbprofiler_version"]
     tmp = json_results["db_version"]

@@ -1,16 +1,21 @@
 from .text import write_text
 from .pdf import write_pdf
 from datetime import datetime
-from pathogenprofiler import infolog
+from pathogenprofiler import infolog, debug
 import json
+import tbprofiler as tbp
 
 def write_outputs(args,results,template_file = None):
     infolog("\nWriting outputs")
     infolog("---------------")
+    if args.nj:
+       nj_tree = tbp.make_nj_tree(args,results)
+       results['tree'] = nj_tree.ascii_art()
     json_output = args.dir+"/results/"+args.prefix+".results.json"
     text_output = args.dir+"/results/"+args.prefix+".results.txt"
     csv_output = args.dir+"/results/"+args.prefix+".results.csv"
     pdf_output = args.dir+"/results/"+args.prefix+".results.pdf"
+    tree_output = args.dir+"/results/"+args.prefix+".results.nwk"
     if "reporting_af" not in vars(args):
         args.reporting_af = 0.1
     if "add_columns" not in vars(args):
@@ -29,3 +34,6 @@ def write_outputs(args,results,template_file = None):
     if args.csv:
         infolog(f"Writing csv file: {csv_output}")
         write_text(results,args.conf,csv_output,extra_columns,reporting_af=args.reporting_af,sep=",",template_file = template_file,use_suspect=args.suspect)
+    if args.nj:
+        infolog(f"Writing tree file: {tree_output}")
+        nj_tree.write(tree_output)
