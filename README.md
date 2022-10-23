@@ -80,6 +80,10 @@ tb-profiler profile -1 ERR1664619_1.fastq.gz -2 ERR1664619_2.fastq.gz -t 4 -p ER
 cat results/ERR1664619.results.txt
 ```
 
+#### Whole genome analysis
+
+By default, `tb-profiler` only analyses drug resistance candidate genes. It is also possible to perform variant calling across the whole genome using the `--call_whole_genome` argument. When this is enabled it is also possible to compare your sample to previous runs to find those which are close to your new sample. Close samples are found using a SNP distance cutoff which is enabled using the `--snp_dist` argument. Close samples are stored in the json output and are also found in the text report. Additionally a neighbour joining tree can be built using the `--nj` argument. Please note that the `--snp_dist` and `--nj` functions are experimental and could produce unexpected results.
+
 #### Spoligotyping
 
 Experimental spoligotyping can be performed by adding `--spoligotype` to the command. This is enabled for bam and fastq input.
@@ -101,6 +105,8 @@ tb-profiler collate
 ```
 
 This will automatically create a number of colled result files from all the individual result files in the _result_ directory. If you would like to generate this file for a subset of the runs you can provide a list with the run sames using the `--samples` flag. The prefix for the output files is _tbprofiler_ by default but this can be changed with the `--prefix` flag.
+
+If `tb-profiler` has been run using the `--snp_dist` argument, the `collate` function will also generate a transmission graph in json format that can be visualised by dragging and dropping the file into [this site](https://jodyphelan.github.io/transmission-graph-viewer)
 
 ### Writing your own summary scripts
 
