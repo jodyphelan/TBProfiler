@@ -174,9 +174,7 @@ def main_profile(args):
         if pp.nofolder(args.dir+"/"+x):
             os.mkdir(args.dir+"/"+x)
 
-    tbp.write_outputs(args,results,template_file=args.output_template)
-    if args.snp_dist:
-        tbp.update_neighbour_snp_dist_output(args,results)
+    
 
     ### Move files to respective directories ###
     result_files = {
@@ -192,6 +190,11 @@ def main_profile(args):
             os.rename(file,target)
 
     pp.run_cmd("rm %s*" % args.files_prefix)
+    
+    tbp.write_outputs(args,results,template_file=args.output_template)
+    if args.snp_dist:
+        tbp.update_neighbour_snp_dist_output(args,results)
+        
     
     pp.successlog("\nProfiling finished sucessfully!")
 

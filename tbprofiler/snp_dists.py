@@ -126,7 +126,7 @@ def make_nj_tree(args,results):
                 row.append(dist_dict[(si,sj)])
             else:
                 si_set_file = os.path.join(args.dir,"results",f"{si}.non_ref.qkl")
-                sj_set_file = os.path.join(args.dir,"results",f"{si}.non_ref.qkl")
+                sj_set_file = os.path.join(args.dir,"results",f"{sj}.non_ref.qkl")
                 si_set = variant_set(si_set_file)
                 d = si_set.get_snp_dist(sj_set_file)
                 row.append(d)
