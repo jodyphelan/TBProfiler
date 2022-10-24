@@ -1,5 +1,5 @@
 import quickle
-from pathogenprofiler import cmd_out,debug,infolog
+from pathogenprofiler import cmd_out,debug,infolog,errlog
 import os
 import json
 from .output import write_outputs
@@ -58,8 +58,14 @@ class variant_set:
             })
         return [x for x in self.sample_dists if x["distance"]<=cutoff]
 
+def read_json(filename):
+    lock = filelock.FileLock(filename + ".lock")
+    with lock:
+        data = json.load(open(filename))
+        return data
+
 def sample_in_json(sample,result_file):
-    results = json.load(open(result_file))
+    results = read_json(result_file)
     if sample in [d['sample'] for d in results['close_samples']]:
         return True
     else:
@@ -109,7 +115,7 @@ def make_nj_tree(args,results):
         dist_dict[(results['id'],d['sample'])] = d['distance']
         dist_dict[(d['sample'],results['id'])] = d['distance']
     for si in neighbours:
-        data = json.load(open(os.path.join(args.dir,"results",f"{si}.results.json")))
+        data = read_json(os.path.join(args.dir,"results",f"{si}.results.json"))
         for d in data['close_samples']:
             sj = d['sample']
             if sj not in all_samps: continue
