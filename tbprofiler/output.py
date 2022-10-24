@@ -21,14 +21,14 @@ def write_outputs(args,results,template_file = None):
     extra_columns = [x.lower() for x in args.add_columns.split(",")] if args.add_columns else []
     results["timestamp"] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 
-    if args.nj:
-        # nj_tree = tbp.make_nj_tree(args,results)
-        if "_tree" in results and results["_tree"]!=None:
-            nj_tree = results['_tree']
-            results['tree'] = nj_tree.ascii_art()
-            infolog(f"Writing tree file: {tree_output}")
-            nj_tree.write(tree_output)
-            del results["_tree"]
+    # if args.nj:
+    #     # nj_tree = tbp.make_nj_tree(args,results)
+    #     if "_tree" in results and results["_tree"]!=None:
+    #         nj_tree = results['_tree']
+    #         results['tree'] = nj_tree.ascii_art()
+    #         infolog(f"Writing tree file: {tree_output}")
+    #         nj_tree.write(tree_output)
+    #         del results["_tree"]
     infolog(f"Writing json file: {json_output}")
     json.dump(results,open(json_output,"w"))
     # extra_columns = [x.lower() for x in args.add_columns.split(",")] if args.add_columns else []
