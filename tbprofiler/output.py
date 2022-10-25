@@ -20,16 +20,19 @@ def write_outputs(args,results,template_file = None):
         args.add_columns = None
     extra_columns = [x.lower() for x in args.add_columns.split(",")] if args.add_columns else []
     results["timestamp"] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+
+    # if args.nj:
+    #     # nj_tree = tbp.make_nj_tree(args,results)
+    #     if "_tree" in results and results["_tree"]!=None:
+    #         nj_tree = results['_tree']
+    #         results['tree'] = nj_tree.ascii_art()
+    #         infolog(f"Writing tree file: {tree_output}")
+    #         nj_tree.write(tree_output)
+    #         del results["_tree"]
     infolog(f"Writing json file: {json_output}")
     json.dump(results,open(json_output,"w"))
     # extra_columns = [x.lower() for x in args.add_columns.split(",")] if args.add_columns else []
     
-    if args.nj:
-        nj_tree = tbp.make_nj_tree(args,results)
-        if nj_tree:
-            results['tree'] = nj_tree.ascii_art()
-            infolog(f"Writing tree file: {tree_output}")
-            nj_tree.write(tree_output)
     
     if "pdf" in vars(args) and args.pdf:
         infolog(f"Writing pdf file: {pdf_output}")
@@ -40,4 +43,4 @@ def write_outputs(args,results,template_file = None):
     if args.csv:
         infolog(f"Writing csv file: {csv_output}")
         write_text(results,args.conf,csv_output,extra_columns,reporting_af=args.reporting_af,sep=",",template_file = template_file,use_suspect=args.suspect)
-    
+        

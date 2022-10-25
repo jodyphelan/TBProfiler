@@ -1,5 +1,5 @@
 import quickle
-from pathogenprofiler import cmd_out,debug,infolog
+from pathogenprofiler import cmd_out,debug,infolog,errlog
 import os
 import json
 from .output import write_outputs
@@ -58,8 +58,16 @@ class variant_set:
             })
         return [x for x in self.sample_dists if x["distance"]<=cutoff]
 
+def read_json(filename):
+    debug("Reading %s" % filename)
+    lock = filelock.FileLock(filename + ".lock")
+    with lock:
+        data = json.load(open(filename))
+    debug("Finished reading %s" % filename)
+    return data
+
 def sample_in_json(sample,result_file):
-    results = json.load(open(result_file))
+    results = read_json(result_file)
     if sample in [d['sample'] for d in results['close_samples']]:
         return True
     else:
@@ -80,6 +88,8 @@ def run_snp_dists(args,results):
     dt = int(t2-t1)
     infolog(f"\nFound {len(results['close_samples'])} close samples in {dt} seconds")
     infolog("-------------------------------------------------------------\n")
+    # if args.nj:
+        # results['_tree'] = make_nj_tree(args,results)
 
 def update_neighbour_snp_dist_output(args,results):
     for s in results['close_samples']:
@@ -88,6 +98,7 @@ def update_neighbour_snp_dist_output(args,results):
         if not sample_in_json(args.prefix,f):
             lock = filelock.FileLock(f + ".lock")
             with lock:
+                debug("Acquiring lock for %s" % f)
                 data = json.load(open(f))
                 data['close_samples'].append({
                     "sample":args.prefix,
@@ -95,47 +106,50 @@ def update_neighbour_snp_dist_output(args,results):
                 })
                 temp_args = copy(args)
                 temp_args.prefix = s['sample']
+                # if args.nj:
+                    # results['_tree'] = make_nj_tree(temp_args,data)
                 write_outputs(temp_args,data,template_file=args.output_template)
+                debug("Finished with lock for %s" % f)
 
-def make_nj_tree(args,results):
+# def make_nj_tree(args,results):
     
-    neighbours = [s['sample'] for s in results['close_samples']]
-    if len(neighbours)<2:
-        return None
-    all_samps = neighbours + [results['id']]
-    if len(neighbours)==0: return
-    dist_dict = {}
-    for d in results['close_samples']:
-        dist_dict[(results['id'],d['sample'])] = d['distance']
-        dist_dict[(d['sample'],results['id'])] = d['distance']
-    for si in neighbours:
-        data = json.load(open(os.path.join(args.dir,"results",f"{si}.results.json")))
-        for d in data['close_samples']:
-            sj = d['sample']
-            if sj not in all_samps: continue
-            dist_dict[(si,sj)] = d['distance']
-            dist_dict[(sj,si)] = d['distance']
-    dists = []
+#     neighbours = [s['sample'] for s in results['close_samples']]
+#     if len(neighbours)<2:
+#         return None
+#     all_samps = neighbours + [results['id']]
+#     if len(neighbours)==0: return
+#     dist_dict = {}
+#     for d in results['close_samples']:
+#         dist_dict[(results['id'],d['sample'])] = d['distance']
+#         dist_dict[(d['sample'],results['id'])] = d['distance']
+#     for si in neighbours:
+#         data = read_json(os.path.join(args.dir,"results",f"{si}.results.json"))
+#         for d in data['close_samples']:
+#             sj = d['sample']
+#             if sj not in all_samps: continue
+#             dist_dict[(si,sj)] = d['distance']
+#             dist_dict[(sj,si)] = d['distance']
+#     dists = []
 
-    for si in all_samps:
-        row = []
-        for sj in all_samps:
-            if si==sj: 
-                row.append(0)
-            elif (si,sj) in dist_dict:
-                row.append(dist_dict[(si,sj)])
-            else:
-                si_set_file = os.path.join(args.dir,"results",f"{si}.non_ref.qkl")
-                sj_set_file = os.path.join(args.dir,"results",f"{sj}.non_ref.qkl")
-                si_set = variant_set(si_set_file)
-                d = si_set.get_snp_dist(sj_set_file)
-                row.append(d)
-        dists.append(row)
-    from skbio import DistanceMatrix
-    from skbio.tree import nj
-    dm = DistanceMatrix(dists, all_samps)
-    tree = nj(dm)
-    tree = tree.root_at_midpoint()
-    return tree
+#     for si in all_samps:
+#         row = []
+#         for sj in all_samps:
+#             if si==sj: 
+#                 row.append(0)
+#             elif (si,sj) in dist_dict:
+#                 row.append(dist_dict[(si,sj)])
+#             else:
+#                 si_set_file = os.path.join(args.dir,"results",f"{si}.non_ref.qkl")
+#                 sj_set_file = os.path.join(args.dir,"results",f"{sj}.non_ref.qkl")
+#                 si_set = variant_set(si_set_file)
+#                 d = si_set.get_snp_dist(sj_set_file)
+#                 row.append(d)
+#         dists.append(row)
+#     from skbio import DistanceMatrix
+#     from skbio.tree import nj
+#     dm = DistanceMatrix(dists, all_samps)
+#     tree = nj(dm)
+#     tree = tree.root_at_midpoint()
+#     return tree
 
 

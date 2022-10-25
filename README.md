@@ -82,7 +82,7 @@ cat results/ERR1664619.results.txt
 
 #### Whole genome analysis
 
-By default, `tb-profiler` only analyses drug resistance candidate genes. It is also possible to perform variant calling across the whole genome using the `--call_whole_genome` argument. When this is enabled it is also possible to compare your sample to previous runs to find those which are close to your new sample. Close samples are found using a SNP distance cutoff which is enabled using the `--snp_dist` argument. Close samples are stored in the json output and are also found in the text report. Additionally a neighbour joining tree can be built using the `--nj` argument. Please note that the `--snp_dist` and `--nj` functions are experimental and could produce unexpected results.
+By default, `tb-profiler` only analyses drug resistance candidate genes. It is also possible to perform variant calling across the whole genome using the `--call_whole_genome` argument. When this is enabled it is also possible to compare your sample to previous runs to find those which are close to your new sample. Close samples are found using a SNP distance cutoff which is enabled using the `--snp_dist` argument. Close samples are stored in the json output and are also found in the text report. Please note that the `--snp_dist` function is experimental and could produce unexpected results.
 
 #### Spoligotyping
 
