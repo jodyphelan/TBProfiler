@@ -28,7 +28,7 @@ def test_revcom():
 
 
 def test_db():
-    run_cmd("tb-profiler update_tbdb --commit 4738132cc4d82f47876aa3baedc8dd7ca27726fd")
+    run_cmd("tb-profiler update_tbdb")
 
 
 def test_vcf1():
