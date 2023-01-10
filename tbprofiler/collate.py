@@ -4,8 +4,9 @@ from collections import defaultdict
 from tqdm import tqdm
 from .utils import get_lt2drugs
 from pathogenprofiler import errlog,debug
+import csv 
 
-def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_results=True,full_variant_results=True,reporting_af=0.1,mark_missing=False):
+def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_results=True,full_variant_results=True,reporting_af=0.1,mark_missing=False,sep="\t"):
     if not os.path.isdir(result_dir):
         errlog("\nERROR: Can't find directory %s\n" % result_dir )
         exit()
@@ -29,6 +30,7 @@ def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_res
         samples = [x.replace(".results.json","") for x in os.listdir("%s/" % result_dir) if x[-13:]==".results.json"]
 
     results = defaultdict(dict)
+    result_rows = []
     dr_variants = defaultdict(lambda:defaultdict(dict))
     dr_variants_set = set()
     dr_drugs = {}
@@ -41,6 +43,7 @@ def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_res
 
     tmp_edges = set()
     for s in tqdm(samples):
+        res = {"sample":s}
         dr_drugs[s] = set()
         temp = json.load(open("%s/%s.results.json" % (result_dir,s)))
 
@@ -62,21 +65,35 @@ def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_res
         for x in temp["other_variants"]:
             if x["freq"]>reporting_af:
                 sample_other_mutations_set[s].add((x["gene"],x["change"]))
+        
+        res["main_lineage"] = results[s]["main_lin"] = temp["main_lin"]
+        res["sub_lineage"] = results[s]["sublin"] = temp["sublin"]
+        if "spoligotype" in temp:
+            res["spoligotype"] = temp["spoligotype"]["octal"]
+        res["DR_type"] = results[s]["drtype"] = temp["drtype"]
+        res["pct_reads_mapped"] = temp["qc"].get("pct_reads_mapped","NA")
+        res["num_reads_mapped"] = temp["qc"].get("num_reads_mapped","NA")
+        res["median_coverage"] = temp["qc"].get("median_coverage","NA")
+        res["num_dr_variants"] = len(sample_dr_mutations_set[s])
+        res["num_other_variants"] = len(sample_other_mutations_set[s])
         for d in drug_list:
             results[s][d] = ", ".join(sorted(results[s][d])) if len(results[s][d])>0 else "-"
             if mark_missing and d in missing_drugs:
-                results[s][d] = "*%s" % results[s][d]
-            results[s]["main_lin"] = temp["main_lin"]
-            results[s]["sublin"] = temp["sublin"]
-            results[s]["drtype"] = temp["drtype"]
-        results[s]["pct_reads_mapped"] = temp["qc"].get("pct_reads_mapped","NA")
-        results[s]["num_reads_mapped"] = temp["qc"].get("num_reads_mapped","NA")
-        results[s]["median_coverage"] = temp["qc"].get("median_coverage","NA")
+                res[d] = "*%s" % results[s][d]
+            else:
+                res[d] = results[s][d]
+        result_rows.append(res)
+
 
         if "close_samples" in temp:
             for d in temp['close_samples']:
                 sorted_samples = sorted([s,d['sample']])
                 tmp_edges.add((sorted_samples[0],sorted_samples[1],d['distance']))
+
+    with open(prefix+".txt","w") as OUT:
+        writer = csv.DictWriter(OUT,fieldnames=list(result_rows[0]),delimiter=sep)
+        writer.writeheader()
+        writer.writerows(result_rows)
 
     if full_variant_results:
 
@@ -95,14 +112,13 @@ def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_res
             VAR.write("%s\t%s\n" % (s,"\t".join(["%.3f" % dr_variants[gene][change][s] if gene in dr_variants and change in dr_variants[gene] and s in dr_variants[gene][change] else "0" for gene,change in sorted(dr_variants_set,key=lambda x: x[0])])))
         VAR.close()
     
-    OUT = open(prefix+".txt","w")
-    OUT.write("sample\tmain_lineage\tsub_lineage\tDR_type\tpct_reads_mapped\tnum_reads_mapped\tmedian_coverage\tnum_dr_variants\tnum_other_variants\t%s" % "\t".join(drug_list)+"\n")
-    for s in samples:
-        results[s]["num_dr_variants"] = len(sample_dr_mutations_set[s])
-        results[s]["num_other_variants"] = len(sample_other_mutations_set[s])
-        OUT.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" %(s,results[s]["main_lin"],results[s]["sublin"],results[s]["drtype"],results[s]["pct_reads_mapped"],results[s]["num_reads_mapped"],results[s]["median_coverage"],results[s]["num_dr_variants"],results[s]["num_other_variants"],"\t".join([results[s][x] for x in drug_list])))
-    OUT.close()
-    json.dump(results,open(prefix+".json","w"))
+    # OUT = 
+    # OUT.write("sample\tmain_lineage\tsub_lineage\tDR_type\tpct_reads_mapped\tnum_reads_mapped\tmedian_coverage\tnum_dr_variants\tnum_other_variants\t%s" % "\t".join(drug_list)+"\n")
+    # for s in samples:
+        
+        # OUT.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" %(s,results[s]["main_lin"],results[s]["sublin"],results[s]["drtype"],results[s]["pct_reads_mapped"],results[s]["num_reads_mapped"],results[s]["median_coverage"],results[s]["num_dr_variants"],results[s]["num_other_variants"],"\t".join([results[s][x] for x in drug_list])))
+    # OUT.close()
+    json.dump(dict(results),open(prefix+".json","w"))
     
     
     
