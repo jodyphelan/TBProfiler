@@ -59,7 +59,10 @@ def counts2spoligotype(counts,cutoff=None):
         spacers.append("1" if k['count']>=cutoff else "0")
     
     octal = []
-    for i in range(0,40,3):
+    pp.debug(len(spacers))
+    for i in range(0,len(spacers),3):
+        if i+3>len(spacers): 
+            break
         tmp = "".join([spacers[i],spacers[i+1],spacers[i+2]])
         if tmp=="000":octal.append("0")
         elif tmp=="001":octal.append("1")
@@ -69,8 +72,8 @@ def counts2spoligotype(counts,cutoff=None):
         elif tmp=="101":octal.append("5")
         elif tmp=="110":octal.append("6")
         elif tmp=="111":octal.append("7")
-
-    octal.append("0" if spacers[42]=="0" else "1")
+    for j in range(len(spacers)-i):
+        octal.append("0" if spacers[i+j]=="0" else "1")
     sitvit_str = "".join(["n" if x=="1" else "o" for x in spacers])
     binary_str = "".join(spacers)
     octal_str = "".join(octal)
