@@ -59,7 +59,6 @@ def counts2spoligotype(counts,cutoff=None):
         spacers.append("1" if k['count']>=cutoff else "0")
     
     octal = []
-    pp.debug(len(spacers))
     for i in range(0,len(spacers),3):
         if i+3>len(spacers): 
             break
