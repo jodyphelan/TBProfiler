@@ -435,6 +435,7 @@ output.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix for
 output.add_argument('--csv',action="store_true",help="Add CSV output")
 output.add_argument('--txt',action="store_true",help="Add text output")
 output.add_argument('--pdf',action="store_true",help="Add PDF output. This requires weasyprint to be installed")
+output.add_argument('--docx',help="Add docx output. This requires docxtpl to be installed")
 output.add_argument('--output_template',type=str,help='Jinja2 formatted template for output')
 output.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and csv results")
 output.add_argument('--add_mutation_metadata',action="store_true",help=argparse.SUPPRESS)
