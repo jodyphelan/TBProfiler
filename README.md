@@ -4,7 +4,7 @@
 
 
 
-This repository contains a complete rewrite of the [web version of TBProfiler](http://tbdr.lshtm.ac.uk), described [here](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0650-x). It allows the use of profiling through a command line interface and contains some additional functionality such as the ability to process minION data.
+This repository contains a complete rewrite of the [web version of TB-Profiler](http://tbdr.lshtm.ac.uk), described [here](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0650-x). It allows the use of profiling through a command line interface and contains some additional functionality such as the ability to process minION data.
 
 The pipeline aligns reads to the H37Rv reference using bowtie2, BWA or minimap2 and then calls variants using bcftools. These variants are then compared to a drug-resistance database. We also predict the number of reads supporting drug resistance variants as an insight into hetero-resistance \(not applicable for minION data\)
 
@@ -13,7 +13,7 @@ The pipeline aligns reads to the H37Rv reference using bowtie2, BWA or minimap2 
 This page has all the info you need to get started, however additional (and more organised!) documentation is available [here](https://jodyphelan.gitbook.io/tb-profiler/). We have also have some basic translation to other languages:  [:brazil:](https://jodyphelan.gitbook.io/tb-profiler/translations/portugues)[:netherlands:](https://jodyphelan.gitbook.io/tb-profiler/translations/nederlands). Please contact us if you would like to improve a translation or add a new one!
 
 ## Keeping up to date
-TBProfiler is under constant rapid development. If you plan to use the program in your work please make sure you are using the most up to date version! Similarly, the database is not static and is continuously being improved so make sure you are using the most latest version. If you use TBProfiler in your work please state the version of both the tool and the database as they are deveoped independantly from each other.
+TB-Profiler is under constant rapid development. If you plan to use the program in your work please make sure you are using the most up to date version! Similarly, the database is not static and is continuously being improved so make sure you are using the most latest version. If you use TB-Profiler in your work please state the version of both the tool and the database as they are deveoped independantly from each other.
 
 ## Installation
 
@@ -41,9 +41,16 @@ conda install -c bioconda tb-profiler
 conda install -c bioconda tb-profiler 
 ```
 
+If you have a new mac (M1/M2) you will need to open your terminal using Rosetta. Most bioinformatics tools are built to run on intel chips (x86) and won't work on M1/M2 chips (ARM). Rosetta will emulate an x86 environment so you can still run your favourite bioinformatics tools. Do set up your new computer you should 
+
+1. Open the Finder application and go to "Applications"
+2. Right click on your terminal application
+3. Select "Open using Rosetta"
+4. Set up conda and install tb-profiler as shown above
+
 ### Manually
 
-It is possible to install manually. The following pre-requisites will be needed at runtime: _trimmomatic \(&gt;=v0.38\), bwa \(&gt;=v0.7.17\), minimap2 \(&gt;=v2.16\), bowtie2 \(&gt;=v2.3.5\), samtools \(&gt;=v1.10\), bcftools \(&gt;=v1.10\), GATK \(&gt;=v4.1.4.0\), freebayes \(&gt;=v1.3.2\), tqdm \(&gt;=v4.32.2\) parallel \(&gt;=v20190522\) samclip \(&gt;=v0.4.0\)_ and snpEff \(&gt;=v5.0.0\)_. The pipeline should work and has been tested on the program versions indicated in parentheses.
+It is possible to install manually, although I would highly recommend installing through conda. The following dependancies will be needed at runtime: _trimmomatic \(&gt;=v0.38\), bwa \(&gt;=v0.7.17\), minimap2 \(&gt;=v2.16\), samtools \(&gt;=v1.12\), bcftools \(&gt;=v1.12\), freebayes \(&gt;=v1.3.5\), tqdm \(&gt;=v4.32.2\), parallel \(&gt;=v20190522\), samclip \(&gt;=v0.4.0\)_ and snpEff \(&gt;=v5.0.0\)_. The pipeline should work and has been tested on the program versions indicated in parentheses.
 
 To install the library run the following code:
 ```bash
@@ -114,7 +121,7 @@ The `collate` function extracts the drug-resistance mutations and lineage, howev
 
 ## Mutation database
 
-TBProfiler ships with a default database. The development of the mutation library is hosted on the [tbdb repository](https://github.com/jodyphelan/tbdb). Please visity this repo if you would like to get involved in the database or would like to modify and create your own.
+TB-Profiler ships with a default database. The development of the mutation library is hosted on the [tbdb repository](https://github.com/jodyphelan/tbdb). Please visity this repo if you would like to get involved in the database or would like to modify and create your own.
 
 If you would like to use an altered database you can download the tbdb repo, make the required changes and run the following code from within the tbdb repo directory:
 
@@ -125,7 +132,7 @@ tb-profiler load_library --prefix <new_library_name>
 
 ### Non-H37Rv databases
 
-It is possible run TBProfiler on another reference genome. Although there is currently no helper tool to create the databases for other references automatically, checkout the [tbdb repository](https://github.com/jodyphelan/tbdb) to find out more about what you need.
+It is possible run TB-Profiler on another reference genome. Although there is currently no helper tool to create the databases for other references automatically, checkout the [tbdb repository](https://github.com/jodyphelan/tbdb) to find out more about what you need.
 
 ## Under the hood
 
@@ -138,7 +145,7 @@ The pipeline searches for small variants and big deletions associated with drug 
 Several files are produced by the `tb-profile collate` function. Among these are several config files that can be used with [iTOL](http://itol.embl.de/) to annotate phylogenetic trees. A small tree and config files have been placed in the _example\_data_ directory. To use navigate to the iTOL website and upload the _tbprofiler.tree_ file using the upload button on the navigation bar. Once this has been uploaded you will be taken to a visualisation of the tree. To add the annotation, click on the '+' button on the lower right hand corner and select the iTOL config files. You should now see a figure similar to the one below. The following annotations are included:
 
 *   Lineage
-*   Drug resistance classes \(Sensitive, drug-resistant, MDR, XDR\)
+*   Drug resistance classes \(Sensitive, RR-TB, HR-TB, MDR-TB, Pre-XDR-TB, XDR\)
 *   Drug resistance calls for individual drugs, were filled circles represent resistance.
 
 ![](https://github.com/jodyphelan/jodyphelan.github.io/raw/master/img/itol_example.png)
