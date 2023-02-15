@@ -33,7 +33,8 @@ def write_docx(json_results,conf,outfile,template_file,reporting_af = 0.0):
         'sensitive': True if data['drtype'] == "Sensitive" else False,
         'mdr': True if data['drtype'] in ("MDR-TB","Pre-XDR-TB") else False,
         'xdr': True if data['drtype'] in "XDR-TB" else False,
-        'resistant': True if data['drtype'] in ("Other","RR-TB","HR-TB") else False
+        'resistant': True if data['drtype'] in ("Other","RR-TB","HR-TB") else False,
+        'drtype': data['drtype'],
     }
 
     for d in conf['drugs']:
