@@ -188,7 +188,7 @@ def main_profile(args):
     }
     for file,target in result_files.items():
         if os.path.isfile(file):
-            shutil.mv(file,target)
+            shutil.move(file,target)
 
     pp.run_cmd("rm %s*" % args.files_prefix)
     
