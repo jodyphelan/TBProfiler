@@ -152,7 +152,7 @@ Plusieurs fichiers sont produits par la fonction `tb-profile collate`. Parmi ceu
 
 ## Citation
 
-i vous prévoyez d'utiliser TB-Profiler dans votre travail, veuillez citer [l'article](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0650-x) et inclure la version de `tb-profiler` et la base de données.
+Si vous prévoyez d'utiliser TB-Profiler dans votre travail, veuillez citer [l'article](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0650-x) et inclure la version de `tb-profiler` et la base de données.
 
 ## Problèmes
 
