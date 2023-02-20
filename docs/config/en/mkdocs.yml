@@ -1,0 +1,15 @@
+site_name: 'TB-Profiler'
+docs_dir: '../../docs/en'                           # Where to find the English markdown files
+site_dir: '../../html/en'                      # Where to put the English HTML files
+
+theme:
+  name: material
+  language: en
+extra:
+  alternate:
+    - name: English
+      link: /en/ 
+      lang: en
+    - name: Português
+      link: /pt/
+      lang: pt
