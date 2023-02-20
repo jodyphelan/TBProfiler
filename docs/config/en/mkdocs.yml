@@ -16,7 +16,7 @@ theme:
 extra:
   alternate:
     - name: English
-      link: https://jodyphelan.github.io/TBProfiler/
+      link: https://jodyphelan.github.io/TBProfiler/en/
       lang: en
     - name: Português
       link: https://jodyphelan.github.io/TBProfiler/pt/
