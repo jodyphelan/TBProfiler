@@ -4,7 +4,12 @@ site_dir: '../../build/pt'
 
 repo_url: https://github.com/jodyphelan/TBProfiler
 
-
+markdown_extensions:
+  - abbr
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  
 theme:
   name: material
   language: pt

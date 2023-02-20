@@ -32,6 +32,6 @@ tb-profiler profile -a /path/to/bam -p test
 
     The BAM files must have been created using the version of the genome as the database which can be downloaded here. Confusingly, this genome has multiple accession numbers (ASM19595v2, NC_000962.3, GCF_000195955.2, etc...). If you believe your reference to be the exact same sequence (length should be 4411532) then you can create a database with the same sequence name as used in your BAM file. For example if your sequence name is "NC_000962.3" you can do this by executing the following:
 
-```
-tb-profiler update_tbdb --match_ref /path/to/your/reference.fasta
-```
+    ```
+    tb-profiler update_tbdb --match_ref /path/to/your/reference.fasta
+    ```
