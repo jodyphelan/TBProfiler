@@ -6,24 +6,24 @@ def spoligotype(args):
     if "bam_file" in vars(args) and args.bam_file:
         result = bam2spoligotype(args.bam_file,args.files_prefix,args.conf,threads=args.threads,max_mem=args.ram)
     elif args.read1:
-        result = fq2spoligotype(r1=args.read1,r2=args.read2,files_prefix=args.files_prefix,conf=args.conf,threads=args.threads,max_mem=args.ram)
+        result = fq2spoligotype(r1=args.read1,r2=args.read2,files_prefix=args.files_prefix,conf=args.conf,threads=args.threads,max_mem=args.ram,kmer_counter=args.kmer_counter)
     elif args.fasta:
-        result = fa2spoligotype(args.fasta,args.files_prefix,args.conf,threads=args.threads,max_mem=args.ram)
+        result = fa2spoligotype(args.fasta,args.files_prefix,args.conf,threads=args.threads,max_mem=args.ram,kmer_counter=args.kmer_counter)
     ann = get_spoligotype_annotation(result["octal"],args.conf['spoligotype_annotations'])
     result.update(ann)
     return result
 
-def fa2spoligotype(fasta,files_prefix,conf,threads=1,max_mem=2):
+def fa2spoligotype(fasta,files_prefix,conf,threads=1,max_mem=2,counter="kmc"):
     fasta = pp.fasta(fasta)
-    kmers = fasta.get_kmer_counts(files_prefix,klen=25,threads=threads,max_mem=max_mem)
+    kmers = fasta.get_kmer_counts(files_prefix,klen=25,threads=threads,max_mem=max_mem,kmer_counter=kmer_counter)
     counts = kmers.load_kmer_counts(conf['spoligotype_spacers'])
     binary,octal = counts2spoligotype(counts,cutoff=1)
     return {"binary":binary,"octal":octal,"spacers":counts}
 
 
-def fq2spoligotype(r1,files_prefix,conf,r2=None,threads=1,max_mem=2):
+def fq2spoligotype(r1,files_prefix,conf,r2=None,threads=1,max_mem=2,kmer_counter="kmc"):
     fastq = pp.fastq(r1,r2)
-    kmers = fastq.get_kmer_counts(files_prefix,klen=25,threads=threads,max_mem=max_mem)
+    kmers = fastq.get_kmer_counts(files_prefix,klen=25,threads=threads,max_mem=max_mem,counter=kmer_counter)
     counts = kmers.load_kmer_counts(conf['spoligotype_spacers'])
     binary,octal = counts2spoligotype(counts)
     return {"binary":binary,"octal":octal,"spacers":counts}
@@ -59,7 +59,9 @@ def counts2spoligotype(counts,cutoff=None):
         spacers.append("1" if k['count']>=cutoff else "0")
     
     octal = []
-    for i in range(0,40,3):
+    for i in range(0,len(spacers),3):
+        if i+3>len(spacers): 
+            break
         tmp = "".join([spacers[i],spacers[i+1],spacers[i+2]])
         if tmp=="000":octal.append("0")
         elif tmp=="001":octal.append("1")
@@ -69,8 +71,8 @@ def counts2spoligotype(counts,cutoff=None):
         elif tmp=="101":octal.append("5")
         elif tmp=="110":octal.append("6")
         elif tmp=="111":octal.append("7")
-
-    octal.append("0" if spacers[42]=="0" else "1")
+    for j in range(len(spacers)-i):
+        octal.append("0" if spacers[i+j]=="0" else "1")
     sitvit_str = "".join(["n" if x=="1" else "o" for x in spacers])
     binary_str = "".join(spacers)
     octal_str = "".join(octal)
