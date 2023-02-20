@@ -2,13 +2,21 @@ site_name: 'TB-Profiler'
 docs_dir: '../../docs/en'                           # Where to find the English markdown files
 site_dir: '../../build/en'                      # Where to put the English HTML files
 
+repo_url: https://github.com/jodyphelan/TBProfiler
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
 theme:
   name: material
   language: en
+  
 extra:
   alternate:
     - name: English
-      link: https://jodyphelan.github.io/TBProfiler/en/
+      link: https://jodyphelan.github.io/TBProfiler/
       lang: en
     - name: Português
       link: https://jodyphelan.github.io/TBProfiler/pt/

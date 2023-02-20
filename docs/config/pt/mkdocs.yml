@@ -1,6 +1,9 @@
 site_name: 'TB-Profiler'
-docs_dir: '../../docs/pt'                           # Where to find the English markdown files
-site_dir: '../../build/pt'                      # Where to put the English HTML files
+docs_dir: '../../docs/pt'                  
+site_dir: '../../build/pt'                 
+
+repo_url: https://github.com/jodyphelan/TBProfiler
+
 
 theme:
   name: material
@@ -8,7 +11,7 @@ theme:
 extra:
   alternate:
     - name: English
-      link: https://jodyphelan.github.io/TBProfiler/en/
+      link: https://jodyphelan.github.io/TBProfiler/
       lang: en
     - name: Português
       link: https://jodyphelan.github.io/TBProfiler/pt/
