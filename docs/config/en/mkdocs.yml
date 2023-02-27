@@ -22,3 +22,16 @@ extra:
     - name: Português
       link: https://jodyphelan.github.io/TBProfiler/pt/
       lang: pt
+
+nav:
+    - Introduction: 'index.md'
+    - Install: 'install.md'
+    - Quickstart: 'quickstart.md'
+    - Mutation Library: 'mutation-library.md'
+    - Output files: 'output-files.md'
+    - Updating: 'updating.md'
+    - Webserver: 'webserver.md'
+    - Windows: 'windows.md'
+    - Citation: 'citation.md'
+    - Batch run: 'batch-run.md'
+    - Custom scripts: 'custom-collate.md'

@@ -1,4 +1,9 @@
-# Generating summary files
+# Output files
+
+## Output formats
+
+
+## Generating summary files
 
 The results from numerous runs can be collated into one table using the following command:
 
