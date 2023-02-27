@@ -5,3 +5,4 @@ tbprofiler/__pycache__
 .vscode
 tests/scratch
 tests/__pycache__
+.DS_Store
