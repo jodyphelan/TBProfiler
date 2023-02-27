@@ -4,9 +4,24 @@
 
 ### Default output 
 
-By default a `.json` formatted output file is produced in a directory called `results`. This file contains information about the mutations found as well as some QC metrics. This format is perfect to load into script for downstream processing but it isn't very human-readable. 
+By default a `.json` formatted output file is produced in a directory called `results`. This file contains information including mutations found, lineage as well as some QC metrics. This format is perfect to load into script for downstream processing but it isn't very human-readable. 
 
+### Text outputs
 
+For a more human-readlable format you can use the `--csv` and `--txt` flags to generate outputs in csv and text format too. These files will contain several tables listing similar information to the json format. For advanced users, it is possible to customise this format by providing a template file. This template should be written in the [jinja templating language](https://jinja.palletsprojects.com/en/3.1.x/). A variable named `d` will be available within the template. This variable contains the exact same structure as the json file. For example, a simple template could be:
+
+```
+Custom TB-Profiler report
+
+Lineage: {{d['sublin']}}
+Drug-resistance: {{d['drtype']}}
+```
+
+### Docx output
+
+It is also possible produce a nice-looking docx formatted report that can be viewed in Word or converted into pdf. The advantage of this is that it can contain images, text formatting, etc. To create this report, a template file must be provided. As with the text custom format, the docx template should have jinja variables defined that will be filled in with sample data when a report is generated. Details on the available variabled for the templating engine can be found [here](https://github.com/jodyphelan/TBProfiler/blob/master/tbprofiler/docx.py).
+
+![example_report](https://github.com/jodyphelan/TBProfiler/raw/docs/docs/assets/img/report_example.png)
 
 ## Generating summary files
 
