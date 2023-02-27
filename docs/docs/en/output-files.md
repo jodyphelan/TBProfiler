@@ -2,6 +2,11 @@
 
 ## Output formats
 
+### Default output 
+
+By default a `.json` formatted output file is produced in a directory called `results`. This file contains information about the mutations found as well as some QC metrics. This format is perfect to load into script for downstream processing but it isn't very human-readable. 
+
+
 
 ## Generating summary files
 
