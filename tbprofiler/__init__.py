@@ -6,4 +6,4 @@ from .spoligotyping import *
 from .output import *
 from .snp_dists import *
 
-__version__ = "4.4.2"
+__version__ = "4.5.0"
