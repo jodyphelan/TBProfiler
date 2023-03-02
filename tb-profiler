@@ -30,7 +30,8 @@ def cleanup():
             outfile = "%s.errlog.txt" % args.vcf.split("/")[-1]
         else:
             outfile = "%s.errlog.txt" % uuid4() 
-        del args.conf['json_db']
+        if "conf" in vars(args):
+            del args.conf['json_db']
         with open(outfile, "w") as O:
             O.write("# tb-profiler error report\n\n")
             O.write("* OS: %s\n" % sys.platform)
