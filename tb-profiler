@@ -192,7 +192,7 @@ def main_profile(args):
 
     pp.run_cmd("rm %s*" % args.files_prefix)
     
-    tbp.write_outputs(args,results,template_file=args.output_template)
+    tbp.write_outputs(args,results,template_file=args.text_template)
     if args.snp_dist:
         tbp.update_neighbour_snp_dist_output(args,results)
         
@@ -258,7 +258,7 @@ def main_lineage(args):
 
     results["barcode"] = pp.barcode(mutations,args.conf["barcode"],snps_file=snps_file)
     tbp.barcode2lineage(results)
-    tbp.write_outputs(args,results,template_file=args.output_template)
+    tbp.write_outputs(args,results,template_file=args.text_template)
 
 def main_spoligotype(args):
     if pp.nofolder("results"):
@@ -274,7 +274,7 @@ def main_spoligotype(args):
     results["pipeline"] = [
         {"Analysis":"Kmer-counting","Program":"kmc"}
     ]
-    tbp.write_outputs(args,results,template_file=args.output_template)
+    tbp.write_outputs(args,results,template_file=args.text_template)
 
 def main_collate(args):
     tbp.collate_results(args.prefix,args.conf,sample_file=args.samples,result_dir=args.dir,reporting_af=args.reporting_af,mark_missing=args.mark_missing)
@@ -286,7 +286,7 @@ def main_reformat(args):
 
     results = json.load(open(args.json))
     args.prefix = results["id"]
-    tbp.write_outputs(args,results,template_file=args.output_template)
+    tbp.write_outputs(args,results,template_file=args.text_template)
 
 
 def main_fasta_profile(args):
@@ -434,9 +434,9 @@ output=parser_sub.add_argument_group("Output options")
 output.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix for all results generated')
 output.add_argument('--csv',action="store_true",help="Add CSV output")
 output.add_argument('--txt',action="store_true",help="Add text output")
-output.add_argument('--pdf',action="store_true",help="Add PDF output. This requires weasyprint to be installed")
-output.add_argument('--docx',help="Add docx output. This requires docxtpl to be installed")
-output.add_argument('--output_template',type=str,help='Jinja2 formatted template for output')
+output.add_argument('--text_template',type=str,help='Jinja2 formatted template for output')
+output.add_argument('--docx',action="store_true",help="Add docx output")
+output.add_argument('--docx_template',help="Supply custom template for --docx output")
 output.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and csv results")
 output.add_argument('--add_mutation_metadata',action="store_true",help=argparse.SUPPRESS)
 output.add_argument('--dir','-d',default=".",help='Storage directory')
@@ -485,7 +485,7 @@ parser_sub.add_argument('--lofreq_sample_name',help='Sample name to use if VCF h
 parser_sub.add_argument('--suspect',action="store_true",help="Use the suspect suite of tools to add ML predictions")
 parser_sub.add_argument('--txt',action="store_true",help="Add text output")
 parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
-parser_sub.add_argument('--docx',help="Add docx output. This requires docxtpl to be installed")
+parser_sub.add_argument('--docx',action="store_true",help="Add docx output. This requires docxtpl to be installed")
 parser_sub.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and csv results")
 parser_sub.add_argument('--verbose',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
 parser_sub.add_argument('--delly_vcf',help=argparse.SUPPRESS)
@@ -505,7 +505,7 @@ parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (
 parser_sub.add_argument('--suspect',action="store_true",help="Use the suspect suite of tools to add ML predictions")
 parser_sub.add_argument('--txt',action="store_true",help="Add text output")
 parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
-parser_sub.add_argument('--docx',help="Add docx output. This requires docxtpl to be installed")
+parser_sub.add_argument('--docx',action="store_true",help="Add docx output. This requires docxtpl to be installed")
 parser_sub.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and csv results")
 parser_sub.add_argument('--kmer_counter',default='kmc',choices=["kmc","dsk"],type=str,help="Kmer counter")
 parser_sub.add_argument('--verbose',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
@@ -521,7 +521,7 @@ parser_sub.add_argument('--bam','-a',required=True, help='BAM file. Make sure it
 parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
 parser_sub.add_argument('--txt',action="store_true",help="Add text output")
 parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
-parser_sub.add_argument('--docx',help="Add docx output. This requires docxtpl to be installed")
+parser_sub.add_argument('--docx',action="store_true",help="Add docx output. This requires docxtpl to be installed")
 parser_sub.add_argument('--snps',action="store_true",help='Sample prefix')
 parser_sub.add_argument('--caller',default='freebayes',choices=["bcftools","freebayes","gatk"],type=str,help="Variant caller")
 parser_sub.add_argument('--kmer_counter',default='kmc',choices=["kmc","dsk"],type=str,help="Kmer counter")
@@ -529,7 +529,7 @@ parser_sub.add_argument('--platform','-m',choices=["illumina","nanopore","pacbio
 parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
 parser_sub.add_argument('--spoligotype',action="store_true",help="Perform in-silico spoligotyping (experimental feature)")
 parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
-parser_sub.add_argument('--output_template',type=str,help='Jinja2 formatted template for output')
+parser_sub.add_argument('--text_template',type=str,help='Jinja2 formatted template for output')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
@@ -545,8 +545,8 @@ group.add_argument('--fasta','-f',help='Fasta file')
 parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
 parser_sub.add_argument('--txt',action="store_true",help="Add text output")
 parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
-parser_sub.add_argument('--docx',help="Add docx output. This requires docxtpl to be installed")
-parser_sub.add_argument('--output_template',type=str,help='Jinja2 formatted template for output')
+parser_sub.add_argument('--docx',action="store_true",help="Add docx output. This requires docxtpl to be installed")
+parser_sub.add_argument('--text_template',type=str,help='Jinja2 formatted template for output')
 parser_sub.add_argument('--kmer_counter',default='kmc',choices=["kmc","dsk"],type=str,help="Kmer counter")
 parser_sub.add_argument('--platform','-m',choices=["illumina","nanopore","pacbio"],default="illumina",help='NGS Platform used to generate data')
 parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
@@ -595,8 +595,9 @@ parser_sub = subparsers.add_parser('reformat', help='Reformat json results into 
 parser_sub.add_argument('json',default="tbprofiler",help='Sample prefix')
 parser_sub.add_argument('--txt',action="store_true",help="Add text output")
 parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
-parser_sub.add_argument('--docx',help="Add docx output. This requires docxtpl to be installed")
-parser_sub.add_argument('--output_template',type=str,help='Jinja2 formatted template for output')
+parser_sub.add_argument('--docx',action="store_true",help="Add docx output. This requires docxtpl to be installed")
+parser_sub.add_argument('--docx_template',help="Supply custom template for --docx output")
+parser_sub.add_argument('--text_template',type=str,help='Jinja2 formatted template for output')
 parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
 parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')

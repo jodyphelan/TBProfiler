@@ -1,4 +1,3 @@
-from .pdf import *
 from .text import *
 from .reformat import *
 from .collate import *

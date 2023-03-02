@@ -108,7 +108,7 @@ def update_neighbour_snp_dist_output(args,results):
                 temp_args.prefix = s['sample']
                 # if args.nj:
                     # results['_tree'] = make_nj_tree(temp_args,data)
-                write_outputs(temp_args,data,template_file=args.output_template)
+                write_outputs(temp_args,data,template_file=args.text_template)
                 debug("Finished with lock for %s" % f)
 
 # def make_nj_tree(args,results):
