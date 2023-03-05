@@ -1,4 +1,4 @@
-import quickle
+import pickle
 from pathogenprofiler import cmd_out,debug,infolog,errlog
 import os
 import json
@@ -31,29 +31,29 @@ def write_variant_set(vcf_file, prefix, exclude_bed, min_cov=10, min_freq=0.8):
         if gt=="1/1":
             ref_diffs.add(int(pos))
 
-    filename = prefix + ".non_ref.qkl"
-    open(filename,"wb").write(quickle.dumps((ref_diffs,missing)))
+    filename = prefix + ".non_ref.pkl"
+    open(filename,"wb").write(pickle.dumps((ref_diffs,missing)))
     return variant_set(filename)
 
 class variant_set:
     def __init__(self, filename):
         self.filename = filename
-        self.diffs,self.missing = quickle.loads(open(filename,"rb").read())
+        self.diffs,self.missing = pickle.loads(open(filename,"rb").read())
     
     def get_snp_dist(self, set_file):
-        other_diffs,other_missing = quickle.loads(open(set_file,"rb").read())
+        other_diffs,other_missing = pickle.loads(open(set_file,"rb").read())
         pairwise_dists = self.diffs.symmetric_difference(other_diffs)
         pairwise_dists -= self.missing
         pairwise_dists -= other_missing
         return len(pairwise_dists)
     def get_close_samples(self,dir,cutoff=20):
         self.sample_dists = []
-        directory_files = [f for f in os.listdir(dir) if f.endswith(".qkl")]
+        directory_files = [f for f in os.listdir(dir) if f.endswith(".pkl")]
         infolog(f"Searching across {len(directory_files)} files")
         for f in directory_files:
             dist = self.get_snp_dist(os.path.join(dir,f))
             self.sample_dists.append({
-                "sample":f.replace(".non_ref.qkl",""),
+                "sample":f.replace(".non_ref.pkl",""),
                 "distance":dist
             })
         return [x for x in self.sample_dists if x["distance"]<=cutoff]
@@ -139,8 +139,8 @@ def update_neighbour_snp_dist_output(args,results):
 #             elif (si,sj) in dist_dict:
 #                 row.append(dist_dict[(si,sj)])
 #             else:
-#                 si_set_file = os.path.join(args.dir,"results",f"{si}.non_ref.qkl")
-#                 sj_set_file = os.path.join(args.dir,"results",f"{sj}.non_ref.qkl")
+#                 si_set_file = os.path.join(args.dir,"results",f"{si}.non_ref.pkl")
+#                 sj_set_file = os.path.join(args.dir,"results",f"{sj}.non_ref.pkl")
 #                 si_set = variant_set(si_set_file)
 #                 d = si_set.get_snp_dist(sj_set_file)
 #                 row.append(d)
