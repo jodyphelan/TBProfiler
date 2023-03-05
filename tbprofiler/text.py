@@ -102,16 +102,25 @@ def stringify_annotations(annotation):
         annotations.append("|".join([f'{key}={val}' for key,val in ann.items()]))
     return ";".join(annotations)
 
-def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="\t",add_annotations=True,template_file = None,use_suspect=False):
+def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="\t",add_annotations=True,template_file = None):
     json_results = copy(json_results)
     if columns==None:
         columns = []
-    if use_suspect:
-        columns.append("evidence")
+
+    
     text_strings = json_results
     text_strings["id"] = json_results["id"]
     text_strings["date"] = time.ctime()
     if "dr_variants" in json_results:
+        use_suspect = False
+        for v in json_results["dr_variants"]:
+            for d in v["drugs"]:
+                if "evidence" in d:
+                    if d["evidence"] in ('suspect-PZA','suspect-BDQ'):
+                        use_suspect = True
+
+        if use_suspect:
+            columns.append("evidence")
         if add_annotations:
             for var in json_results["dr_variants"] + json_results["other_variants"]:
                 if "annotation" in var:

@@ -27,10 +27,10 @@ def write_outputs(args,results,template_file = None):
 
     if args.txt:
         infolog(f"Writing text file: {text_output}")
-        write_text(results,args.conf,text_output,extra_columns,reporting_af=args.reporting_af,sep="\t",template_file=template_file,use_suspect=args.suspect)
+        write_text(results,args.conf,text_output,extra_columns,reporting_af=args.reporting_af,sep="\t",template_file=template_file)
     if args.csv:
         infolog(f"Writing csv file: {csv_output}")
-        write_text(results,args.conf,csv_output,extra_columns,reporting_af=args.reporting_af,sep=",",template_file = template_file,use_suspect=args.suspect)
+        write_text(results,args.conf,csv_output,extra_columns,reporting_af=args.reporting_af,sep=",",template_file = template_file)
     if args.docx:
         infolog(f"Writing docx file: {docx_output}")
         write_docx(results,args.conf,docx_output,reporting_af=args.reporting_af,template_file = args.docx_template)
