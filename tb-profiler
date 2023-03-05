@@ -201,6 +201,7 @@ def main_profile(args):
     pp.successlog("\nProfiling finished sucessfully!")
 
 def main_update_tbdb(args):
+    tmp = "--match_ref %s" % os.path.abspath(args.match_ref) if args.match_ref else ""
     if pp.nofolder("tbdb"):
         pp.run_cmd(f"git clone {args.repo}")
     os.chdir("tbdb")
@@ -209,7 +210,6 @@ def main_update_tbdb(args):
     pp.run_cmd("git pull")
     if args.commit:
         pp.run_cmd(f"git checkout {args.commit}")
-    tmp = "--match_ref %s" % args.match_ref if args.match_ref else ""
     pp.run_cmd(f"tb-profiler create_db --prefix {args.prefix} {tmp} --load")
     os.chdir("../")
     pp.successlog("Sucessfully updated TBDB")
