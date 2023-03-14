@@ -158,14 +158,14 @@ def main_profile(args):
             results["spoligotype"] = tbp.spoligotype(args)
 
   
-    if args.snp_dist:
-        tbp.run_snp_dists(args,results)
 
 
     ### Reformat the results to TB-Profiler style ###
     results = tbp.reformat(results, args.conf, reporting_af=args.reporting_af, mutation_metadata=args.add_mutation_metadata,use_suspect=args.suspect)
     results["id"] = args.prefix
 
+    if args.snp_dist:
+        tbp.run_snp_dists(args,results)
     
     results["pipeline"] = [
         {"Analysis":"Mapping","Program":args.read1 if not args.bam else "N/A"},
@@ -456,6 +456,8 @@ algorithm.add_argument('--suspect',action="store_true",help="Use the suspect sui
 algorithm.add_argument('--spoligotype',action="store_true",help="Perform in-silico spoligotyping (experimental feature)")
 algorithm.add_argument('--call_whole_genome',action="store_true",help="Call variant across the whole genome")
 algorithm.add_argument('--snp_dist',type=int,help="Store variant set and get all samples with snp distance less than this cutoff (experimental feature)")
+algorithm.add_argument('--snp_diff_db',type=str,help=argparse.SUPPRESS)
+algorithm.add_argument('--snp_diff_no_store',action='store_true',help=argparse.SUPPRESS)
 # algorithm.add_argument('--nj',action="store_true",help="Make an nj tree from snp distances (experimental feature)")
 algorithm.add_argument('--no_trim',action="store_true",help="Don't trim files using trimmomatic")
 algorithm.add_argument('--no_flagstat',action="store_true",help="Don't collect flagstats")
