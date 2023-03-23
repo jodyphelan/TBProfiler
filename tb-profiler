@@ -167,6 +167,11 @@ def main_profile(args):
     results = tbp.reformat(results, args.conf, reporting_af=args.reporting_af, mutation_metadata=args.add_mutation_metadata,use_suspect=args.suspect)
     results["id"] = args.prefix
 
+    ### Create folders for results if they don't exist ###
+    for x in ["bam","vcf","results"]:
+        if pp.nofolder(args.dir+"/"+x):
+            os.mkdir(args.dir+"/"+x)
+
     if args.snp_dist:
         tbp.run_snp_dists(args,results)
     
@@ -175,9 +180,6 @@ def main_profile(args):
         {"Analysis":"Variant calling","Program":args.caller}
     ]
 
-    for x in ["bam","vcf","results"]:
-        if pp.nofolder(args.dir+"/"+x):
-            os.mkdir(args.dir+"/"+x)
 
     
 
