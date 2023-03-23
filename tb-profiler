@@ -135,6 +135,9 @@ def main_profile(args):
 
     args = pp.set_platform_params(args)
 
+    if args.snp_dist:
+        args.call_whole_genome = True
+
     ### Create bam file if fastq has been supplied ###
     # bam_file = pp.get_bam_file(args)
 
@@ -278,7 +281,7 @@ def main_spoligotype(args):
     tbp.write_outputs(args,results,template_file=args.text_template)
 
 def main_collate(args):
-    tbp.collate_results(args.prefix,args.conf,sample_file=args.samples,result_dir=args.dir,reporting_af=args.reporting_af,mark_missing=args.mark_missing)
+    tbp.collate_results(args.prefix,args.conf,sample_file=args.samples,result_dirs=args.dir,reporting_af=args.reporting_af,mark_missing=args.mark_missing)
 
 def main_version(args):
     sys.stdout.write("\nTBProfiler version %s\n" % tbp.__version__)
@@ -571,7 +574,7 @@ parser_sub.add_argument('--mark_missing',action="store_true",help='An asteriks w
 parser_sub.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to call variants')
 parser_sub.add_argument('--db',default='tbdb',help='Full path to mutation database json file to use')
 parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
-parser_sub.add_argument('--dir','-d',default="results",help='Storage directory')
+parser_sub.add_argument('--dir','-d',nargs="+",default=["results"],help='Storage directory')
 parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
