@@ -101,9 +101,9 @@ def run_snp_dists(args,results):
     else:
         dbname = f'{args.dir}/results/snp_diffs.db'
     db = DB(dbname)
-    results["close_samples"] = db.search(results,wg_vcf,args.conf['bedmask'],args.snp_dist)
     if not args.snp_diff_no_store:
         db.store(results,wg_vcf,args.conf['bedmask'])
+    results["close_samples"] = db.search(results,wg_vcf,args.conf['bedmask'],args.snp_dist)
     results["close_samples"] = [d for d in results["close_samples"] if d["sample"]!=results["id"]]
     t2 = time()
     dt = int(t2-t1)
