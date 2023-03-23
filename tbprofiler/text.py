@@ -26,6 +26,12 @@ Strain{{d['sep']}}{{d['strain']}}
 Drug-resistance{{d['sep']}}{{d['drtype']}}
 Median Depth{{d['sep']}}{{d['med_dp']}}
 
+{% if 'notes' in d %}
+Notes
+--------------------
+{{d['notes']}}
+{% endif %}
+
 Lineage report
 --------------
 {{d['lineage_report']}}
@@ -140,6 +146,8 @@ def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="
         text_strings["other_var_report"] = dict_list2text(json_results["other_variants"],mappings={"genome_pos":"Genome Position","locus_tag":"Locus Tag","gene":"Gene","type":"Variant type","change": "Change","freq":"Estimated fraction","annotation_str":"Annotation"},sep=sep)
         text_strings["drtype"] = json_results["drtype"]
        
+    if "notes" in json_results:
+        text_strings['notes'] = "\n".join(json_results['notes'])
 
     if "sublin" in json_results:
         text_strings["strain"] = json_results["sublin"]
