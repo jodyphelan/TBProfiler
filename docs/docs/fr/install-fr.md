@@ -50,5 +50,5 @@ La pipline peut également être exécutée via docker. C'est pratique lorsque l
 docker pull quay.io/biocontainers/tb-profiler:4.3.0--pypyh5e36f6f_0
 ```
 
-Si la méthode ci-dessus ne fonctionne pas, n'hésitez pas à [soulever un problème] (https://github.com/jodyphelan/TBProfiler/issues). Nous essayerons de vous aider à démarrer !
+Si la méthode ci-dessus ne fonctionne pas, n'hésitez pas à [soulever un problème](https://github.com/jodyphelan/TBProfiler/issues). Nous essayerons de vous aider à démarrer !
 
