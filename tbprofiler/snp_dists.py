@@ -53,6 +53,7 @@ class DB:
         self.diffs = diffs
         self.missing = missing
     def search(self,json_results,vcf_file, exclude_bed, cutoff = 20, min_cov=10, min_freq=0.8):
+        debug("Searching for close samples in %s" % self.filename)
         self.c.execute("SELECT sample, diffs, missing FROM variants WHERE lineage=?",(json_results['sublin'],))
         self.diffs,self.missing = extract_variant_set(vcf_file, exclude_bed, min_cov, min_freq)
         sample_dists = []
@@ -60,10 +61,15 @@ class DB:
             dist = self.diffs.symmetric_difference(pickle.loads(d))
             dist -= self.missing
             dist -= pickle.loads(m) 
-            if (d:=len(dist))<20:
+            if (ld:=len(dist))<cutoff:
+                snp_union = self.diffs.union(pickle.loads(d))
+                missing_union = self.missing.union(pickle.loads(m))
+                percent_missing = len(snp_union.intersection(missing_union))/len(snp_union)
                 sample_dists.append({
                     "sample":s,
-                    "distance":d
+                    "distance":ld,
+                    "diffs":list(dist),
+                    "percent_missing": percent_missing
                 })
         return sample_dists
 
