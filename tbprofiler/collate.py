@@ -6,10 +6,24 @@ from .utils import get_lt2drugs
 from pathogenprofiler import errlog,debug
 import csv 
 
-def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_results=True,full_variant_results=True,reporting_af=0.1,mark_missing=False,sep="\t"):
-    if not os.path.isdir(result_dir):
-        errlog("\nERROR: Can't find directory %s\n" % result_dir )
-        exit()
+def get_common_fields(rows):
+    cols = set(rows[0].keys())
+    for r in rows[1:]:
+        cols = cols.intersection(set(r.keys()))
+    return cols
+
+def get_field_values(rows,cols):
+    new_rows = []
+    for r in rows:
+        new_rows.append({c:r.get(c,None) for c in cols})
+    return new_rows
+
+
+def collate_results(prefix,conf,result_dirs=["./results"],sample_file=None,full_results=True,full_variant_results=True,reporting_af=0.1,mark_missing=False,sep="\t"):
+    for d in result_dirs:
+        if not os.path.isdir(d):
+            errlog("\nERROR: Can't find directory %s\n" % d )
+            exit()
     set_all_drugs = set()
     for l in open(conf["bed"]):
         arr = l.rstrip().split()
@@ -24,10 +38,16 @@ def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_res
         if d not in drug_list:
             drug_list.append(d)
 
+
+    samples = {}
+    for d in result_dirs:
+        for f in os.listdir(f"{d}/"):
+            if f.endswith(".results.json"):
+                s = f[:-13]
+                samples[s] = f'{d}/{s}.results.json'
+
     if sample_file:
-        samples = [x.rstrip() for x in open(sample_file).readlines()]
-    else:
-        samples = [x.replace(".results.json","") for x in os.listdir("%s/" % result_dir) if x[-13:]==".results.json"]
+        samples = {s:samples[s] for s in [l.strip() for l in open(sample_file)]}
 
     results = defaultdict(dict)
     result_rows = []
@@ -45,7 +65,7 @@ def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_res
     for s in tqdm(samples):
         res = {"sample":s}
         dr_drugs[s] = set()
-        temp = json.load(open("%s/%s.results.json" % (result_dir,s)))
+        temp = json.load(open(samples[s]))
 
         missing_drugs = set()
         if "missing_positions" in temp["qc"]:
@@ -91,9 +111,10 @@ def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_res
                 tmp_edges.add((sorted_samples[0],sorted_samples[1],d['distance']))
 
     with open(prefix+".txt","w") as OUT:
-        writer = csv.DictWriter(OUT,fieldnames=list(result_rows[0]),delimiter=sep)
+        fields = get_common_fields(result_rows)
+        writer = csv.DictWriter(OUT,fieldnames=fields,delimiter=sep)
         writer.writeheader()
-        writer.writerows(result_rows)
+        writer.writerows(get_field_values(result_rows,fields))
 
     if full_variant_results:
 
