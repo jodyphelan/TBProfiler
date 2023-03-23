@@ -311,5 +311,5 @@ python tbprofiler_custom_script.py --dir /path/to/dir --out test.csv
 
 Si cela fonctionne comme prévu, essayez d'ajouter d'autres informations à la sortie. Par exemple, vous pouvez extraire le sous-lignage en accédant à `data["sublin"]`. Jetez un oeil à la structure du fichier résultat (vous pouvez l'ouvrir avec un navigateur web pour le rendre dans un format plus lisible).
 
-Nous espérons que vous pourrez utiliser ce modèle comme un modèle standard pour vos propres utilisations. Il y a quelques exemples disponibles [ici] (https://github.com/jodyphelan/tbprofiler_scripts) si vous êtes intéressés. Si vous avez des questions ou si vous avez un script sympa que vous aimeriez mettre à la disposition de la communauté, n'hésitez pas à me contacter par email ou via [GitHub](https://github.com/jodyphelan/TBProfiler/issues). 
+Nous espérons que vous pourrez utiliser ce modèle comme un modèle standard pour vos propres utilisations. Il y a quelques exemples disponibles [ici](https://github.com/jodyphelan/tbprofiler_scripts) si vous êtes intéressés. Si vous avez des questions ou si vous avez un script sympa que vous aimeriez mettre à la disposition de la communauté, n'hésitez pas à me contacter par email ou via [GitHub](https://github.com/jodyphelan/TBProfiler/issues). 
 
