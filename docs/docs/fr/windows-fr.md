@@ -31,7 +31,7 @@ docker pull quay.io/biocontainers/tb-profiler:4.3.0--pypyh5e36f6f_0
 Maintenant que vous avez l'image, vous pouvez configurer un container. Pour ce faire, vous pouvez ouvrir Docker Desktop qui a été installé dans le cadre de l'installation de Docker. Naviguez vers l'onglet "Images" et survolez l'image tb-profiler et cliquez sur "Run". Développez la section "Optional settings" et remplissez la case Volumnes. Cela vous permet de faire correspondre un dossier sur votre machine locale à un répertoire dans le container linux :
 
 * **Host path**: cliquez sur les trois points pour vous aider à sélectionner le dossier
-* **Container path**: ecrir dans "/mnt"
+* **Container path**: ecrir "/mnt"
 
 <img src="https://3546519222-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2F-M9cvGy4eVqvGN5UqFAr%2Fuploads%2FL5W92nGivltyk71fGRAY%2FDocker_5.PNG?alt=media&token=a30c07be-bdce-49b3-b137-df7e3c96c26b">
 
