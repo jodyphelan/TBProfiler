@@ -14,11 +14,12 @@ This page has all the info you need to get started, however additional (and more
 
 Short readme
 * [EN](https://github.com/jodyphelan/TBProfiler/blob/master/README.md)
-* [FR](https://github.com/jodyphelan/TBProfiler/blob/master/docs/README-FR.md) (@justicengom)
+* [FR](https://github.com/jodyphelan/TBProfiler/blob/master/docs/README-FR.md) ([@justicengom](https://github.com/justicengom))
 
 In depth documentation
 * [EN](https://jodyphelan.github.io/TBProfiler/en/)
-* [PT](https://jodyphelan.github.io/TBProfiler/pt/)
+* [PT](https://jodyphelan.github.io/TBProfiler/pt/) ([@emilyncosta](https://github.com/emilyncosta))
+* [FR](https://jodyphelan.github.io/TBProfiler/fr/) ([@justicengom](https://github.com/justicengom))
 
 ## Keeping up to date
 TB-Profiler is under constant rapid development. If you plan to use the program in your work please make sure you are using the most up to date version! Similarly, the database is not static and is continuously being improved so make sure you are using the most latest version. If you use TB-Profiler in your work please state the version of both the tool and the database as they are developed independantly from each other.
