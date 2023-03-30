@@ -8,9 +8,12 @@ import csv
 
 def get_common_fields(rows):
     cols = set(rows[0].keys())
-    for r in rows[1:]:
+    orders = {}
+    for r in rows:
         cols = cols.intersection(set(r.keys()))
-    return cols
+        for i,c in enumerate(r):
+            orders[c] = i
+    return sorted(cols,key=lambda x:orders[x])
 
 def get_field_values(rows,cols):
     new_rows = []
