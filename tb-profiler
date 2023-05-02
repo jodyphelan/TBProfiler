@@ -395,7 +395,7 @@ def main_batch(args):
             elif "fasta" in row:
                 line += f" -f {row['fasta']}"
             O.write(line + " " + args.args + "\n")
-    pp.run_cmd(f"cat {script_file} | parallel -j {args.jobs}")
+    pp.run_cmd(f"cat {script_file} | parallel -j {args.jobs} --bar")
     os.remove(script_file)
 
 def main_list_db(args):
