@@ -1,5 +1,5 @@
 from .text import write_text
-from .pdf import write_pdf
+# from .pdf import write_pdf
 from .docx import write_docx
 from datetime import datetime
 from pathogenprofiler import infolog, debug
