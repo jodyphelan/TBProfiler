@@ -5,5 +5,6 @@ from .utils import *
 from .spoligotyping import *
 from .output import *
 from .snp_dists import *
+from .phylo import *
 
 __version__ = "4.5.0"
