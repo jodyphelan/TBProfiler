@@ -68,7 +68,7 @@ def calculate_phylogeny(args):
         tmp_vcf = f"{args.files_prefix}.{s}.vcf.gz"
         run_cmd(f"bcftools norm -m - {args.dir}/vcf/{s}.vcf.gz | bcftools view -T ^{args.bedmask} | setGT.py | bcftools view -v snps -Oz -o {tmp_vcf}")
         run_cmd(f"bcftools index {tmp_vcf}")
-        run_cmd(f"bcftools consensus -f {args.conf['ref']} {tmp_vcf} | sed 's/\>/\>{s} /' >> {alignment_file}")
+        run_cmd(f"bcftools consensus -f {args.conf['ref']} {tmp_vcf} | sed 's/>/>{s} /' >> {alignment_file}")
         run_cmd(f"rm {tmp_vcf} {tmp_vcf}.csi")
     alignment_file_plus_ref = f"{args.files_prefix}.aln.plus_ref"
     run_cmd(f"cat {args.conf['ref']} > {alignment_file_plus_ref}")
