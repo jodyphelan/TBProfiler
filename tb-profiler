@@ -693,7 +693,10 @@ if hasattr(args, 'func'):
     args.tmp_prefix = str(uuid4())
     args.files_prefix = os.path.abspath(f"{args.temp}/{args.tmp_prefix}")
     if hasattr(args,'dir'):
-        args.dir = os.path.abspath(args.dir)
+        if isinstance(args.dir,list):
+            args.dir = [os.path.abspath(x) for x in args.dir]
+        else:
+            args.dir = os.path.abspath(args.dir)
 
     if hasattr(args, 'db'):
         if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
