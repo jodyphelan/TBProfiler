@@ -23,7 +23,9 @@ def usher_add_sample(args):
         os.chdir(args.temp)
         run_cmd("usher --vcf %(tmp_masked_vcf)s --load-mutation-annotated-tree %(input_phylo)s --save-mutation-annotated-tree %(tmp_output_phylo)s --write-uncondensed-final-tree" % vars(args))
         run_cmd("mv uncondensed-final-tree.nh %(output_nwk)s" % vars(args))
-        run_cmd("rm mutation-paths.txt placement_stats.tsv")
+        for f in ["mutation-paths.txt","placement_stats.tsv"]:
+            if os.path.exists(f):
+                os.remove(f)
         run_cmd("mv %(tmp_output_phylo)s %(input_phylo)s " % vars(args))
         os.chdir(cwd)
 
