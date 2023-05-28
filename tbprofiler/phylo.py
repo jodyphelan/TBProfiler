@@ -21,7 +21,7 @@ def usher_add_sample(args):
     with lock:
         run_cmd("bcftools view -T ^%(bedmask)s %(wg_vcf)s -Oz -o %(tmp_masked_vcf)s" % vars(args))
         os.chdir(args.temp)
-        run_cmd("/Users/jody/miniconda3/envs/usher/bin/usher --vcf %(tmp_masked_vcf)s --load-mutation-annotated-tree %(input_phylo)s --save-mutation-annotated-tree %(tmp_output_phylo)s --write-uncondensed-final-tree" % vars(args))
+        run_cmd("usher --vcf %(tmp_masked_vcf)s --load-mutation-annotated-tree %(input_phylo)s --save-mutation-annotated-tree %(tmp_output_phylo)s --write-uncondensed-final-tree" % vars(args))
         run_cmd("mv uncondensed-final-tree.nh %(output_nwk)s" % vars(args))
         run_cmd("rm mutation-paths.txt placement_stats.tsv")
         run_cmd("mv %(tmp_output_phylo)s %(input_phylo)s " % vars(args))
