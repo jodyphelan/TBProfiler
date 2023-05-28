@@ -15,6 +15,14 @@ def usher_add_sample(args):
     args.tmp_output_phylo = f"{args.files_prefix}.pb"
     args.output_nwk = f"{args.files_prefix}.nwk"
     args.bedmask = args.conf['bedmask']
+    
+    tmp_file = args.files_prefix + ".tmp.samples"
+    run_cmd(f"matUtils extract -u {tmp_file} -i {args.input_phylo}")
+    phylo_samples = [l.strip() for l in open(tmp_file)]
+    if args.prefix in phylo_samples:
+        return 
+    
+
     lock = filelock.FileLock(args.input_phylo + ".lock")
 
     cwd = os.getcwd()
