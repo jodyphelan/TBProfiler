@@ -5,12 +5,16 @@ import sys
 import os
 from uuid import uuid4
 import pathogenprofiler as pp
+from glob import glob
 __softwarename__ = 'tbprofiler'
 
-
+def cleanup(files_prefix):
+    for f in glob(f"{files_prefix}*"):
+        os.remove(f)
 
 def main_phylogeny(args):
     tbp.phylo.calculate_phylogeny(args)
+    cleanup(args.files_prefix)
 
 
 argparser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
