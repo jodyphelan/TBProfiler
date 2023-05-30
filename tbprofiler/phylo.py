@@ -38,37 +38,6 @@ def usher_add_sample(args):
         run_cmd("mv %(tmp_output_phylo)s %(input_phylo)s " % vars(args))
         os.chdir(cwd)
 
-def get_nucleotide(row,min_cov = 10,min_freq = 0.8):
-    '''Get nucleotide from row'''
-    pos, sample, gt, tgt, ad = row
-    if gt==".": 
-        return "N"
-    ad = [int(x) for x in ad.split(",")]
-    if sum(ad)<=min_cov:
-        return "N"
-    adf = sorted([float(x/sum(ad)) for x in ad])
-    if adf[-1]<min_freq:
-        return "N"
-    return tgt[0]
-
-def dump_buffer(buffer,args):
-    '''Dump buffer to file'''
-    variant_positions = []
-    for i in range(len(list(buffer.values())[0])):
-        if len(set([buffer[s][i] for s in buffer]) - set(["N"]))>1:
-            variant_positions.append(i)
-    for s in buffer:
-        with open(f"{args.files_prefix}.{s}.fa","a") as O:
-            O.write("".join([buffer[s][i] for i in variant_positions]))
-
-def get_sample_name_from_bam_header(bam):
-    '''Get sample name from bam header'''
-    sample_name = None
-    for l in cmd_out(f"samtools view -H {bam}"):
-        if l.startswith("@RG"):
-            sample_name =  l.split("\t")[1].split(":")[1]
-    return sample_name
-
 def generate_low_dp_mask(bam,outfile,min_dp = 10):
     missing_positions = []
     for l in cmd_out(f"bedtools genomecov -d -ibam {bam}"):
