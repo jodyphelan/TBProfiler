@@ -138,10 +138,6 @@ def main_profile(args):
     if args.snp_dist or args.update_phylo:
         args.call_whole_genome = True
 
-    if not args.missing_cov_threshold:
-        args.missing_cov_threshold = args.min_depth
-    else:
-        pp.warninglog("\nWARNING: The --missing_cov_threshold argument is deprecated and will be removed in future releases. This parameter can now be set with --min_depth.\n")
 
     if args.no_lineage:
         del args.conf["barcode"]
