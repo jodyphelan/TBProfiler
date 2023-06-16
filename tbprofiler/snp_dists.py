@@ -64,7 +64,7 @@ class DB:
             if (ld:=len(dist))<cutoff:
                 snp_union = self.diffs.union(pickle.loads(d))
                 missing_union = self.missing.union(pickle.loads(m))
-                percent_missing = len(snp_union.intersection(missing_union))/len(snp_union)
+                percent_missing = round(len(missing_union)/len(snp_union.union(missing_union))*100,2)
                 sample_dists.append({
                     "sample":s,
                     "distance":ld,
@@ -101,9 +101,10 @@ def run_snp_dists(args,results):
     else:
         dbname = f'{args.dir}/results/snp_diffs.db'
     db = DB(dbname)
+    results["close_samples"] = db.search(results,wg_vcf,args.conf['bedmask'],args.snp_dist)
+    debug(results["close_samples"])
     if not args.snp_diff_no_store:
         db.store(results,wg_vcf,args.conf['bedmask'])
-    results["close_samples"] = db.search(results,wg_vcf,args.conf['bedmask'],args.snp_dist)
     results["close_samples"] = [d for d in results["close_samples"] if d["sample"]!=results["id"]]
     t2 = time()
     dt = int(t2-t1)
