@@ -62,14 +62,10 @@ class DB:
             dist -= self.missing
             dist -= pickle.loads(m) 
             if (ld:=len(dist))<cutoff:
-                snp_union = self.diffs.union(pickle.loads(d))
-                missing_union = self.missing.union(pickle.loads(m))
-                percent_missing = round(len(missing_union)/len(snp_union.union(missing_union))*100,2)
                 sample_dists.append({
                     "sample":s,
                     "distance":ld,
                     "diffs":list(dist),
-                    "percent_missing": percent_missing
                 })
         return sample_dists
 
