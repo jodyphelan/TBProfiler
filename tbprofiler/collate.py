@@ -94,6 +94,7 @@ def collate_results(prefix,conf,result_dirs=["./results"],sample_file=None,full_
         if "spoligotype" in temp:
             res["spoligotype"] = temp["spoligotype"]["octal"]
         res["DR_type"] = results[s]["drtype"] = temp["drtype"]
+        res["region_median_depth"] = results[s]["region_median_depth"] = temp["qc"]["region_median_depth"]
         res["pct_reads_mapped"] = temp["qc"].get("pct_reads_mapped","NA")
         res["num_reads_mapped"] = temp["qc"].get("num_reads_mapped","NA")
         res["median_coverage"] = temp["qc"].get("median_coverage","NA")
