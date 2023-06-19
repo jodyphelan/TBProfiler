@@ -222,7 +222,7 @@ DATA
                 tmp_nodes.add(e[1])
                 # graph.append({"data":{"id":e[0],"drtype":results[e[0]]["drtype"],"lineage":results[e[0]]["main_lin"]}})
                 # graph.append({"data":{"id":e[1],"drtype":results[e[1]]["drtype"],"lineage":results[e[1]]["main_lin"]}})
-                edges.append({"source":e[0],"target":e[1],"propoerties":{"distance":e[2]}})
+                edges.append({"source":e[0],"target":e[1],"properties":{"distance":e[2]}})
         nodes = []
         for n in tmp_nodes:
             nodes.append({"id":n,"properties":{"drtype":results[n]["drtype"],"lineage":results[n]["main_lin"],"median_depth":results[n]["region_median_depth"]}})
