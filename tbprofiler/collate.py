@@ -213,13 +213,20 @@ DATA
     OUT.close()
 
     if len(tmp_edges)>0:
-        graph = []
+        tmp_nodes = set()
+        edges = []
+
         for i,e in enumerate(tmp_edges):
             if e[0] in results and e[1] in results:
-                graph.append({"data":{"id":e[0],"drtype":results[e[0]]["drtype"],"lineage":results[e[0]]["main_lin"]}})
-                graph.append({"data":{"id":e[1],"drtype":results[e[1]]["drtype"],"lineage":results[e[1]]["main_lin"]}})
-                graph.append({"data":{"id":i,"source":e[0],"target":e[1],"distance":e[2]}})
-        json.dump(graph,open(prefix+".transmission_graph.json","w"))
+                tmp_nodes.add(e[0])
+                tmp_nodes.add(e[1])
+                # graph.append({"data":{"id":e[0],"drtype":results[e[0]]["drtype"],"lineage":results[e[0]]["main_lin"]}})
+                # graph.append({"data":{"id":e[1],"drtype":results[e[1]]["drtype"],"lineage":results[e[1]]["main_lin"]}})
+                edges.append({"source":e[0],"target":e[1],"propoerties":{"distance":e[2]}})
+        nodes = []
+        for n in tmp_nodes:
+            nodes.append({"id":n,"properties":{"drtype":results[n]["drtype"],"lineage":results[n]["main_lin"],"median_depth":results[n]["region_median_depth"]}})
+        json.dump({"nodes":nodes,"edges":edges},open(prefix+".transmission_graph.json","w"))
 
         with open(prefix+".distance_matrix.txt","w") as MAT:
             MAT.write("samples\t%s\n" % "\t".join(samples))
