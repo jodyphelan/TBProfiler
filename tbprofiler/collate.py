@@ -220,8 +220,6 @@ DATA
             if e[0] in results and e[1] in results:
                 tmp_nodes.add(e[0])
                 tmp_nodes.add(e[1])
-                # graph.append({"data":{"id":e[0],"drtype":results[e[0]]["drtype"],"lineage":results[e[0]]["main_lin"]}})
-                # graph.append({"data":{"id":e[1],"drtype":results[e[1]]["drtype"],"lineage":results[e[1]]["main_lin"]}})
                 edges.append({"source":e[0],"target":e[1],"properties":{"distance":e[2]}})
         nodes = []
         for n in tmp_nodes:
