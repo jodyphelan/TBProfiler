@@ -97,7 +97,6 @@ def collate_results(prefix,conf,result_dirs=["./results"],sample_file=None,full_
         res["region_median_depth"] = results[s]["region_median_depth"] = temp["qc"].get("region_median_depth","NA")
         res["pct_reads_mapped"] = temp["qc"].get("pct_reads_mapped","NA")
         res["num_reads_mapped"] = temp["qc"].get("num_reads_mapped","NA")
-        res["median_coverage"] = temp["qc"].get("median_coverage","NA")
         res["num_dr_variants"] = len(sample_dr_mutations_set[s])
         res["num_other_variants"] = len(sample_other_mutations_set[s])
         for d in drug_list:
