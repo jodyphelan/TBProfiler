@@ -1,4 +1,9 @@
 from collections import defaultdict
+from pathogenprofiler import vcf
+
+def get_vcf_samples(vcf_file):
+    vcf_obj = vcf(vcf_file)
+    return vcf_obj.samples
 
 def get_lt2drugs(bed_file):
     lt2drugs = {}
