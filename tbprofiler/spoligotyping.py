@@ -14,7 +14,7 @@ def spoligotype(args):
     return result
 
 def fa2spoligotype(fasta,files_prefix,conf,threads=1,max_mem=2,counter="kmc"):
-    fasta = pp.fasta(fasta)
+    fasta = pp.Fasta(fasta)
     kmers = fasta.get_kmer_counts(files_prefix,klen=25,threads=threads,max_mem=max_mem,kmer_counter=kmer_counter)
     counts = kmers.load_kmer_counts(conf['spoligotype_spacers'])
     binary,octal = counts2spoligotype(counts,cutoff=1)
@@ -22,7 +22,7 @@ def fa2spoligotype(fasta,files_prefix,conf,threads=1,max_mem=2,counter="kmc"):
 
 
 def fq2spoligotype(r1,files_prefix,conf,r2=None,threads=1,max_mem=2,kmer_counter="kmc"):
-    fastq = pp.fastq(r1,r2)
+    fastq = pp.Fastq(r1,r2)
     kmers = fastq.get_kmer_counts(files_prefix,klen=25,threads=threads,max_mem=max_mem,counter=kmer_counter)
     counts = kmers.load_kmer_counts(conf['spoligotype_spacers'])
     binary,octal = counts2spoligotype(counts)
