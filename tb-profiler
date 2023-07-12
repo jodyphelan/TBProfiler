@@ -126,7 +126,7 @@ def main_reprofile(args):
     json.dump(new_results,open("%s.results.json"%args.prefix,"w"))
 
 def multisample_vcf_run(args):
-    vcf_obj = tbp.vcf(args.vcf)
+    vcf_obj = pp.Vcf(args.vcf)
     args.original_vcf = args.vcf
     for sample_name in vcf_obj.samples:
         infolog(f"\nExtracting variants and running pipeline for {sample_name}\n")
@@ -267,7 +267,7 @@ def main_lineage(args):
         {"Analysis":"Variant calling","Program":args.caller}
     ]
     args.bam_file = args.bam
-    bam = pp.bam(args.bam,args.bam,args.conf["ref"])
+    bam = pp.Bam(args.bam,args.bam,args.conf["ref"])
     mutations = bam.get_bed_gt(args.conf["barcode"],args.conf["ref"],args.caller,args.platform)
 
     snps_file = args.prefix+".lineage.snps.txt" if args.snps else None
@@ -362,9 +362,9 @@ def main_vcf_profile(args):
         pp.run_cmd("bgzip -f %s" % modified_vcf)
         args.vcf = modified_vcf+".gz"
 
-    vcf_obj = pp.vcf(args.vcf)
+    vcf = pp.Vcf(args.vcf)
     
-    for sample_name in vcf_obj.samples:
+    for sample_name in vcf.samples:
         args.sample_name = sample_name
         args.prefix = sample_name
         files_prefix = args.dir+"/"+sample_name
