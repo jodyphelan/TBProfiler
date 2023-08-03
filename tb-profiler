@@ -120,7 +120,7 @@ def main_reprofile(args):
 
 
     new_results = pp.db_compare(mutations=new_results,db=args.conf["json_db"])
-    new_results = tbp.reformat(new_results, args.conf, reporting_af=args.reporting_af, mutation_metadata=args.add_mutation_metadata)
+    new_results = tbp.reformat(new_results, args.conf, reporting_af=args.reporting_af, min_depth=args.min_depth, min_af=args.af, strand_support=args.strand_support, mutation_metadata=args.add_mutation_metadata)
 
     new_results["db_version"] = args.conf["version"]
     json.dump(new_results,open("%s.results.json"%args.prefix,"w"))
@@ -138,6 +138,7 @@ def multisample_vcf_run(args):
 
 
 def main_profile(args):
+    args.conf['variant_filters'] = pp.get_variant_filters(args)
 
     if args.vcf:
         nsamples = len(tbp.get_vcf_samples(args.vcf))
@@ -170,11 +171,10 @@ def main_profile(args):
         else:
             results["spoligotype"] = tbp.spoligotype(args)
 
-  
 
 
     ### Reformat the results to TB-Profiler style ###
-    results = tbp.reformat(results, args.conf, reporting_af=args.reporting_af, mutation_metadata=args.add_mutation_metadata,use_suspect=args.suspect)
+    results = tbp.reformat(results, args.conf, mutation_metadata=args.add_mutation_metadata,use_suspect=args.suspect)
     results["id"] = args.prefix
 
     ### Create folders for results if they don't exist ###
@@ -194,7 +194,10 @@ def main_profile(args):
     ]
 
 
-    
+    ### TEST ###
+    if "rules" in args.conf:
+        tbp.apply_rules(args.conf,results)
+    ### END ###
 
     ### Move files to respective directories ###
     result_files = {
@@ -247,6 +250,8 @@ def main_create_db(args):
     }
     if args.barcode:
         extra_files["barcode"] = args.barcode
+    if args.rules:
+        extra_files["rules"] = args.rules
 
     pp.create_db(args,extra_files=extra_files)
 
@@ -306,89 +311,6 @@ def main_reformat(args):
     results = json.load(open(args.json))
     args.prefix = results["id"]
     tbp.write_outputs(args,results,template_file=args.text_template)
-
-
-def main_fasta_profile(args):
-    pp.warninglog("*Deprecated, please use 'tb-profiler profile --fasta <fasta_file>'. This function will be removed in future releases*")
-    for x in ["bam","vcf","results"]:
-        if pp.nofolder(args.dir+"/"+x):
-            os.mkdir(args.dir+"/"+x)
-
-    results = pp.fasta_profiler(args.conf, args.prefix, args.fasta)
-    results = tbp.reformat(results,args.conf,reporting_af=0,use_suspect=args.suspect)
-    results["id"] = args.prefix
-    results["tbprofiler_version"] = tbp.__version__
-    results["input_data_source"] = "fasta"
-    results["pipeline"] = [{"Analysis":"Variant_calling","Program":"paftools.js"}]
-
-    args.reporting_af = 0.7
-    tbp.write_outputs(args,results)
-
-    pp.run_cmd("mv -f %(dir)s/%(prefix)s*.vcf.gz* %(dir)s/vcf/" % vars(args))
-
-
-
-def main_vcf_profile(args):
-    pp.warninglog("*Deprecated, please use 'tb-profiler profile --vcf <vcf_file>'. This function will be removed in future releases.*")
-    for x in ["bam","vcf","results"]:
-        if pp.nofolder(args.dir+"/"+x):
-            os.mkdir(args.dir+"/"+x)
-
-    if args.lofreq_sample_name:
-        import re
-        modified_vcf = f"{args.tmp_prefix}.lofreq_modified.vcf"
-        with open(modified_vcf,"w") as O:
-            for l in pp.cmd_out("bcftools view %(vcf)s" % vars(args)):
-                row = l.strip().split()
-                if "INFO=<ID=DP" in l:
-                    O.write("##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n")
-                    O.write("##FORMAT=<ID=AD,Number=R,Type=Integer,Description=\"Allelic depths (high-quality bases)\">\n")
-
-                    O.write(l+"\n")
-                elif l[:2]=="##":
-                    O.write(l+"\n")
-                elif row[0]=="#CHROM":
-                    row = row + ["FORMAT", args.lofreq_sample_name]
-                    O.write("%s\n" % "\t".join(row))
-                else:
-                    re_obj = re.search("DP4=(\d+),(\d+),(\d+),(\d+)",l)
-                    dp4_1 = int(re_obj.group(1))
-                    dp4_2 = int(re_obj.group(2))
-                    dp4_3 = int(re_obj.group(3))
-                    dp4_4 = int(re_obj.group(4))
-                    ad = "%s,%s" % ( (dp4_1+dp4_2), (dp4_3+dp4_4))
-                    row = row + ["GT:AD", "0/1:%s" %ad]
-                    O.write("%s\n" % "\t".join(row))
-        pp.run_cmd("bgzip -f %s" % modified_vcf)
-        args.vcf = modified_vcf+".gz"
-
-    vcf = pp.Vcf(args.vcf)
-    
-    for sample_name in vcf.samples:
-        args.sample_name = sample_name
-        args.prefix = sample_name
-        files_prefix = args.dir+"/"+sample_name
-        args.tmp_vcf = "%s.vcf.gz" % uuid4()
-        if args.reporting_af>0:
-            pp.run_cmd("bcftools view -s %(sample_name)s -ac 1 %(vcf)s | bcftools view -i 'GT!=\"./.\"' | bcftools +fixploidy -Oz -o %(tmp_vcf)s && bcftools index %(tmp_vcf)s" % vars(args))
-        else:
-            pp.run_cmd("bcftools view -s %(sample_name)s -ac 1 %(vcf)s | bcftools +fixploidy -Oz -o %(tmp_vcf)s && bcftools index %(tmp_vcf)s " % vars(args))
-        results = pp.vcf_profiler(args.conf, files_prefix, sample_name, args.tmp_vcf,args.delly_vcf)
-        results = tbp.reformat(results,args.conf,reporting_af=args.reporting_af,use_suspect=args.suspect)
-        results["id"] = sample_name
-        results["input_data_source"] = "vcf"
-        results["tbprofiler_version"] = tbp.__version__
-        results["pipeline"] = []
-
-        tbp.write_outputs(args,results)
-        pp.run_cmd("rm %(tmp_vcf)s*" % vars(args))
-
-    if args.lofreq_sample_name:
-        pp.run_cmd("rm %(vcf)s*" % vars(args))
-
-
-def main_test(args):
-    pp.run_cmd("tb-profiler profile -1 %s" % (sys.base_prefix+"/share/tbprofiler/tbprofiler.test.fq.gz"),verbose=2)
 
 def main_batch(args):
     if args.args==None:
@@ -460,13 +382,22 @@ output.add_argument('--add_columns',default=None,type=str,help="Add additional c
 output.add_argument('--add_mutation_metadata',action="store_true",help=argparse.SUPPRESS)
 output.add_argument('--dir','-d',default=".",help='Storage directory')
 
+filtering=parser_sub.add_argument_group("Variant filtering options")
+filtering.add_argument('--depth_hard',default=0,type=int,help='Minimum depth hard cutoff to report variants')
+filtering.add_argument('--depth_soft',default=10,type=int,help='Minimum depth soft cutoff to report variants')
+filtering.add_argument('--af_hard',default=0,type=float,help='Minimum allele frequency hard cutoff to report variants')
+filtering.add_argument('--af_soft',default=0.1,type=float,help='Minimum allele frequency soft cutoff to report variants')
+filtering.add_argument('--strand_hard',default=0,type=int,help='Minimum read number per strand hard cutoff to report variants')
+filtering.add_argument('--strand_soft',default=3,type=int,help='Minimum read number per strand soft cutoff to report variants')
+
+
 algorithm=parser_sub.add_argument_group("Algorithm options")
 algorithm.add_argument('--mapper',default="bwa", choices=["bwa","minimap2","bowtie2","bwa-mem2"],help="Mapping tool to use. If you are using nanopore or pacbio data it will default to minimap2",type=str)
 algorithm.add_argument('--caller',default="freebayes", choices=["bcftools","gatk","freebayes","pilon","lofreq"],help="Variant calling tool to use.",type=str)
 algorithm.add_argument('--calling_params',type=str,help='Override default parameters for variant calling')
 algorithm.add_argument('--kmer_counter',default='kmc',choices=["kmc","dsk"],type=str,help="Kmer counter")
 algorithm.add_argument('--min_depth',default=10,type=int,help='Minimum depth required to call variant. Bases with depth below this cutoff will be marked as missing')
-algorithm.add_argument('--af',default=0.1,type=float,help='Minimum allele frequency to call variants')
+algorithm.add_argument('--strand_support',default=5,type=float,help='Minimum number of reads on each strand supporting the alternate allele')
 algorithm.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to use variants for prediction')
 algorithm.add_argument('--suspect',action="store_true",help="Use the suspect suite of tools to add ML predictions")
 algorithm.add_argument('--spoligotype',action="store_true",help="Perform in-silico spoligotyping (experimental feature)")
@@ -492,47 +423,6 @@ other.add_argument('--temp',help="Temp firectory to process all files",type=str,
 other.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
 
 parser_sub.set_defaults(func=main_profile)
-
-
-# VCF profile #
-parser_sub = subparsers.add_parser('vcf_profile', help='Run profiling pipeline on VCF file. Warning: this assumes that you have good coverage across the genome', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser_sub.add_argument('vcf',help='VCF file')
-parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
-parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
-parser_sub.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to call variants')
-parser_sub.add_argument('--lofreq_sample_name',help='Sample name to use if VCF has been generated by lofreq')
-parser_sub.add_argument('--suspect',action="store_true",help="Use the suspect suite of tools to add ML predictions")
-parser_sub.add_argument('--txt',action="store_true",help="Add text output")
-parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
-parser_sub.add_argument('--docx',action="store_true",help="Add docx output. This requires docxtpl to be installed")
-parser_sub.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and csv results")
-parser_sub.add_argument('--verbose',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
-parser_sub.add_argument('--delly_vcf',help=argparse.SUPPRESS)
-parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
-parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
-parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
-parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
-parser_sub.set_defaults(func=main_vcf_profile)
-
-
-# Fasta profile #
-parser_sub = subparsers.add_parser('fasta_profile', help='Run profiling pipeline on Fasta file. Warning: this assumes that this is a good quality assembly which coveres all drug resistance loci', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser_sub.add_argument('--fasta','-f',help='VCF file',required=True)
-parser_sub.add_argument('--prefix','-p',help='VCF file',required=True)
-parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
-parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
-parser_sub.add_argument('--suspect',action="store_true",help="Use the suspect suite of tools to add ML predictions")
-parser_sub.add_argument('--txt',action="store_true",help="Add text output")
-parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
-parser_sub.add_argument('--docx',action="store_true",help="Add docx output. This requires docxtpl to be installed")
-parser_sub.add_argument('--add_columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and csv results")
-parser_sub.add_argument('--kmer_counter',default='kmc',choices=["kmc","dsk"],type=str,help="Kmer counter")
-parser_sub.add_argument('--verbose',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
-parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
-parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
-parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
-parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
-parser_sub.set_defaults(func=main_fasta_profile)
 
 
 parser_sub = subparsers.add_parser('lineage', help='Profile only lineage', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -634,6 +524,7 @@ parser_sub.add_argument('--spoligotypes',default="spoligotype_spacers.txt",type=
 parser_sub.add_argument('--spoligotype_annotations',default="spoligotype_list.csv")
 parser_sub.add_argument('--barcode',default="barcode.bed",type=str,help='A bed file containing lineage barcode SNPs')
 parser_sub.add_argument('--bedmask',default="mask.bed",type=str,help='A bed file containing a list of low-complexity regions')
+parser_sub.add_argument('--rules',type=str,help='A file containing python rules')
 parser_sub.add_argument('--amplicon_primers',type=str,help='A file containing a list of amplicon primers')
 parser_sub.add_argument('--match_ref',type=str,help='The prefix for all output files')
 parser_sub.add_argument('--other_annotations',default="tbdb.other_annotations.csv",type=str,help="A CSV containing gene, mutation, drug and confidence columns")
