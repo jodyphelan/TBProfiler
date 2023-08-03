@@ -53,7 +53,7 @@ class DB:
         self.diffs = diffs
         self.missing = missing
     def search(self,json_results,vcf_file, exclude_bed, cutoff = 20, min_cov=10, min_freq=0.8):
-        debug("Searching for close samples in %s" % self.filename)
+        infolog("Searching for close samples in %s" % self.filename)
         self.c.execute("SELECT sample, diffs, missing FROM variants WHERE lineage=?",(json_results['sublin'],))
         self.diffs,self.missing = extract_variant_set(vcf_file, exclude_bed, min_cov, min_freq)
         sample_dists = []
@@ -70,11 +70,11 @@ class DB:
         return sample_dists
 
 def read_json(filename):
-    debug("Reading %s" % filename)
+    infolog("Reading %s" % filename)
     lock = filelock.FileLock(filename + ".lock")
     with lock:
         data = json.load(open(filename))
-    debug("Finished reading %s" % filename)
+    infolog("Finished reading %s" % filename)
     return data
 
 def sample_in_json(sample,result_file):
@@ -98,7 +98,7 @@ def run_snp_dists(args,results):
         dbname = f'{args.dir}/results/snp_diffs.db'
     db = DB(dbname)
     results["close_samples"] = db.search(results,wg_vcf,args.conf['bedmask'],args.snp_dist)
-    debug(results["close_samples"])
+    infolog(results["close_samples"])
     if not args.snp_diff_no_store:
         db.store(results,wg_vcf,args.conf['bedmask'])
     results["close_samples"] = [d for d in results["close_samples"] if d["sample"]!=results["id"]]
@@ -118,7 +118,7 @@ def update_neighbour_snp_dist_output(args,results):
         if not sample_in_json(args.prefix,f):
             lock = filelock.FileLock(f + ".lock")
             with lock:
-                debug("Acquiring lock for %s" % f)
+                infolog("Acquiring lock for %s" % f)
                 data = json.load(open(f))
                 data['close_samples'].append({
                     "sample":args.prefix,
@@ -129,5 +129,5 @@ def update_neighbour_snp_dist_output(args,results):
                 # if args.nj:
                     # results['_tree'] = make_nj_tree(temp_args,data)
                 write_outputs(temp_args,data,template_file=args.text_template)
-                debug("Finished with lock for %s" % f)
+                infolog("Finished with lock for %s" % f)
 
