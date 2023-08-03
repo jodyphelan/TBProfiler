@@ -65,6 +65,11 @@ Other variants report
 ---------------------
 {{d['other_var_report']}}
 
+QC failed variants report
+-------------------------
+
+{{d['qc_fail_var_report']}}
+
 Coverage report
 ---------------------
 {{d['coverage_report']}}
@@ -142,8 +147,10 @@ def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="
             var["drug"] = "; ".join([d["drug"] for d in var["drugs"]])
 
         text_strings["dr_report"] = dict_list2text(json_results["drug_table"],["Drug","Genotypic Resistance","Mutations"]+columns if columns else [],sep=sep)
-        text_strings["dr_var_report"] = dict_list2text(json_results["dr_variants"],mappings={"genome_pos":"Genome Position","locus_tag":"Locus Tag","gene":"Gene","type":"Variant type","change": "Change","freq":"Estimated fraction","drugs.drug":"Drug","annotation_str":"Annotation"},sep=sep)
-        text_strings["other_var_report"] = dict_list2text(json_results["other_variants"],mappings={"genome_pos":"Genome Position","locus_tag":"Locus Tag","gene":"Gene","type":"Variant type","change": "Change","freq":"Estimated fraction","annotation_str":"Annotation"},sep=sep)
+        text_strings["dr_var_report"] = dict_list2text(json_results["dr_variants"],mappings={"genome_pos":"Genome Position","locus_tag":"Locus Tag","gene":"Gene","type":"Variant type","change": "Change","depth":"Depth of coverage","freq":"Estimated fraction","drugs.drug":"Drug","annotation_str":"Annotation"},sep=sep)
+        text_strings["other_var_report"] = dict_list2text(json_results["other_variants"],mappings={"genome_pos":"Genome Position","locus_tag":"Locus Tag","gene":"Gene","type":"Variant type","change": "Change","depth":"Depth of coverage","freq":"Estimated fraction","annotation_str":"Annotation"},sep=sep)
+        text_strings["qc_fail_var_report"] = dict_list2text(json_results["qc_fail_variants"],mappings={"genome_pos":"Genome Position","locus_tag":"Locus Tag","gene":"Gene","type":"Variant type","change": "Change","depth":"Depth of coverage","freq":"Estimated fraction","drugs.drug":"Drug","annotation_str":"Annotation"},sep=sep)
+
         text_strings["drtype"] = json_results["drtype"]
        
     if "notes" in json_results:

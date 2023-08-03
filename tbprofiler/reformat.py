@@ -46,12 +46,11 @@ def barcode2lineage(results,max_node_skip=1):
 
 
 
-def add_drtypes(results,reporting_af=0.1):
+def add_drtypes(results):
     resistant_drugs = set()
     for var in results["dr_variants"]:
-        if var["freq"]>=reporting_af:
-            for d in var["drugs"]:
-                resistant_drugs.add(d["drug"])
+        for d in var["drugs"]:
+            resistant_drugs.add(d["drug"])
 
     FLQ_set = set(["levofloxacin","moxifloxacin","ciprofloxacin","ofloxacin"])
     groupA_set = set(["bedaquiline","linezolid"])
@@ -109,7 +108,7 @@ def apply_rules(results,conf):
                         results['notes'].append(r['note'])
 
     
-def reformat(results,conf,reporting_af,mutation_metadata=False,use_suspect=False):
+def reformat(results,conf,mutation_metadata=False,use_suspect=False):
     results["notes"] = []
     results["variants"] = [x for x in results["variants"] if len(x["consequences"])>0]
     results["variants"] = pp.select_csq(results["variants"])
@@ -120,8 +119,8 @@ def reformat(results,conf,reporting_af,mutation_metadata=False,use_suspect=False
         results["qc"]["missing_positions"] = pp.reformat_missing_genome_pos(results["qc"]["missing_positions"],conf)
     if "barcode" in results:
         results = barcode2lineage(results)
-    results = pp.reformat_annotations(results,conf)
-    results = add_drtypes(results,reporting_af)
+    results = pp.reformat_annotations(results,conf,)
+    results = add_drtypes(results)
     results["db_version"] = conf["version"]
     if mutation_metadata:
         pass
@@ -129,5 +128,5 @@ def reformat(results,conf,reporting_af,mutation_metadata=False,use_suspect=False
     if use_suspect:
         results = suspect_profiling(results)
 
-    apply_rules(results,conf)
+    # apply_rules(results,conf)
     return results
