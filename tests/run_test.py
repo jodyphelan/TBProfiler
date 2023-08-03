@@ -86,13 +86,7 @@ def test_collate():
         O.write("\n".join(["por5A_illumina_bwa_freebayes_PE","por5A_illumina_bwa_gatk_PE","por5A_illumina_bwa_bcftools_PE","por5A_illumina_bwa_pilon_PE","por5A_illumina_bwa_lofreq_PE","por5_vcf"]))
     run_cmd("tb-profiler collate --samples samples.txt")
     assert open("tbprofiler.txt").read() == collate_text
-
-# def test_bowtie2_freebayes():
-#     results = illumina_fastq("freebayes","bowtie2")
-#     assert results["sublin"] == "lineage4.3.4.2"
-#     assert results["main_lin"] == "lineage4"
-#     assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
-
+    
 def test_minimap2_freebayes():
     results = illumina_fastq("freebayes","minimap2")
     assert results["sublin"] == "lineage4.3.4.2"
