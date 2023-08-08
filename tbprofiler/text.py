@@ -1,7 +1,8 @@
 import time
 from unittest import result
 from pathogenprofiler import get_summary
-from pathogenprofiler import errlog, debug, unlist, dict_list2text
+from pathogenprofiler import dict_list2text
+import logging
 from .utils import get_drug_list
 import jinja2
 from copy import copy

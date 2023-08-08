@@ -2,13 +2,12 @@ from .text import write_text
 # from .pdf import write_pdf
 from .docx import write_docx
 from datetime import datetime
-from pathogenprofiler import infolog, debug
+import logging
 import json
 import tbprofiler as tbp
 
 def write_outputs(args,results,template_file = None):
-    infolog("\nWriting outputs")
-    infolog("---------------")
+    logging.info("Writing outputs")
 
     json_output = args.dir+"/results/"+args.prefix+".results.json"
     text_output = args.dir+"/results/"+args.prefix+".results.txt"
@@ -22,15 +21,15 @@ def write_outputs(args,results,template_file = None):
     extra_columns = [x.lower() for x in args.add_columns.split(",")] if args.add_columns else []
     results["timestamp"] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 
-    infolog(f"Writing json file: {json_output}")
+    logging.info(f"Writing json file: {json_output}")
     json.dump(results,open(json_output,"w"))
 
     if args.txt:
-        infolog(f"Writing text file: {text_output}")
+        logging.info(f"Writing text file: {text_output}")
         write_text(results,args.conf,text_output,extra_columns,reporting_af=args.reporting_af,sep="\t",template_file=template_file)
     if args.csv:
-        infolog(f"Writing csv file: {csv_output}")
+        logging.info(f"Writing csv file: {csv_output}")
         write_text(results,args.conf,csv_output,extra_columns,reporting_af=args.reporting_af,sep=",",template_file = template_file)
     if args.docx:
-        infolog(f"Writing docx file: {docx_output}")
+        logging.info(f"Writing docx file: {docx_output}")
         write_docx(results,args.conf,docx_output,reporting_af=args.reporting_af,template_file = args.docx_template)

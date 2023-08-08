@@ -3,7 +3,7 @@ import os
 from collections import defaultdict
 from tqdm import tqdm
 from .utils import get_lt2drugs
-from pathogenprofiler import errlog,debug
+import logging
 import csv 
 
 def get_common_fields(rows):
@@ -22,7 +22,7 @@ def get_field_values(rows,cols):
     return new_rows
 
 
-def collate_results(prefix,conf,result_dirs=["./results"],sample_file=None,full_results=True,full_variant_results=True,reporting_af=0.1,mark_missing=False,sep="\t"):
+def collate_results(prefix,conf,result_dirs=["./results"],sample_file=None,full_results=True,full_variant_results=True,mark_missing=False,sep="\t"):
     for d in result_dirs:
         if not os.path.isdir(d):
             errlog("\nERROR: Can't find directory %s\n" % d )
@@ -78,16 +78,14 @@ def collate_results(prefix,conf,result_dirs=["./results"],sample_file=None,full_
 
 
         for x in temp["dr_variants"]:
-            if x["freq"]>reporting_af:
-                dr_variants[x["gene"]][x["change"]][s] = x["freq"]
-                sample_dr_mutations_set[s].add((x["gene"],x["change"]))
-                dr_variants_set.add((x["gene"],x["change"]))
-                for d in x["drugs"]:
-                    dr_drugs[s].add(d["drug"])
-                    results[s][d["drug"]].add("%s_%s" % (x["gene"],x["change"]) if full_results else "R")
+            dr_variants[x["gene"]][x["change"]][s] = x["freq"]
+            sample_dr_mutations_set[s].add((x["gene"],x["change"]))
+            dr_variants_set.add((x["gene"],x["change"]))
+            for d in x["drugs"]:
+                dr_drugs[s].add(d["drug"])
+                results[s][d["drug"]].add("%s_%s" % (x["gene"],x["change"]) if full_results else "R")
         for x in temp["other_variants"]:
-            if x["freq"]>reporting_af:
-                sample_other_mutations_set[s].add((x["gene"],x["change"]))
+            sample_other_mutations_set[s].add((x["gene"],x["change"]))
         
         res["main_lineage"] = results[s]["main_lin"] = temp["main_lin"]
         res["sub_lineage"] = results[s]["sublin"] = temp["sublin"]

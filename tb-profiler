@@ -2,8 +2,8 @@
 import sys
 import pathogenprofiler as pp
 import argparse
+from rich_argparse import RichHelpFormatter
 import json
-from pathogenprofiler.utils import debug, infolog
 import tbprofiler as tbp
 import os
 import csv
@@ -12,6 +12,10 @@ from uuid import uuid4
 import glob
 import atexit
 import shutil
+from joblib import Parallel, delayed
+from tqdm import tqdm
+import logging
+from rich.logging import RichHandler
 
 __softwarename__ = 'tbprofiler'
 
@@ -51,7 +55,7 @@ def cleanup():
             O.write("```\n")
             O.write("%s" % sys.last_value)
             O.write("```\n")
-        pp.errlog("""\n
+        logging.error("""\n
 ################################# ERROR #######################################
 
 This run has failed. Please check all arguments and make sure all input files
@@ -63,73 +67,12 @@ contents of the error log (%s)
 """ % (outfile))
 
 
-try:
-    sys.base_prefix
-except:
-    sys.base_prefix = getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', sys.prefix))
-
-def main_reprofile(args):
-    #{'chrom': 'Chromosome', 'genome_pos': 6140, 'ref': 'G', 'alt': 'T', 'freq': 1.0, 'consequences': [{'gene_name': 'gyrB', 'gene_id': 'Rv0005', 'feature_id': 'CCP42727', 'type': 'missense_variant', 'nucleotide_change': 'c.901G>T', 'protein_change': 'p.Val301Leu'}]}
-    
-    new_locus_tag_list = [x.strip().split()[3] for x in open(args.conf["bed"])]
-    columns = {
-        "gene":"gene_name",
-        "locus_tag":"gene_id",
-        "protein_change":"protein_change",
-        "nucleotide_change":"nucleotide_change",
-        "type":"type",
-        "feature_id":"feature_id"
-    }
-    old_results = json.load(open(args.json))
-    new_results = old_results.copy()
-    new_results["variants"] = []
-    if args.extra_consequences:
-        extra_csq_data = json.load(open(args.extra_consequences))
-    for var in old_results["dr_variants"]+old_results["other_variants"]:
-        if var["locus_tag"] not in new_locus_tag_list:
-            k = f"{var['locus_tag']}_{var['nucleotide_change']}"
-            if args.extra_consequences and k in extra_csq_data:
-                for c,v in columns.items():
-                    var[c] = extra_csq_data[k][v]
-            else:
-                pp.infolog(f"Skipping {var['gene']} {var['change']} because the gene isn't in the new db!")
-                continue
-        if "drugs" in var:
-            del var["drugs"]
-        if "gene_associated_drugs" in var:
-            del var["gene_associated_drugs"]
-        del var["change"]
-        tmp_csq = {}
-        for k,v in columns.items():
-            tmp_csq[v] = var[k]
-            del var[k]
-
-        var["consequences"] = var["alternate_consequences"]
-        var["consequences"].append(tmp_csq)
-        del var["alternate_consequences"]
-        if "annotation" in var:
-            del var["annotation"]
-        new_results["variants"].append(var)
-
-    new_results["qc"]["missing_positions"] = [x["position"] for x in old_results["qc"]["missing_positions"]]
-    del new_results["other_variants"]
-    del new_results["dr_variants"]
-    del new_results["qc"]["gene_coverage"]
-
-
-
-
-    new_results = pp.db_compare(mutations=new_results,db=args.conf["json_db"])
-    new_results = tbp.reformat(new_results, args.conf, reporting_af=args.reporting_af, min_depth=args.min_depth, min_af=args.af, strand_support=args.strand_support, mutation_metadata=args.add_mutation_metadata)
-
-    new_results["db_version"] = args.conf["version"]
-    json.dump(new_results,open("%s.results.json"%args.prefix,"w"))
 
 def multisample_vcf_run(args):
     vcf_obj = pp.Vcf(args.vcf)
     args.original_vcf = args.vcf
     for sample_name in vcf_obj.samples:
-        infolog(f"\nExtracting variants and running pipeline for {sample_name}\n")
+        logging.info(f"\nExtracting variants and running pipeline for {sample_name}\n")
         args.prefix = sample_name
         args.tmp_vcf = "%s.%s.vcf.gz" % (args.files_prefix,uuid4())
         pp.run_cmd("bcftools view -s %(prefix)s -ac 1 %(original_vcf)s | bcftools +fixploidy -Oz -o %(tmp_vcf)s && bcftools index %(tmp_vcf)s " % vars(args))
@@ -212,14 +155,14 @@ def main_profile(args):
         if os.path.isfile(file):
             shutil.move(file,target)
 
-    pp.run_cmd("rm %s*" % args.files_prefix)
+    # pp.run_cmd("rm %s*" % args.files_prefix)
     
     tbp.write_outputs(args,results,template_file=args.text_template)
     if args.snp_dist:
         tbp.update_neighbour_snp_dist_output(args,results)
         
     
-    pp.successlog("\nProfiling finished sucessfully!")
+    pp.logging.info("[green]Profiling finished sucessfully![/]",extra={"markup": True})
 
 def main_update_tbdb(args):
     tmp = "--match_ref %s" % os.path.abspath(args.match_ref) if args.match_ref else ""
@@ -233,7 +176,7 @@ def main_update_tbdb(args):
         pp.run_cmd(f"git checkout {args.commit}")
     pp.run_cmd(f"tb-profiler create_db --prefix {args.prefix} {tmp} --load")
     os.chdir("../")
-    pp.successlog("Sucessfully updated TBDB")
+    pp.logging.info("Sucessfully updated TBDB")
 
 def main_create_db(args):
     if args.no_overwrite:
@@ -301,10 +244,10 @@ def main_spoligotype(args):
     tbp.write_outputs(args,results,template_file=args.text_template)
 
 def main_collate(args):
-    tbp.collate_results(args.prefix,args.conf,sample_file=args.samples,result_dirs=args.dir,reporting_af=args.reporting_af,mark_missing=args.mark_missing)
+    tbp.collate_results(args.prefix,args.conf,sample_file=args.samples,result_dirs=args.dir,mark_missing=args.mark_missing)
 
 def main_version(args):
-    sys.stdout.write("\nTBProfiler version %s\n" % tbp.__version__)
+    sys.stdout.write("tb-profiler version %s\n" % tbp.__version__)
 
 def main_reformat(args):
 
@@ -315,23 +258,29 @@ def main_reformat(args):
 def main_batch(args):
     if args.args==None:
         args.args=""
-    script_file = str(uuid4())
-    with open(script_file,"w") as O:
-        for row in csv.DictReader(open(args.csv)):
-            line = f"tb-profiler profile -p {row['id']} --threads {args.threads_per_job}"
-            if "bam" in row:
-                line += f" -a {row['bam']}" 
-            elif "read1" in row:
-                line += f" -1 {row['read1']}"
-                if "read2" in row:
-                    line += f" -2 {row['read2']}"
-            elif "vcf" in row:
-                line += f" -v {row['vcf']}"
-            elif "fasta" in row:
-                line += f" -f {row['fasta']}"
-            O.write(line + " " + args.args + "\n")
-    pp.run_cmd(f"cat {script_file} | parallel -j {args.jobs} --bar")
-    os.remove(script_file)
+    commands = []
+
+
+    for row in csv.DictReader(open(args.csv)):
+        line = f"tb-profiler profile -p {row['id']} --threads {args.threads_per_job}"
+        if "bam" in row:
+            line += f" -a {row['bam']}" 
+        elif "read1" in row:
+            line += f" -1 {row['read1']}"
+            if "read2" in row:
+                line += f" -2 {row['read2']}"
+        elif "vcf" in row:
+            line += f" -v {row['vcf']}"
+        elif "fasta" in row:
+            line += f" -f {row['fasta']}"
+        cmd = line + " " + args.args 
+        commands.append(cmd)
+
+    # run commands in parallel with joblib 
+    parallel = Parallel(n_jobs=args.jobs, return_as='generator')
+    [r for r in tqdm(parallel(delayed(pp.run_cmd)(cmd) for cmd in commands),total=len(commands),desc="Running jobs")]
+    # tqdm(Parallel(n_jobs=args.jobs, return_as='generator')(delayed(pp.run_cmd)(cmd) for cmd in commands))
+    
 
 def main_list_db(args):
     dbs = pp.list_db(args.software_name)
@@ -355,21 +304,23 @@ def int_2_or_more(arg):
     return i
 
 
-parser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter,add_help=False)
+parser = argparse.ArgumentParser(description='tb-profiler: a tool to predict drug resistance and infer lineages',formatter_class=RichHelpFormatter,add_help=False)
+parser.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
+parser.add_argument('--logging',default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 subparsers = parser.add_subparsers(help="Task to perform")
 
 # Profile #
-parser_sub = subparsers.add_parser('profile', help='Run whole profiling pipeline', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub = subparsers.add_parser('profile', help='Run whole profiling pipeline', formatter_class=RichHelpFormatter)
 input=parser_sub.add_argument_group("Input options")
 group = input.add_mutually_exclusive_group(required=True)
 group.add_argument('--read1','-1',help='First read file')
 input.add_argument('--read2','-2',help='Second read file')
-group.add_argument('--bam','-a',help='BAM file. Make sure it has been generated using the H37Rv genome (GCA_000195955.2)')
+group.add_argument('--bam','-a',help='BAM file (make sure it has been generated using the H37Rv genome (GCA_000195955.2))')
 group.add_argument('--fasta','-f',help='Fasta file')
 group.add_argument('--vcf','-v',help='VCF file')
 input.add_argument('--platform','-m',choices=["illumina","nanopore","pacbio"],default="illumina",help='NGS Platform used to generate data')
 input.add_argument('--db',default='tbdb',help='Mutation panel name')
-input.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
+input.add_argument('--external_db',type=str,help='Path to db files prefix (overrides --db parameter)')
 
 output=parser_sub.add_argument_group("Output options")
 output.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix for all results generated')
@@ -383,13 +334,12 @@ output.add_argument('--add_mutation_metadata',action="store_true",help=argparse.
 output.add_argument('--dir','-d',default=".",help='Storage directory')
 
 filtering=parser_sub.add_argument_group("Variant filtering options")
-filtering.add_argument('--depth_hard',default=0,type=int,help='Minimum depth hard cutoff to report variants')
-filtering.add_argument('--depth_soft',default=10,type=int,help='Minimum depth soft cutoff to report variants')
-filtering.add_argument('--af_hard',default=0,type=float,help='Minimum allele frequency hard cutoff to report variants')
-filtering.add_argument('--af_soft',default=0.1,type=float,help='Minimum allele frequency soft cutoff to report variants')
-filtering.add_argument('--strand_hard',default=0,type=int,help='Minimum read number per strand hard cutoff to report variants')
-filtering.add_argument('--strand_soft',default=3,type=int,help='Minimum read number per strand soft cutoff to report variants')
-
+filtering.add_argument('--depth',default="0,10",type=str,help='Minimum depth hard and soft cutoff')
+filtering.add_argument('--af',default="0,0.1",type=str,help='Minimum allele frequency hard and soft cutoff')
+filtering.add_argument('--strand',default="0,3",type=str,help='Minimum read number per strand hard and soft cutoff')
+filtering.add_argument('--sv_depth',default="0,10",type=str,help='Structural variant minimum depth hard and soft cutoff')
+filtering.add_argument('--sv_af',default="0.5,0.9",type=str,help='Structural variant minimum allele frequency hard cutoff')
+filtering.add_argument('--sv_len',default="50000,20000",type=str,help='Structural variant maximum size hard and soft cutoff')
 
 algorithm=parser_sub.add_argument_group("Algorithm options")
 algorithm.add_argument('--mapper',default="bwa", choices=["bwa","minimap2","bowtie2","bwa-mem2"],help="Mapping tool to use. If you are using nanopore or pacbio data it will default to minimap2",type=str)
@@ -400,7 +350,7 @@ algorithm.add_argument('--min_depth',default=10,type=int,help='Minimum depth req
 algorithm.add_argument('--strand_support',default=5,type=float,help='Minimum number of reads on each strand supporting the alternate allele')
 algorithm.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to use variants for prediction')
 algorithm.add_argument('--suspect',action="store_true",help="Use the suspect suite of tools to add ML predictions")
-algorithm.add_argument('--spoligotype',action="store_true",help="Perform in-silico spoligotyping (experimental feature)")
+algorithm.add_argument('--spoligotype',action="store_true",help="Perform in-silico spoligotyping")
 algorithm.add_argument('--update_phylo',action="store_true",help="Update phylogeny using usher (experimental feature)")
 algorithm.add_argument('--call_whole_genome',action="store_true",help="Call variant across the whole genome")
 algorithm.add_argument('--snp_dist',type=int,help="Store variant set and get all samples with snp distance less than this cutoff (experimental feature)")
@@ -416,16 +366,16 @@ algorithm.add_argument('--threads','-t',default=1,help='Threads to use',type=int
 algorithm.add_argument('--ram',default=2,help='Maximum memory to use',type=int)
 
 other=parser_sub.add_argument_group("Other options")
-other.add_argument('--verbose',default=0, choices=[0,1,2],help="Verbosity increases from 0 to 2",type=int)
+other.add_argument('--logging',default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 other.add_argument('--delly_vcf',help=argparse.SUPPRESS)
 other.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
 other.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
-other.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
+other.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 
 parser_sub.set_defaults(func=main_profile)
 
 
-parser_sub = subparsers.add_parser('lineage', help='Profile only lineage', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub = subparsers.add_parser('lineage', help='Profile only lineage', formatter_class=RichHelpFormatter)
 parser_sub.add_argument('--bam','-a',required=True, help='BAM file. Make sure it has been generated using the H37Rv genome (GCA_000195955.2)')
 parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
 parser_sub.add_argument('--txt',action="store_true",help="Add text output")
@@ -442,10 +392,11 @@ parser_sub.add_argument('--text_template',type=str,help='Jinja2 formatted templa
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
-parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
+parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
+parser_sub.add_argument('--logging',default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.set_defaults(func=main_lineage)
 
-parser_sub = subparsers.add_parser('spoligotype', help='Profile spoligotype (experimental feature)', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub = subparsers.add_parser('spoligotype', help='Profile spoligotype (experimental feature)', formatter_class=RichHelpFormatter)
 group = parser_sub.add_mutually_exclusive_group(required=True)
 group.add_argument('--read1','-1',help='First read file')
 parser_sub.add_argument('--read2','-2',help='Second read file')
@@ -465,10 +416,11 @@ parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS
 parser_sub.add_argument('--threads','-t',default=1,help='Threads to use',type=int)
 parser_sub.add_argument('--ram',default=2,type=int_2_or_more,help='Maximum memory to use in Gb')
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
-parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
+parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
+parser_sub.add_argument('--logging',default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.set_defaults(func=main_spoligotype)
 
-parser_sub = subparsers.add_parser('collate', help='Collate results form multiple samples together', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub = subparsers.add_parser('collate', help='Collate results form multiple samples together', formatter_class=RichHelpFormatter)
 parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
 parser_sub.add_argument('--samples',help='File with samples (one per line)')
 parser_sub.add_argument('--full',action="store_true",help='Output mutations in main result file')
@@ -480,27 +432,12 @@ parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (
 parser_sub.add_argument('--dir','-d',nargs="+",default=["results"],help='Storage directory')
 parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
-parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
+parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
+parser_sub.add_argument('--logging',default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.set_defaults(func=main_collate)
 
 
-
-parser_sub = subparsers.add_parser('reprofile', help='Reprofile previous results using a new library. The new library must have same targets and the old one.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser_sub.add_argument('json',help='JSON output file')
-parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
-parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
-parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
-parser_sub.add_argument('--reporting_af',default=0.1,type=float,help='Minimum allele frequency to use variants for prediction')
-parser_sub.add_argument('--add_mutation_metadata',action="store_true",help=argparse.SUPPRESS)
-parser_sub.add_argument('--extra_consequences',help=argparse.SUPPRESS)
-parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
-parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
-parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
-parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
-parser_sub.set_defaults(func=main_reprofile)
-
-
-parser_sub = subparsers.add_parser('reformat', help='Reformat json results into text or csv', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub = subparsers.add_parser('reformat', help='Reformat json results into text or csv', formatter_class=RichHelpFormatter)
 parser_sub.add_argument('json',default="tbprofiler",help='Sample prefix')
 parser_sub.add_argument('--txt',action="store_true",help="Add text output")
 parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
@@ -513,10 +450,11 @@ parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--suspect',action="store_true",help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
-parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
+parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
+parser_sub.add_argument('--logging',default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.set_defaults(func=main_reformat)
 
-parser_sub = subparsers.add_parser('create_db', help='Generate the files required to run TBProfiler', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub = subparsers.add_parser('create_db', help='Generate the files required to run tb-profiler', formatter_class=RichHelpFormatter)
 parser_sub.add_argument('--prefix','-p',default="tbdb",type=str,help='The input CSV file containing the mutations')
 parser_sub.add_argument('--csv','-c',default="tbdb.csv",type=str,help='The prefix for all output files')
 parser_sub.add_argument('--watchlist','-w',default="tbdb.watchlist.csv",type=str,help='A csv file containing genes to profile but without any specific associated mutations')
@@ -539,18 +477,20 @@ parser_sub.add_argument('--no_overwrite',action="store_true", help="Don't load i
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
-parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
+parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
+parser_sub.add_argument('--logging',default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.set_defaults(func=main_create_db)
 
-parser_sub = subparsers.add_parser('load_library', help='Load new library', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub = subparsers.add_parser('load_library', help='Load new library', formatter_class=RichHelpFormatter)
 parser_sub.add_argument('prefix',type=str,help='Prefix to the library files')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
-parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
+parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
+parser_sub.add_argument('--logging',default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.set_defaults(func=main_load_library)
 
-parser_sub = subparsers.add_parser('update_tbdb', help='Pull the latest tbdb library and load', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub = subparsers.add_parser('update_tbdb', help='Pull the latest tbdb library and load', formatter_class=RichHelpFormatter)
 parser_sub.add_argument('--prefix','-p',default="tbdb",help='Database name')
 parser_sub.add_argument('--repo','-r',default="https://github.com/jodyphelan/tbdb.git",help='Repository to pull from')
 parser_sub.add_argument('--branch','-b',default="master",help='Branch to pull from')
@@ -559,10 +499,11 @@ parser_sub.add_argument('--match_ref',type=str,help='The prefix for all output f
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
-parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
+parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
+parser_sub.add_argument('--logging',default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.set_defaults(func=main_update_tbdb)
 
-parser_sub = subparsers.add_parser('batch', help='Run tb-profiler for several samples', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub = subparsers.add_parser('batch', help='Run tb-profiler for several samples', formatter_class=RichHelpFormatter)
 parser_sub.add_argument('--csv',help='CSV with samples and files',required=True)
 parser_sub.add_argument('--args',type=str, help='Arguments to use with tb-profiler')
 parser_sub.add_argument('--jobs','-j',default=1,help='Threads to use',type=int)
@@ -570,25 +511,33 @@ parser_sub.add_argument('--threads_per_job','-t',default=1,help='Threads to use'
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
-parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
+parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
+parser_sub.add_argument('--logging',default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.set_defaults(func=main_batch)
 
-parser_sub = subparsers.add_parser('list_db', help='List loaded databases', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub = subparsers.add_parser('list_db', help='List loaded databases', formatter_class=RichHelpFormatter)
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
-parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
+parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
+parser_sub.add_argument('--logging',default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.set_defaults(func=main_list_db)
 
-parser_sub = subparsers.add_parser('version', help='Output program version and exit', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_sub = subparsers.add_parser('version', help='Output program version and exit', formatter_class=RichHelpFormatter)
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
-parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp.__version__)
+parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
+parser_sub.add_argument('--logging',default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.set_defaults(func=main_version)
 
 
 args = parser.parse_args()
+
+logging.basicConfig(
+        level=args.logging, format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
+    )
+
 if hasattr(args, 'func'):
     args.software_name = __softwarename__
     args.tmp_prefix = str(uuid4())
@@ -601,11 +550,12 @@ if hasattr(args, 'func'):
 
     if hasattr(args, 'db'):
         if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
-            pp.errlog("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+            logging.error("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
         if args.external_db:
             args.conf = pp.get_db(args.software_name,args.external_db)
         else:
             args.conf = pp.get_db(args.software_name,args.db)
+    
     args.func(args)
 else:
     parser.print_help(sys.stderr)

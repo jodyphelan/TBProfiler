@@ -14,19 +14,30 @@ def cleanup(files_prefix):
 
 def main_phylogeny(args):
     tbp.phylo.calculate_phylogeny(args)
-    cleanup(args.files_prefix)
+    # cleanup(args.files_prefix)
+
+def prepare_usher(args):
+    tbp.phylotree.prepare_usher(args)
 
 
 argparser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 subparsers = argparser.add_subparsers(help='commands')
-parser_sub = subparsers.add_parser('phylogeny', help='Calculate phylogeny')
+parser_sub = subparsers.add_parser('create_phylogeny', help='Calculate phylogeny')
 parser_sub.add_argument('--samples',required=True,help="Samples files")
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
 parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--min_dp',default=10,type=int,help='Bases with depth below this cutoff will be marked as missing')
+parser_sub.add_argument('--threads',default=1,type=int,help='Total number of threads')
 parser_sub.set_defaults(func=main_phylogeny)
+
+parser_sub = subparsers.add_parser('prepare_usher', help='Update tbdb')
+parser_sub.add_argument('--tree',required=True,help="Samples files")
+parser_sub.add_argument('--vcf',help="Temp firectory to process all files",type=str,default=".")
+parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
+parser_sub.set_defaults(func=prepare_usher)
 
 args = argparser.parse_args()
 if hasattr(args, 'func'):

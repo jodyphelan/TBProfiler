@@ -23,10 +23,6 @@ por5_dr_variants = [
 ]
 
 
-def test_revcom():
-    assert pp.revcom("AGCTTGAGTC") == "GACTCAAGCT"
-
-
 def test_db():
     run_cmd("tb-profiler update_tbdb")
 
@@ -100,7 +96,7 @@ def test_bwa_freebayes_single():
     assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
 
 def test_nanopore():
-    run_cmd("tb-profiler profile -1 tb-profiler-test-data/por5A.nanopore_reduced.fastq.gz --platform nanopore -p por5A_illumina_nanopore -t 4 --af_soft 0.70 --af_hard 0.50 --depth_soft 5 --strand_soft 0 --txt --csv ")
+    run_cmd("tb-profiler profile -1 tb-profiler-test-data/por5A.nanopore_reduced.fastq.gz --platform nanopore -p por5A_illumina_nanopore -t 4 --af '0.5,0.7' --depth '0,5' --txt --csv ")
     results = json.load(open("results/por5A_illumina_nanopore.results.json"))
     assert results["sublin"] == "lineage4.3.4.2"
     assert results["main_lin"] == "lineage4"

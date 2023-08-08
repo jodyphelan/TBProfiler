@@ -1,4 +1,4 @@
-from pathogenprofiler import infolog
+import logging
 import importlib.util
 
 
@@ -9,6 +9,6 @@ def apply_rules(conf,results):
 
     rule_names = [k for k in vars(rules) if k[0]!="_"]
     for r in rule_names:
-        infolog(f"Applying rule: {r}")
+        logging.info(f"Applying rule: {r}")
         results = vars(rules)[r](results)
 

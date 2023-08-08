@@ -34,10 +34,10 @@ def suspect_profiling(results):
         if var["type"]!="missense_variant": continue
         pred = None
         if var["gene"]=="atpE":
-            pp.infolog(f"Profiling {var['gene']} {var['change']} with suspect-bdq")
+            pp.logging.info(f"Profiling {var['gene']} {var['change']} with suspect-bdq")
             pred = get_biosig_bdq_prediction(var["change"])
         if var["gene"]=="pncA":
-            pp.infolog(f"Profiling {var['gene']} {var['change']} with suspect-pza")
+            pp.logging.info(f"Profiling {var['gene']} {var['change']} with suspect-pza")
             pred = get_biosig_pza_prediction(var["change"])
         if pred:
             if "annotation" in var:

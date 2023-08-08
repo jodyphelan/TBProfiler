@@ -1,5 +1,6 @@
 import pickle
-from pathogenprofiler import cmd_out,debug,infolog,errlog
+from pathogenprofiler import cmd_out
+import logging
 import os
 import json
 from .output import write_outputs
@@ -53,7 +54,7 @@ class DB:
         self.diffs = diffs
         self.missing = missing
     def search(self,json_results,vcf_file, exclude_bed, cutoff = 20, min_cov=10, min_freq=0.8):
-        infolog("Searching for close samples in %s" % self.filename)
+        logging.info("Searching for close samples in %s" % self.filename)
         self.c.execute("SELECT sample, diffs, missing FROM variants WHERE lineage=?",(json_results['sublin'],))
         self.diffs,self.missing = extract_variant_set(vcf_file, exclude_bed, min_cov, min_freq)
         sample_dists = []
@@ -70,11 +71,11 @@ class DB:
         return sample_dists
 
 def read_json(filename):
-    infolog("Reading %s" % filename)
+    logging.info("Reading %s" % filename)
     lock = filelock.FileLock(filename + ".lock")
     with lock:
         data = json.load(open(filename))
-    infolog("Finished reading %s" % filename)
+    logging.info("Finished reading %s" % filename)
     return data
 
 def sample_in_json(sample,result_file):
@@ -85,8 +86,8 @@ def sample_in_json(sample,result_file):
         return False
 
 def run_snp_dists(args,results):
-    infolog("\nCalculating SNP distances to look for closely related samples")
-    infolog("-------------------------------------------------------------")
+    logging.info("\nCalculating SNP distances to look for closely related samples")
+    logging.info("-------------------------------------------------------------")
     t1 = time()
     if args.vcf:
         wg_vcf = args.vcf
@@ -98,36 +99,35 @@ def run_snp_dists(args,results):
         dbname = f'{args.dir}/results/snp_diffs.db'
     db = DB(dbname)
     results["close_samples"] = db.search(results,wg_vcf,args.conf['bedmask'],args.snp_dist)
-    infolog(results["close_samples"])
+    logging.info(results["close_samples"])
     if not args.snp_diff_no_store:
         db.store(results,wg_vcf,args.conf['bedmask'])
     results["close_samples"] = [d for d in results["close_samples"] if d["sample"]!=results["id"]]
     t2 = time()
     dt = int(t2-t1)
-    infolog(f"\nFound {len(results['close_samples'])} close samples in {dt} seconds")
-    infolog("-------------------------------------------------------------\n")
+    logging.info(f"\nFound {len(results['close_samples'])} close samples in {dt} seconds")
+    logging.info("-------------------------------------------------------------\n")
     # if args.nj:
         # results['_tree'] = make_nj_tree(args,results)
 
 def update_neighbour_snp_dist_output(args,results):
     for s in results['close_samples']:
-        infolog("Close sample found: %s (%s). Updating result files" % (s['sample'],s['distance']))
+        logging.info("Close sample found: %s (%s). Updating result files" % (s['sample'],s['distance']))
         f = os.path.join(args.dir,"results",f"{s['sample']}.results.json")
         if not os.path.exists(f):
             continue
         if not sample_in_json(args.prefix,f):
             lock = filelock.FileLock(f + ".lock")
             with lock:
-                infolog("Acquiring lock for %s" % f)
+                logging.info("Acquiring lock for %s" % f)
                 data = json.load(open(f))
                 data['close_samples'].append({
                     "sample":args.prefix,
-                    "distance":s['distance']
+                    "distance":s['distance'],
+                    "diffs":s['diffs'],
                 })
                 temp_args = copy(args)
                 temp_args.prefix = s['sample']
-                # if args.nj:
-                    # results['_tree'] = make_nj_tree(temp_args,data)
                 write_outputs(temp_args,data,template_file=args.text_template)
-                infolog("Finished with lock for %s" % f)
+                logging.info("Finished with lock for %s" % f)
 
