@@ -7,26 +7,10 @@ from joblib import Parallel, delayed
 import subprocess as sp
 from uuid import uuid4
 import sys
-
-def run_cmd(cmd: str,log: str=None, desc=None) -> sp.CompletedProcess:
-    if desc:
-        sys.stderr.write(desc+"\n")
-    output = open(log,"w") if log else sp.PIPE
-    result = sp.run(cmd,shell=True,check=True,stderr=output,stdout=output)
-    return result
-
-def cmd_out(cmd: str) -> str:
-    filename = str(uuid4())
-    cmd = f"{cmd} > {filename}"
-    res = run_cmd(cmd)
-    if res.returncode != 0:
-        raise Exception(f"Error running {cmd}")
-    for line in open(filename):
-        yield line.strip()
-    os.remove(filename)
+from pathogenprofiler import run_cmd, cmd_out
 
 def usher_add_sample(args):
-    args.bedmask = args.conf['bedmask']
+    logging.info(f"Adding sample to phylogeny")
 
     if args.vcf:
         args.wg_vcf = args.vcf
@@ -43,12 +27,7 @@ def usher_add_sample(args):
     with lock:
         os.chdir(args.temp)
 
-        tmp_aln = f"{args.files_prefix}.aln.fa"
-        tmp_vcf = f"{args.files_prefix}.tmp.vcf"
-        consensus_file = prepare_sample_consensus(args.prefix,args)
-        run_cmd(f"cat {args.conf['ref']} {consensus_file}> {tmp_aln}")
-        run_cmd(f"faToVcf -includeNoAltN {tmp_aln} {tmp_vcf}")
-        run_cmd(f"bcftools view -T ^{args.conf['bedmask']} {tmp_vcf} -Oz -o {args.tmp_masked_vcf}")
+        args.tmp_masked_vcf = get_consensus_vcf(args.prefix, args.wg_vcf,args)
         run_cmd("usher --vcf %(tmp_masked_vcf)s --load-mutation-annotated-tree %(input_phylo)s --save-mutation-annotated-tree %(tmp_output_phylo)s --write-uncondensed-final-tree" % vars(args))
         run_cmd("mv uncondensed-final-tree.nh %(output_nwk)s" % vars(args))
         run_cmd("matUtils extract -i %(tmp_output_phylo)s -t phylo.nwk" % vars(args))
@@ -79,25 +58,38 @@ def generate_low_dp_mask(bam,ref,outfile,min_dp = 10):
 def prepare_usher(treefile,vcf_file):
     run_cmd(f"usher --tree {treefile} --vcf {vcf_file} --collapse-tree --save-mutation-annotated-tree phylo.pb")
     
-def prepare_sample_consensus(sample,args):
+def prepare_sample_consensus(sample,input_vcf,args):
     s = sample
     tmp_vcf = f"{args.files_prefix}.{s}.vcf.gz"
-    run_cmd(f"bcftools norm -m - {args.dir}/vcf/{s}.vcf.gz | bcftools view -T ^{args.bedmask} | bcftools filter --SnpGap 50 | annotate_maaf.py | bcftools filter -S . -e 'MAAF<0.7' |bcftools filter -S . -e 'FMT/DP<20' | bcftools view -v snps -Oz -o {tmp_vcf}")
+    run_cmd(f"bcftools norm -m - {input_vcf} | bcftools view -T ^{args.conf['bedmask']} | bcftools filter --SnpGap 50 | annotate_maaf.py | bcftools filter -S . -e 'MAAF<0.7' |bcftools filter -S . -e 'FMT/DP<20' | bcftools view -v snps -Oz -o {tmp_vcf}")
     run_cmd(f"bcftools index {tmp_vcf}")
 
     mask_bed = f"{args.files_prefix}.{s}.mask.bed"
-    generate_low_dp_mask(f"{args.dir}/bam/{s}.bam",args.conf['ref'],mask_bed)
+    generate_low_dp_mask(f"{args.bam}",args.conf['ref'],mask_bed)
     run_cmd(f"bcftools consensus --sample {s} -m {mask_bed} -M N -f {args.conf['ref']} {tmp_vcf} | sed 's/>/>{s} /' > {args.files_prefix}.{s}.consensus.fa")
     return f"{args.files_prefix}.{s}.consensus.fa"
 
+def get_consensus_vcf(sample,input_vcf,args):
+    consensus_file = prepare_sample_consensus(sample,input_vcf,args)
+    tmp_aln = str(uuid4())
+    run_cmd(f"cat {args.conf['ref']} {consensus_file}> {tmp_aln}")
+    outfile = f"{args.files_prefix}.masked.vcf"
+    run_cmd(f"faToVcf -includeNoAltN {tmp_aln} {outfile}")
+    # run_cmd(f"bcftools view -T ^{args.conf['bedmask']} {tmp_vcf} -Oz -o {outfile}")
+    os.remove(tmp_aln)
+    return outfile
+
+def wrapper_function(s,args):
+    args.bam = f"{args.dir}/bam/{s}.bam"
+    return prepare_sample_consensus(s,f"{args.dir}/vcf/{s}.vcf.gz",args)
 
 def calculate_phylogeny(args):
     samples = [l.strip() for l in open(args.samples)]
     args.tmp_masked_vcf = f"{args.files_prefix}.masked.vcf.gz"
-    args.bedmask = args.conf['bedmask']
+    # args.bedmask = args.conf['bedmask']
     
     alignment_file = f"{args.files_prefix}.aln"
-    consensus_files = [r for r in tqdm(Parallel(n_jobs=args.threads,return_as='generator')(delayed(prepare_sample_consensus)(s,args) for s in samples),desc="Generating consensus sequences",total=len(samples))]
+    consensus_files = [r for r in tqdm(Parallel(n_jobs=args.threads,return_as='generator')(delayed(wrapper_function)(s,args) for s in samples),desc="Generating consensus sequences",total=len(samples))]
 
     run_cmd(f"cat {' '.join(consensus_files)} > {alignment_file}")
     alignment_file_plus_ref = f"{args.files_prefix}.aln.plus_ref"
