@@ -75,7 +75,6 @@ def get_consensus_vcf(sample,input_vcf,args):
     run_cmd(f"cat {args.conf['ref']} {consensus_file}> {tmp_aln}")
     outfile = f"{args.files_prefix}.masked.vcf"
     run_cmd(f"faToVcf -includeNoAltN {tmp_aln} {outfile}")
-    # run_cmd(f"bcftools view -T ^{args.conf['bedmask']} {tmp_vcf} -Oz -o {outfile}")
     os.remove(tmp_aln)
     return outfile
 
@@ -86,7 +85,6 @@ def wrapper_function(s,args):
 def calculate_phylogeny(args):
     samples = [l.strip() for l in open(args.samples)]
     args.tmp_masked_vcf = f"{args.files_prefix}.masked.vcf.gz"
-    # args.bedmask = args.conf['bedmask']
     
     alignment_file = f"{args.files_prefix}.aln"
     consensus_files = [r for r in tqdm(Parallel(n_jobs=args.threads,return_as='generator')(delayed(wrapper_function)(s,args) for s in samples),desc="Generating consensus sequences",total=len(samples))]
