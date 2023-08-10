@@ -3,13 +3,30 @@ import os
 from collections import defaultdict
 from tqdm import tqdm
 from .utils import get_lt2drugs
-from pathogenprofiler import errlog,debug
+import logging
 import csv 
 
-def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_results=True,full_variant_results=True,reporting_af=0.1,mark_missing=False,sep="\t"):
-    if not os.path.isdir(result_dir):
-        errlog("\nERROR: Can't find directory %s\n" % result_dir )
-        exit()
+def get_common_fields(rows):
+    cols = set(rows[0].keys())
+    orders = {}
+    for r in rows:
+        cols = cols.intersection(set(r.keys()))
+        for i,c in enumerate(r):
+            orders[c] = i
+    return sorted(cols,key=lambda x:orders[x])
+
+def get_field_values(rows,cols):
+    new_rows = []
+    for r in rows:
+        new_rows.append({c:r.get(c,None) for c in cols})
+    return new_rows
+
+
+def collate_results(prefix,conf,result_dirs=["./results"],sample_file=None,full_results=True,full_variant_results=True,mark_missing=False,sep="\t"):
+    for d in result_dirs:
+        if not os.path.isdir(d):
+            errlog("\nERROR: Can't find directory %s\n" % d )
+            exit()
     set_all_drugs = set()
     for l in open(conf["bed"]):
         arr = l.rstrip().split()
@@ -24,10 +41,16 @@ def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_res
         if d not in drug_list:
             drug_list.append(d)
 
+
+    samples = {}
+    for d in result_dirs:
+        for f in os.listdir(f"{d}/"):
+            if f.endswith(".results.json"):
+                s = f[:-13]
+                samples[s] = f'{d}/{s}.results.json'
+
     if sample_file:
-        samples = [x.rstrip() for x in open(sample_file).readlines()]
-    else:
-        samples = [x.replace(".results.json","") for x in os.listdir("%s/" % result_dir) if x[-13:]==".results.json"]
+        samples = {s:samples[s] for s in [l.strip() for l in open(sample_file)]}
 
     results = defaultdict(dict)
     result_rows = []
@@ -45,7 +68,7 @@ def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_res
     for s in tqdm(samples):
         res = {"sample":s}
         dr_drugs[s] = set()
-        temp = json.load(open("%s/%s.results.json" % (result_dir,s)))
+        temp = json.load(open(samples[s]))
 
         missing_drugs = set()
         if "missing_positions" in temp["qc"]:
@@ -55,25 +78,23 @@ def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_res
 
 
         for x in temp["dr_variants"]:
-            if x["freq"]>reporting_af:
-                dr_variants[x["gene"]][x["change"]][s] = x["freq"]
-                sample_dr_mutations_set[s].add((x["gene"],x["change"]))
-                dr_variants_set.add((x["gene"],x["change"]))
-                for d in x["drugs"]:
-                    dr_drugs[s].add(d["drug"])
-                    results[s][d["drug"]].add("%s_%s" % (x["gene"],x["change"]) if full_results else "R")
+            dr_variants[x["gene"]][x["change"]][s] = x["freq"]
+            sample_dr_mutations_set[s].add((x["gene"],x["change"]))
+            dr_variants_set.add((x["gene"],x["change"]))
+            for d in x["drugs"]:
+                dr_drugs[s].add(d["drug"])
+                results[s][d["drug"]].add("%s_%s" % (x["gene"],x["change"]) if full_results else "R")
         for x in temp["other_variants"]:
-            if x["freq"]>reporting_af:
-                sample_other_mutations_set[s].add((x["gene"],x["change"]))
+            sample_other_mutations_set[s].add((x["gene"],x["change"]))
         
         res["main_lineage"] = results[s]["main_lin"] = temp["main_lin"]
         res["sub_lineage"] = results[s]["sublin"] = temp["sublin"]
         if "spoligotype" in temp:
             res["spoligotype"] = temp["spoligotype"]["octal"]
         res["DR_type"] = results[s]["drtype"] = temp["drtype"]
+        res["region_median_depth"] = results[s]["region_median_depth"] = temp["qc"].get("region_median_depth","NA")
         res["pct_reads_mapped"] = temp["qc"].get("pct_reads_mapped","NA")
         res["num_reads_mapped"] = temp["qc"].get("num_reads_mapped","NA")
-        res["median_coverage"] = temp["qc"].get("median_coverage","NA")
         res["num_dr_variants"] = len(sample_dr_mutations_set[s])
         res["num_other_variants"] = len(sample_other_mutations_set[s])
         for d in drug_list:
@@ -91,9 +112,10 @@ def collate_results(prefix,conf,result_dir="./results",sample_file=None,full_res
                 tmp_edges.add((sorted_samples[0],sorted_samples[1],d['distance']))
 
     with open(prefix+".txt","w") as OUT:
-        writer = csv.DictWriter(OUT,fieldnames=list(result_rows[0]),delimiter=sep)
+        fields = get_common_fields(result_rows)
+        writer = csv.DictWriter(OUT,fieldnames=fields,delimiter=sep)
         writer.writeheader()
-        writer.writerows(result_rows)
+        writer.writerows(get_field_values(result_rows,fields))
 
     if full_variant_results:
 
@@ -188,13 +210,18 @@ DATA
     OUT.close()
 
     if len(tmp_edges)>0:
-        graph = []
+        tmp_nodes = set()
+        edges = []
+
         for i,e in enumerate(tmp_edges):
             if e[0] in results and e[1] in results:
-                graph.append({"data":{"id":e[0],"drtype":results[e[0]]["drtype"],"lineage":results[e[0]]["main_lin"]}})
-                graph.append({"data":{"id":e[1],"drtype":results[e[1]]["drtype"],"lineage":results[e[1]]["main_lin"]}})
-                graph.append({"data":{"id":i,"source":e[0],"target":e[1],"distance":e[2]}})
-        json.dump(graph,open(prefix+".transmission_graph.json","w"))
+                tmp_nodes.add(e[0])
+                tmp_nodes.add(e[1])
+                edges.append({"source":e[0],"target":e[1],"properties":{"distance":e[2]}})
+        nodes = []
+        for n in tmp_nodes:
+            nodes.append({"id":n,"properties":{"drtype":results[n]["drtype"],"lineage":results[n]["main_lin"],"median_depth":results[n]["region_median_depth"]}})
+        json.dump({"nodes":nodes,"edges":edges},open(prefix+".transmission_graph.json","w"))
 
         with open(prefix+".distance_matrix.txt","w") as MAT:
             MAT.write("samples\t%s\n" % "\t".join(samples))

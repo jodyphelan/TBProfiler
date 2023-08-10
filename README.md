@@ -96,6 +96,15 @@ tb-profiler profile -1 ERR1664619_1.fastq.gz -2 ERR1664619_2.fastq.gz -t 4 -p ER
 cat results/ERR1664619.results.txt
 ```
 
+#### Output format
+
+#### Text and CSV
+A `.json` formatted file will be produced by default for each sample you run and will be placed in a folder named `results`. This format is easy to load for software but is not very human-readable. There are also a number of optional formats which are intended to be interpreted by humans. Add `--txt` or `--csv` to your command to produce a tab-separated or csv-separated file containing most of the same information as in the `.json` file. You can also produce your own custom format report by supplying a template file written using the *jinja* templating language. You can do this by supplying your template using `--output_template /path/to/template`.
+
+#### Word (docx) output
+
+You can also create a docx output which is a versitile approach to create professional-looking reports that can include tables, images and anything you can do in Word. It works in a similar way by supplying a docx template with *jinja* variables that will be filled in using the sample data. To create the output run `--docx /path/to/template.docx`. An example template can be found [here](https://github.com/jodyphelan/tb-profiler-templates).
+
 #### Whole genome analysis
 
 By default, `tb-profiler` only analyses drug resistance candidate genes. It is also possible to perform variant calling across the whole genome using the `--call_whole_genome` argument. When this is enabled it is also possible to compare your sample to previous runs to find those which are close to your new sample. Close samples are found using a SNP distance cutoff which is enabled using the `--snp_dist` argument. Close samples are stored in the json output and are also found in the text report. Please note that the `--snp_dist` function is experimental and could produce unexpected results.

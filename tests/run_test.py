@@ -23,38 +23,18 @@ por5_dr_variants = [
 ]
 
 
-def test_revcom():
-    assert pp.revcom("AGCTTGAGTC") == "GACTCAAGCT"
-
-
 def test_db():
     run_cmd("tb-profiler update_tbdb")
 
 
-def test_vcf1():
-    run_cmd("tb-profiler vcf_profile tb-profiler-test-data/por5A1.vcf.gz --txt --csv")
-    results = json.load(open("results/por5_vcf.results.json"))
-    assert results["sublin"] == "lineage4.3.4.2"
-    assert results["main_lin"] == "lineage4"
-    assert len(results["dr_variants"]) == 7
-    assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
-
-def test_vcf2():
-    run_cmd("tb-profiler profile -v tb-profiler-test-data/por5A1.vcf.gz --txt --csv --prefix por5A1_vcf2")
-    results1 = json.load(open("results/por5_vcf.results.json"))
-    results2 = json.load(open("results/por5A1_vcf2.results.json"))
-    for key in ["timestamp","id","pipeline"]:
-        del results1[key]
-        del results2[key]
-    assert results1 == results2
 
 def illumina_fastq(caller,mapper):
-    run_cmd(f"tb-profiler profile -1 tb-profiler-test-data/por5A.reduced_1.fastq.gz -2 tb-profiler-test-data/por5A.reduced_2.fastq.gz --spoligotype --mapper {mapper} --caller {caller} -p por5A_illumina_{mapper}_{caller}_PE -t 4 --txt --csv --pdf")
+    run_cmd(f"tb-profiler profile -1 tb-profiler-test-data/por5A.reduced_1.fastq.gz -2 tb-profiler-test-data/por5A.reduced_2.fastq.gz --spoligotype --mapper {mapper} --caller {caller} -p por5A_illumina_{mapper}_{caller}_PE -t 4 --txt --csv ")
     results = json.load(open(f"results/por5A_illumina_{mapper}_{caller}_PE.results.json"))
     return results
 
 def illumina_fastq_single(caller,mapper):
-    run_cmd(f"tb-profiler profile -1 tb-profiler-test-data/por5A.reduced_1.fastq.gz --spoligotype --mapper {mapper} --caller {caller} -p por5A_illumina_{mapper}_{caller}_SE -t 4 --txt --csv --pdf")
+    run_cmd(f"tb-profiler profile -1 tb-profiler-test-data/por5A.reduced_1.fastq.gz --spoligotype --mapper {mapper} --caller {caller} -p por5A_illumina_{mapper}_{caller}_SE -t 4 --txt --csv ")
     results = json.load(open(f"results/por5A_illumina_{mapper}_{caller}_SE.results.json"))
     return results
 
@@ -89,18 +69,20 @@ def test_bwa_lofreq():
     assert [(v["gene"],v["change"]) for v in results["dr_variants"] if v["freq"]>0.05] == por5_dr_variants
 
 
+def test_vcf1():
+    run_cmd("tb-profiler profile -v tb-profiler-test-data/por5A1.vcf.gz --prefix por5_vcf --txt --csv")
+    results = json.load(open("results/por5_vcf.results.json"))
+    assert results["sublin"] == "lineage4.3.4.2"
+    assert results["main_lin"] == "lineage4"
+    assert len(results["dr_variants"]) == 7
+    assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
+
 def test_collate():
     with open("samples.txt","w") as O:
         O.write("\n".join(["por5A_illumina_bwa_freebayes_PE","por5A_illumina_bwa_gatk_PE","por5A_illumina_bwa_bcftools_PE","por5A_illumina_bwa_pilon_PE","por5A_illumina_bwa_lofreq_PE","por5_vcf"]))
     run_cmd("tb-profiler collate --samples samples.txt")
     assert open("tbprofiler.txt").read() == collate_text
-
-# def test_bowtie2_freebayes():
-#     results = illumina_fastq("freebayes","bowtie2")
-#     assert results["sublin"] == "lineage4.3.4.2"
-#     assert results["main_lin"] == "lineage4"
-#     assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
-
+    
 def test_minimap2_freebayes():
     results = illumina_fastq("freebayes","minimap2")
     assert results["sublin"] == "lineage4.3.4.2"
@@ -114,27 +96,18 @@ def test_bwa_freebayes_single():
     assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
 
 def test_nanopore():
-    run_cmd("tb-profiler profile -1 tb-profiler-test-data/por5A.nanopore_reduced.fastq.gz --platform nanopore -p por5A_illumina_nanopore -t 4 --txt --csv --pdf")
+    run_cmd("tb-profiler profile -1 tb-profiler-test-data/por5A.nanopore_reduced.fastq.gz --platform nanopore -p por5A_illumina_nanopore -t 4 --af '0.5,0.7' --depth '0,5' --txt --csv ")
     results = json.load(open("results/por5A_illumina_nanopore.results.json"))
     assert results["sublin"] == "lineage4.3.4.2"
     assert results["main_lin"] == "lineage4"
     assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
 
 def test_fasta():
-    run_cmd("tb-profiler fasta_profile -f tb-profiler-test-data/por5A1.fasta  -p por5A_fasta --txt --csv")
+    run_cmd("tb-profiler profile -f tb-profiler-test-data/por5A1.fasta  -p por5A_fasta --txt --csv")
     results = json.load(open("results/por5A_fasta.results.json"))
     assert results["sublin"] == "lineage4.3.4.2"
     assert results["main_lin"] == "lineage4"
     assert [(v["gene"],v["change"]) for v in results["dr_variants"]] == por5_dr_variants
-
-def test_fasta2():
-    run_cmd("tb-profiler profile -f tb-profiler-test-data/por5A1.fasta --txt --csv --prefix por5A1_fasta2")
-    results1 = json.load(open("results/por5A_fasta.results.json"))
-    results2 = json.load(open("results/por5A1_fasta2.results.json"))
-    for key in ["timestamp","id","pipeline"]:
-        del results1[key]
-        del results2[key]
-    assert results1 == results2
 
 
 def test_seqs_from_bam():

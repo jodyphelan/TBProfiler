@@ -11,7 +11,9 @@ def sanitize(d):
     return d
 
 
-def write_docx(json_results,conf,outfile,template_file,reporting_af = 0.0):
+def write_docx(json_results,conf,outfile,template_file = None,reporting_af = 0.0):
+    if template_file is None:
+        template_file = sys.prefix+"/share/tbprofiler/default_template.docx"
     data = json_results
     drug_variants = defaultdict(list)
     confidence = defaultdict(list)
@@ -35,7 +37,11 @@ def write_docx(json_results,conf,outfile,template_file,reporting_af = 0.0):
         'xdr': True if data['drtype'] in "XDR-TB" else False,
         'resistant': True if data['drtype'] in ("Other","RR-TB","HR-TB") else False,
         'drtype': data['drtype'],
+        'd': data,
     }
+
+
+
 
     for d in conf['drugs']:
         variables[sanitize(d)+"_variants"] = ", ".join(drug_variants[d]) if len(drug_variants[d])>0 else "Not found"

@@ -1,7 +1,8 @@
 import time
 from unittest import result
 from pathogenprofiler import get_summary
-from pathogenprofiler import errlog, debug, unlist, dict_list2text
+from pathogenprofiler import dict_list2text
+import logging
 from .utils import get_drug_list
 import jinja2
 from copy import copy
@@ -25,6 +26,12 @@ Date{{d['sep']}}{{d['date']}}
 Strain{{d['sep']}}{{d['strain']}}
 Drug-resistance{{d['sep']}}{{d['drtype']}}
 Median Depth{{d['sep']}}{{d['med_dp']}}
+
+{% if 'notes' in d %}
+Notes
+--------------------
+{{d['notes']}}
+{% endif %}
 
 Lineage report
 --------------
@@ -58,6 +65,11 @@ Resistance variants report
 Other variants report
 ---------------------
 {{d['other_var_report']}}
+
+QC failed variants report
+-------------------------
+
+{{d['qc_fail_var_report']}}
 
 Coverage report
 ---------------------
@@ -102,16 +114,25 @@ def stringify_annotations(annotation):
         annotations.append("|".join([f'{key}={val}' for key,val in ann.items()]))
     return ";".join(annotations)
 
-def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="\t",add_annotations=True,template_file = None,use_suspect=False):
+def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="\t",add_annotations=True,template_file = None):
     json_results = copy(json_results)
     if columns==None:
         columns = []
-    if use_suspect:
-        columns.append("evidence")
+
+    
     text_strings = json_results
     text_strings["id"] = json_results["id"]
     text_strings["date"] = time.ctime()
     if "dr_variants" in json_results:
+        use_suspect = False
+        for v in json_results["dr_variants"]:
+            for d in v["drugs"]:
+                if "evidence" in d:
+                    if d["evidence"] in ('suspect-PZA','suspect-BDQ'):
+                        use_suspect = True
+
+        if use_suspect:
+            columns.append("evidence")
         if add_annotations:
             for var in json_results["dr_variants"] + json_results["other_variants"]:
                 if "annotation" in var:
@@ -127,17 +148,21 @@ def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="
             var["drug"] = "; ".join([d["drug"] for d in var["drugs"]])
 
         text_strings["dr_report"] = dict_list2text(json_results["drug_table"],["Drug","Genotypic Resistance","Mutations"]+columns if columns else [],sep=sep)
-        text_strings["dr_var_report"] = dict_list2text(json_results["dr_variants"],mappings={"genome_pos":"Genome Position","locus_tag":"Locus Tag","gene":"Gene","type":"Variant type","change": "Change","freq":"Estimated fraction","drugs.drug":"Drug","annotation_str":"Annotation"},sep=sep)
-        text_strings["other_var_report"] = dict_list2text(json_results["other_variants"],mappings={"genome_pos":"Genome Position","locus_tag":"Locus Tag","gene":"Gene","type":"Variant type","change": "Change","freq":"Estimated fraction","annotation_str":"Annotation"},sep=sep)
+        text_strings["dr_var_report"] = dict_list2text(json_results["dr_variants"],mappings={"genome_pos":"Genome Position","locus_tag":"Locus Tag","gene":"Gene","type":"Variant type","change": "Change","depth":"Depth of coverage","freq":"Estimated fraction","drugs.drug":"Drug","annotation_str":"Annotation"},sep=sep)
+        text_strings["other_var_report"] = dict_list2text(json_results["other_variants"],mappings={"genome_pos":"Genome Position","locus_tag":"Locus Tag","gene":"Gene","type":"Variant type","change": "Change","depth":"Depth of coverage","freq":"Estimated fraction","annotation_str":"Annotation"},sep=sep)
+        text_strings["qc_fail_var_report"] = dict_list2text(json_results["qc_fail_variants"],mappings={"genome_pos":"Genome Position","locus_tag":"Locus Tag","gene":"Gene","type":"Variant type","change": "Change","depth":"Depth of coverage","freq":"Estimated fraction","drugs.drug":"Drug","annotation_str":"Annotation"},sep=sep)
+
         text_strings["drtype"] = json_results["drtype"]
        
+    if "notes" in json_results:
+        text_strings['notes'] = "\n".join(json_results['notes'])
 
     if "sublin" in json_results:
         text_strings["strain"] = json_results["sublin"]
         text_strings["lineage_report"] = dict_list2text(json_results["lineage"],["lin","frac","family","spoligotype","rd"],{"lin":"Lineage","frac":"Estimated fraction","spoligotype":"Spoligotype","rd":"Rd"},sep=sep)
         
     if "qc" in json_results:
-        text_strings["med_dp"] = json_results["qc"]["median_coverage"] if json_results['input_data_source'] in ('bam','fastq') else "NA"
+        text_strings["med_dp"] = json_results["qc"]["region_median_depth"] if json_results['input_data_source'] in ('bam','fastq') else "NA"
         text_strings["coverage_report"] = dict_list2text(json_results["qc"]["gene_coverage"], ["gene","locus_tag","cutoff","fraction"],sep=sep) if "gene_coverage" in json_results["qc"] else "Not available"
         text_strings["missing_report"] = dict_list2text(json_results["qc"]["missing_positions"],["gene","locus_tag","position","variants","drugs"],sep=sep) if "missing_positions" in json_results["qc"] else "Not available"
     if "spoligotype" in json_results:
