@@ -12,6 +12,7 @@ from pathogenprofiler import run_cmd, cmd_out
 def usher_add_sample(args):
     logging.info(f"Adding sample to phylogeny")
 
+
     if args.vcf:
         args.wg_vcf = args.vcf
     else:
@@ -21,7 +22,13 @@ def usher_add_sample(args):
     args.input_phylo = f"{args.dir}/results/phylo.pb"
     args.tmp_output_phylo = f"{args.files_prefix}.pb"
     args.output_nwk = f"{args.files_prefix}.nwk"
-    lock = filelock.FileLock(args.input_phylo + ".lock")
+    
+    if not os.path.isfile(args.input_phylo):
+        logging.error("Phylogeny doesn't exist. Please create one first with `tb-profiler-tools`")
+        quit("Exiting!")
+
+    
+    lock = filelock.SoftFileLock(args.input_phylo + ".lock")
 
     cwd = os.getcwd()
     with lock:

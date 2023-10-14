@@ -132,6 +132,8 @@ def main_profile(args):
         tbp.run_snp_dists(args,results)
     
     if args.update_phylo:
+        if args.bam_for_depth:
+            args.bam = args.bam_for_depth
         tbp.usher_add_sample(args)
 
     results["pipeline"] = [
@@ -368,6 +370,7 @@ algorithm.add_argument('--ram',default=2,help='Maximum memory to use',type=int)
 other=parser_sub.add_argument_group("Other options")
 other.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 other.add_argument('--delly_vcf',help=argparse.SUPPRESS)
+other.add_argument('--bam_for_depth',help=argparse.SUPPRESS)
 other.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
 other.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 other.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
