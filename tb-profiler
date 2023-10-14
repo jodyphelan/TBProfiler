@@ -128,12 +128,13 @@ def main_profile(args):
     if pp.nofolder(d:=args.dir+"/results"):
         os.mkdir(d)
 
+    if args.bam_for_depth:
+        args.bam = args.bam_for_depth
+        
     if args.snp_dist:
         tbp.run_snp_dists(args,results)
     
     if args.update_phylo:
-        if args.bam_for_depth:
-            args.bam = args.bam_for_depth
         tbp.usher_add_sample(args)
 
     results["pipeline"] = [
