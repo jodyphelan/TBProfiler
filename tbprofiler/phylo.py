@@ -61,7 +61,7 @@ def prepare_usher(treefile,vcf_file):
 def prepare_sample_consensus(sample,input_vcf,args):
     s = sample
     tmp_vcf = f"{args.files_prefix}.{s}.vcf.gz"
-    run_cmd(f"bcftools norm -m - {input_vcf} | bcftools view -T ^{args.conf['bedmask']} | bcftools filter --SnpGap 50 | annotate_maaf.py | bcftools filter -S . -e 'MAAF<0.7' |bcftools filter -S . -e 'FMT/DP<20' | bcftools view -v snps -Oz -o {tmp_vcf}")
+    run_cmd(f"bcftools norm -m - {input_vcf} | bcftools view -T ^{args.conf['bedmask']} | bcftools filter --SnpGap 50 | annotate_maaf.py | bcftools filter -S . -e 'MAAF<0.7' |bcftools filter -S . -e 'FMT/DP<20' | rename_vcf_sample.py --sample-name {s} | bcftools view -v snps -Oz -o {tmp_vcf}")
     run_cmd(f"bcftools index {tmp_vcf}")
 
     mask_bed = f"{args.files_prefix}.{s}.mask.bed"

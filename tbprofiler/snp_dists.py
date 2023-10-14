@@ -91,7 +91,7 @@ class DB:
 
 def read_json(filename):
     logging.debug("Reading %s" % filename)
-    lock = filelock.FileLock(filename + ".lock")
+    lock = filelock.SoftFileLock(filename + ".lock")
     with lock:
         data = json.load(open(filename))
     logging.debug("Finished reading %s" % filename)
@@ -116,11 +116,13 @@ def run_snp_dists(args,results):
         dbname = args.snp_diff_db
     else:
         dbname = f'{args.dir}/results/snp_diffs.db'
-    db = DB(dbname)
-    results["close_samples"] = db.search(results,input_vcf,args.snp_dist)
-    if not args.snp_diff_no_store:
-        db.store(results,input_vcf)
-    results["close_samples"] = [d for d in results["close_samples"] if d["sample"]!=results["id"]]
+    lock = f"{dbname}.lock"
+    with filelock.SoftFileLock(lock):
+        db = DB(dbname)
+        results["close_samples"] = db.search(results,input_vcf,args.snp_dist)
+        if not args.snp_diff_no_store:
+            db.store(results,input_vcf)
+        results["close_samples"] = [d for d in results["close_samples"] if d["sample"]!=results["id"]]
 
 
 
@@ -131,7 +133,7 @@ def update_neighbour_snp_dist_output(args,results):
         if not os.path.exists(f):
             continue
         if not sample_in_json(args.prefix,f):
-            lock = filelock.FileLock(f + ".lock")
+            lock = filelock.SoftFileLock(f + ".lock")
             with lock:
                 logging.debug("Acquiring lock for %s" % f)
                 data = json.load(open(f))
