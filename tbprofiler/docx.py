@@ -11,7 +11,7 @@ def sanitize(d):
     return d
 
 
-def write_docx(json_results,conf,outfile,template_file = None,reporting_af = 0.0):
+def write_docx(json_results,conf,outfile,template_file = None):
     if template_file is None:
         template_file = sys.prefix+"/share/tbprofiler/default_template.docx"
     data = json_results

@@ -114,7 +114,7 @@ def stringify_annotations(annotation):
         annotations.append("|".join([f'{key}={val}' for key,val in ann.items()]))
     return ";".join(annotations)
 
-def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="\t",add_annotations=True,template_file = None):
+def write_text(json_results,conf,outfile,columns = None,sep="\t",add_annotations=True,template_file = None):
     json_results = copy(json_results)
     if columns==None:
         columns = []
@@ -140,7 +140,7 @@ def write_text(json_results,conf,outfile,columns = None,reporting_af = 0.0,sep="
                 else:
                     var["annotation_str"] = ""
 
-        json_results = get_summary(json_results,conf,columns = columns,reporting_af=reporting_af)
+        json_results = get_summary(json_results,conf,columns = columns)
         drug_list = get_drug_list(conf["bed"])
 
         json_results["drug_table"] = [[y for y in json_results["drug_table"] if y["Drug"].upper()==d.upper()][0] for d in conf["drugs"] if d in drug_list]
