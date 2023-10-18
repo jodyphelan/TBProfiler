@@ -25,21 +25,21 @@ def get_field_values(rows,cols):
 def collate_results(prefix,conf,result_dirs=["./results"],sample_file=None,full_results=True,full_variant_results=True,mark_missing=False,sep="\t"):
     for d in result_dirs:
         if not os.path.isdir(d):
-            errlog("\nERROR: Can't find directory %s\n" % d )
+            logging.error("\nERROR: Can't find directory %s\n" % d )
             exit()
     set_all_drugs = set()
     for l in open(conf["bed"]):
         arr = l.rstrip().split()
         for d in arr[5].split(","):
             set_all_drugs.add(d)
-    tmp_drugs = ["rifampicin", "isoniazid", "pyrazinamide", "ethambutol", "streptomycin", "fluoroquinolones", "moxifloxacin", "ofloxacin", "levofloxacin", "ciprofloxacin", "aminoglycosides", "amikacin", "kanamycin", "capreomycin", "ethionamide", "para-aminosalicylic_acid", "cycloserine", "linezolid"]
-    drug_list = []
-    for d in tmp_drugs:
-        if d in set_all_drugs:
-            drug_list.append(d)
-    for d in sorted(list(set_all_drugs)):
-        if d not in drug_list:
-            drug_list.append(d)
+    # tmp_drugs = ["rifampicin", "isoniazid", "pyrazinamide", "ethambutol", "streptomycin", "fluoroquinolones", "moxifloxacin", "ofloxacin", "levofloxacin", "ciprofloxacin", "aminoglycosides", "amikacin", "kanamycin", "capreomycin", "ethionamide", "para-aminosalicylic_acid", "cycloserine", "linezolid"]
+    drug_list = conf['drugs']
+    # for d in tmp_drugs:
+    #     if d in set_all_drugs:
+    #         drug_list.append(d)
+    # for d in sorted(list(set_all_drugs)):
+    #     if d not in drug_list:
+    #         drug_list.append(d)
 
 
     samples = {}
