@@ -119,7 +119,11 @@ def reformat(results,conf,mutation_metadata=False,use_suspect=False):
         results["qc"]["missing_positions"] = pp.reformat_missing_genome_pos(results["qc"]["missing_positions"],conf)
     if "barcode" in results:
         results = barcode2lineage(results)
-    results = pp.reformat_annotations(results,conf,)
+    # results = pp.reformat_annotations(results,conf,)
+    results = pp.process_variants(results,conf,['drug_resistance'])
+    results['dr_variants'] = results['drug_resistance_variants']
+    del results['drug_resistance_variants']
+    results['dr_variants'] = pp.add_drugs_to_variants(results['dr_variants'])
     results = add_drtypes(results)
     results["db_version"] = conf["version"]
     if mutation_metadata:
