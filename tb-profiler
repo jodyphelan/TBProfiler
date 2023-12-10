@@ -143,10 +143,7 @@ def main_profile(args):
     ]
 
 
-    ### TEST ###
-    if "rules" in args.conf:
-        tbp.apply_rules(args.conf,results)
-    ### END ###
+
 
     ### Move files to respective directories ###
     result_files = {
