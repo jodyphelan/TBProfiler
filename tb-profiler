@@ -352,6 +352,7 @@ algorithm.add_argument('--mapper',default="bwa", choices=["bwa","minimap2","bowt
 algorithm.add_argument('--caller',default="freebayes", choices=["bcftools","gatk","freebayes","pilon","lofreq"],help="Variant calling tool to use.",type=str)
 algorithm.add_argument('--calling_params',type=str,help='Override default parameters for variant calling')
 algorithm.add_argument('--kmer_counter',default='kmc',choices=["kmc","dsk"],type=str,help="Kmer counter")
+algorithm.add_argument('--coverage_tool',default='samtools',choices=["samtools","bedtools"],type=str,help="Kmer counter")
 algorithm.add_argument('--suspect',action="store_true",help="Use the suspect suite of tools to add ML predictions")
 algorithm.add_argument('--spoligotype',action="store_true",help="Perform in-silico spoligotyping")
 algorithm.add_argument('--update_phylo',action="store_true",help="Update phylogeny using usher (experimental feature)")
