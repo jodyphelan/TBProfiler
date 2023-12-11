@@ -93,21 +93,7 @@ def variant_present(var,results):
             if (v['gene']==var['gene'] or v['locus_tag']==var['gene']) and v['type']==var['type']:
                 result = v
     return result
-
-def apply_rules(results,conf):
-    if 'rules' not in conf:
-        return
-    for r in conf['rules']:
-        if r['type']=='interaction':
-            if r['interaction']=="negate":
-
-                if variant_present(r['var1'],results) and (v:=variant_present(r['var2'],results)):
-                    results['dr_variants'].remove(v)
-                    results['other_variants'].append(v)
-                    if 'note' in r:
-                        results['notes'].append(r['note'])
-
-    
+   
 def reformat(results,conf,mutation_metadata=False,use_suspect=False):
     results["notes"] = []
     results["variants"] = [x for x in results["variants"] if len(x["consequences"])>0]
@@ -119,11 +105,12 @@ def reformat(results,conf,mutation_metadata=False,use_suspect=False):
         results["qc"]["missing_positions"] = pp.reformat_missing_genome_pos(results["qc"]["missing_positions"],conf)
     if "barcode" in results:
         results = barcode2lineage(results)
-    # results = pp.reformat_annotations(results,conf,)
+
     results = pp.process_variants(results,conf,['drug_resistance'])
     results['dr_variants'] = results['drug_resistance_variants']
     del results['drug_resistance_variants']
     results['dr_variants'] = pp.add_drugs_to_variants(results['dr_variants'])
+    results['qc_fail_variants'] = pp.add_drugs_to_variants(results['qc_fail_variants'])
     results = add_drtypes(results)
     results["db_version"] = conf["version"]
     if mutation_metadata:
