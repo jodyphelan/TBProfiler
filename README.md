@@ -145,7 +145,7 @@ If you would like to use an altered database you can download the tbdb repo, mak
 
 ```text
 tb-profiler create_db --prefix <new_library_name>
-tb-profiler load_library --prefix <new_library_name>
+tb-profiler load_library <new_library_name>
 ```
 
 ### Non-H37Rv databases
