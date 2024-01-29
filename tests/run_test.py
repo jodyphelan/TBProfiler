@@ -52,7 +52,7 @@ def test_variant(caller):
     run_cmd(f"tb-profiler profile --db {db} -a bam/por5A_fastq.bam --caller {caller} -p por5A_{caller} -t 4 --txt --csv ")
     check_assertations(f"results/por5A_{caller}.results.json")
 
-def test_vcf1():
+def test_vcf():
     run_cmd(f"tb-profiler profile --db {db} -v tb-profiler-test-data/por5A1.vcf.gz --prefix por5_vcf --txt --csv")
     check_assertations("results/por5_vcf.results.json")
     
