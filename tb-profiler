@@ -154,6 +154,9 @@ def main_profile(args):
         os.mkdir(d)
 
 
+
+    create_output_directories(args)
+
     tbp.write_outputs(args,result)
 
 
@@ -268,6 +271,11 @@ def main_reformat(args):
     result = tbp.ProfileResult(**data)
     args.prefix = result.id
     tbp.write_outputs(args,result,template_file=args.text_template)
+
+def create_output_directories(args):
+    for d in ["bam","vcf","results"]:
+        if pp.nofolder(args.dir+"/"+d):
+            os.mkdir(args.dir+"/"+d)
 
 def main_batch(args):
     if args.args==None:
