@@ -35,13 +35,13 @@ def cleanup():
             outfile = "%s.errlog.txt" % args.vcf.split("/")[-1]
         else:
             outfile = "%s.errlog.txt" % uuid4() 
-        if "conf" in vars(args):
+        if "conf" in vars(args) and args.conf:
             del args.conf['json_db']
         with open(outfile, "w") as O:
             O.write("# tb-profiler error report\n\n")
             O.write("* OS: %s\n" % sys.platform)
             O.write("* Program version: %s\n" % tbp.__version__)
-            O.write("* Database version: %s\n" % args.conf.get("version","N/A") if "conf" in vars(args) else "")
+            O.write("* Database version: %s\n" % args.conf.get("version","N/A") if "conf" in vars(args) and args.conf else "")
             O.write("* Program call:\n")
             O.write("```\n")
             O.write("%s\n" % vars(args))
@@ -162,11 +162,11 @@ def main_profile(args):
     # ### Move files to respective directories ###
     result_files = {
     
-        "%s.targets.vcf.gz" % args.files_prefix: "%s/vcf/%s.targets.csq.vcf.gz" % (args.dir,args.prefix),
-        "%s.vcf.gz" % args.files_prefix: "%s/vcf/%s.vcf.gz" % (args.dir,args.prefix),
-        "%s.bam" % args.files_prefix: "%s/bam/%s.bam" % (args.dir,args.prefix),
-        "%s.bam.bai" % args.files_prefix: "%s/bam/%s.bam.bai" % (args.dir,args.prefix),
-        "%s.nwk" % args.files_prefix: "%s/results/%s.nwk" % (args.dir,args.prefix),
+        "%s.targets.vcf.gz" % args.files_prefix: "%s/%s.targets.csq.vcf.gz" % (args.dir,args.prefix),
+        "%s.vcf.gz" % args.files_prefix: "%s/%s.vcf.gz" % (args.dir,args.prefix),
+        "%s.bam" % args.files_prefix: "%s/%s.bam" % (args.dir,args.prefix),
+        "%s.bam.bai" % args.files_prefix: "%s/%s.bam.bai" % (args.dir,args.prefix),
+        "%s.nwk" % args.files_prefix: "%s/%s.nwk" % (args.dir,args.prefix),
     }
     for file,target in result_files.items():
         if os.path.isfile(file):
@@ -564,12 +564,15 @@ if hasattr(args, 'func'):
 
     if hasattr(args, 'db'):
         if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
-            logging.error("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+            logging.error("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix)
+            raise SystemExit
         if args.external_db:
             args.conf = pp.get_db(args.software_name,args.external_db)
         else:
             args.conf = pp.get_db(args.software_name,args.db)
-    
+        if args.conf is None:
+            logging.error("Can't find the database %s. Please run 'tb-profiler create_db' to create the database or specify another using the '--external_db' flag" % args.db)
+            raise SystemExit
     args.func(args)
 else:
     parser.print_help(sys.stderr)
