@@ -204,7 +204,7 @@ def main_update_tbdb(args):
 def main_create_db(args):
     if args.no_overwrite:
         dbs = pp.list_db(args.software_name)
-        names = [x["name"] for x in dbs]
+        names = [x['version']['name'] for x in dbs]
         if args.prefix in names:
             pp.warninglog("\nWarning: A database with this name already exists!\n")
             sys.exit()
@@ -313,8 +313,9 @@ def main_batch(args):
 def main_list_db(args):
     dbs = pp.list_db(args.software_name)
     for db in dbs:
-        db['location'] = f"{sys.base_prefix}/share/{args.software_name}/{db['name']}"
-        sys.stdout.write("%(name)s\t%(commit)s\t%(Author)s\t%(Date)s\t%(location)s\n" % db)
+        if 'version' in db:
+            d = dict(**db['version'], location=f"{sys.base_prefix}/share/{args.software_name}/{db['version']['name']}")
+            sys.stdout.write("%(name)s\t%(commit)s\t%(Author)s\t%(Date)s\t%(location)s\n" % d)
 
 
 
