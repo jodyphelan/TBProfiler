@@ -20,7 +20,7 @@ def main_phylogeny(args):
     # cleanup(args.files_prefix)
 
 def prepare_usher(args):
-    tbp.phylotree.prepare_usher(args)
+    tbp.phylo.prepare_usher(args)
 
 
 argparser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)

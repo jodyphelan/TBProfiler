@@ -1,5 +1,15 @@
 from collections import defaultdict
 from pathogenprofiler import Vcf
+import argparse
+
+def process_tb_profiler_args(args: argparse.Namespace) -> None:
+    if args.snp_dist or args.update_phylo:
+        args.call_whole_genome = True
+    args.call_lineage = False if args.no_lineage else True
+    if args.vcf and args.spoligotype:
+        args.spoligotype = False
+    if args.snp_dist or args.update_phylo:
+        args.call_whole_genome = True
 
 def get_vcf_samples(vcf_file):
     vcf = Vcf(vcf_file)

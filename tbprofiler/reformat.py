@@ -1,11 +1,42 @@
-import pathogenprofiler as pp
-from .xdb import *
+from pathogenprofiler.models import BarcodeResult, Variant, BamQC, FastaQC, DrVariant, GenomicPosition
+# from .xdb import *
+from .models import Lineage, Result, TbDrVariant, TbVariant, ProfileResult, Spoligotype
+from typing import List, Tuple , Union, Optional
+from .utils import get_gene2drugs
+import argparse
 
-def get_main_lineage(lineage_dict_list,max_node_skip=1):
+def get_main_lineage(lineages: List[Lineage],max_node_skip: int = 1) -> Tuple[str, str]:
+    """
+    Get the main lineage and sublineage from a list of Lineage objects
+    
+    Arguments
+    ---------
+    lineages : List[Lineage]
+        List of Lineage objects
+
+    max_node_skip : int
+        Maximum number of nodes to skip when collapsing lineages
+
+    Returns
+    -------
+    Tuple[str, str]
+        Tuple of main lineage and sublineage
+
+    Examples
+    --------
+    >>> from tbprofiler import get_main_lineage
+    >>> lineage = [
+    ...     Lineage(fraction=0.8, lineage="lineage1", family="family1", spoligotype="spol1", rd="rd1"),
+    ...     Lineage(fraction=0.2, lineage="lineage2", family="family2", spoligotype="spol2", rd="rd2"),
+    ...     Lineage(fraction=0.2, lineage="lineage2.2", family="family2.2", spoligotype="spol2.2", rd="rd2.2"),
+    ...     Lineage(fraction=0.8, lineage="lineage1.1", family="family1.1", spoligotype="spol1.1", rd="rd1.1"),
+    ... ]
+    >>> get_main_lineage(lineage)
+    ('lineage1;lineage2', 'lineage1.1;lineage2.2')
+    """
     def collapse_paths(paths):
         filtered_paths = []
         for p in sorted(paths,reverse=True):
-            if p=="lineageBOV_AFRI": continue
             path_stored = any([p in x for x in filtered_paths])
             if not path_stored:
                 filtered_paths.append(p)
@@ -16,9 +47,9 @@ def get_main_lineage(lineage_dict_list,max_node_skip=1):
 
     lin_freqs = {}
     pool = []
-    for l in lineage_dict_list:
-        pool.append(l["lin"].replace("M.","M_"))
-        lin_freqs[l["lin"].replace("M.","M_")] = float(l["frac"])
+    for l in lineages:
+        pool.append(l.lineage.replace("M.","M_"))
+        lin_freqs[l.lineage.replace("M.","M_")] = float(l.fraction)
     routes = [";".join(derive_path(x)) for x in pool]
     paths = collapse_paths(routes)
     path_mean_freq = {}
@@ -29,28 +60,55 @@ def get_main_lineage(lineage_dict_list,max_node_skip=1):
         freqs = [lin_freqs[n] for n in nodes if n in lin_freqs]
         path_mean_freq[nodes] = sum(freqs)/len(freqs)
     main_lin = ";".join(sorted(list(set([x[0] for x in path_mean_freq])))).replace("_",".")
-    sublin = ";".join([x[-1] for x in path_mean_freq]).replace("_",".")
+    sublin = ";".join(sorted(list(set([x[-1] for x in path_mean_freq])))).replace("_",".")
     return (main_lin,sublin)
 
-def barcode2lineage(results,max_node_skip=1):
-    results["lineage"] = []
-    for d in results["barcode"]:
-        results["lineage"].append({"lin":d["annotation"],"family":d["info"][0],"spoligotype":d["info"][1],"rd":d["info"][2],"frac":d["freq"]})
-    del results["barcode"]
-    results["lineage"] = sorted(results["lineage"],key= lambda x:len(x["lin"]))
-    main_lin,sublin = get_main_lineage(results["lineage"])
-    results["main_lin"] = main_lin
-    results["sublin"] = sublin
-    return results
+def barcode2lineage(barcode: List[BarcodeResult]) -> List[Lineage]:
+    """
+    Convert a list of BarcodeResult objects to a list of Lineage objects
+    
+    Arguments
+    ---------
+    barcode : List[BarcodeResult]
+        List of BarcodeResult objects
+    
+    Returns
+    -------
+    List[Lineage]
+        List of Lineage objects
+    
+    Examples
+    --------
+    >>> from tbprofiler import barcode2lineage
+    >>> barcode = [
+    ...     BarcodeResult(id="barcode1", frequency=0.8, info=["family1", "spol1", "rd1"]),
+    ...     BarcodeResult(id="barcode2", frequency=0.2, info=["family2", "spol2", "rd2"]),
+    ... ]
+    >>> barcode2lineage(barcode)
+    [Lineage(fraction=0.8, lineage='barcode1', family='family1', spoligotype='spol1', rd='rd1'), Lineage(fraction=0.2, lineage='barcode2', family='family2', spoligotype='spol2', rd='rd2')]
+    """
+
+    lineage = []
+    for d in barcode:
+        lineage.append(
+            Lineage(
+                fraction=d.frequency,
+                lineage=d.id,
+                family=d.info[0],
+                spoligotype=d.info[1],
+                rd=d.info[2],
+            )
+        )
+    return lineage
 
 
 
 
-def add_drtypes(results):
+
+def get_drtypes(dr_variants: List[TbDrVariant]) -> str:
     resistant_drugs = set()
-    for var in results["dr_variants"]:
-        for d in var["drugs"]:
-            resistant_drugs.add(d["drug"])
+    for var in dr_variants:
+        resistant_drugs.update(var.get_drugs())
 
     FLQ_set = set(["levofloxacin","moxifloxacin","ciprofloxacin","ofloxacin"])
     groupA_set = set(["bedaquiline","linezolid"])
@@ -75,9 +133,7 @@ def add_drtypes(results):
     else:
         drtype = "Other"
 
-
-    results["drtype"] = drtype
-    return results
+    return drtype
 
 unlist = lambda t: [item for sublist in t for item in sublist]
 
@@ -94,30 +150,105 @@ def variant_present(var,results):
                 result = v
     return result
    
-def reformat(results,conf,mutation_metadata=False,use_suspect=False):
-    results["notes"] = []
-    results["variants"] = [x for x in results["variants"] if len(x["consequences"])>0]
-    results["variants"] = pp.select_csq(results["variants"])
-    results["variants"] = pp.dict_list_add_genes(results["variants"],conf)
-    if "gene_coverage" in results["qc"]:
-        results["qc"]["gene_coverage"] = pp.dict_list_add_genes(results["qc"]["gene_coverage"],conf)
-    if "missing_positions" in results["qc"]:
-        results["qc"]["missing_positions"] = pp.reformat_missing_genome_pos(results["qc"]["missing_positions"],conf)
-    if "barcode" in results:
-        results = barcode2lineage(results)
+def process_variants(
+    variants: List[Union[Variant,DrVariant]], 
+    bed_file: str
+) -> List[Union[TbDrVariant,TbVariant]]:
+    new_objects = []
+    gene2drugs = get_gene2drugs(bed_file)
+    for var in variants:
+        dump = var.model_dump()
+        dump['locus_tag'] = dump['gene_id']
+        dump['gene_associated_drugs'] = gene2drugs.get(var.gene_name, [])
+        if isinstance(var, DrVariant):
+            new_objects.append(TbDrVariant(**dump))
+        else:
+            new_objects.append(TbVariant(**dump))
+    return new_objects
+        
+def split_variants(
+    variants: List[Variant],
+    bed_file: str
+) -> Tuple[List[TbDrVariant], List[TbVariant]]:
+    variants = process_variants(variants, bed_file)
 
-    results = pp.process_variants(results,conf,['drug_resistance'])
-    results['dr_variants'] = results['drug_resistance_variants']
-    del results['drug_resistance_variants']
-    results['dr_variants'] = pp.add_drugs_to_variants(results['dr_variants'])
-    results['qc_fail_variants'] = pp.add_drugs_to_variants(results['qc_fail_variants'])
-    results = add_drtypes(results)
-    results["db_version"] = conf["version"]
-    if mutation_metadata:
-        pass
-        # results = add_mutation_metadata(results)
-    if use_suspect:
-        results = suspect_profiling(results)
+    dr_variants = []
+    other_variants = []
+    fail_variants = []
+    for var in variants:
+        if var.filter.upper() == "PASS":
+            if isinstance(var, TbDrVariant):
+                dr_variants.append(var)
+            else:
+                other_variants.append(var)
+        else:
+            fail_variants.append(var)
+    return dr_variants,other_variants,fail_variants
 
-    # apply_rules(results,conf)
-    return results
+def filter_missing_positions(missing_positions: List[GenomicPosition]) -> List[GenomicPosition]:
+    for pos in missing_positions:
+        who_annotations = [
+            ann for ann in pos.annotation if 
+                ann['type']=='who_confidence' and
+                ann['confidence'] in ('Assoc w R - Interim','Assoc w R')
+        ]
+        other_annotations = [ann for ann in pos.annotation if ann['type']!='who_confidence']
+        pos.annotation = who_annotations + other_annotations
+    
+    return [pos for pos in missing_positions if len(pos.annotation)>0]
+
+def create_resistance_result(
+    args: argparse.Namespace,
+    notes: List[str],
+    lineage: List[Lineage],
+    spoligotype: Optional[Spoligotype],
+    variants: List[Variant],
+    qc: Union[BamQC, FastaQC]
+) -> ProfileResult:
+    dr_variants, other_variants, fail_variants = split_variants(variants,args.conf['bed'])
+    main_lineage, sub_lineage = get_main_lineage(lineage)
+    drtype = get_drtypes(dr_variants)
+    if hasattr(qc, 'missing_positions'):
+        qc.missing_positions = filter_missing_positions(qc.missing_positions)
+     
+    data = {
+        'id':args.prefix,
+        'notes':notes,
+        'lineage':lineage,
+        'spoligotype':spoligotype,
+        'drtype':drtype,
+        'dr_variants':dr_variants,
+        'other_variants':other_variants,
+        'qc_fail_variants':fail_variants,
+        'sub_lineage':sub_lineage,
+        'main_lineage':main_lineage,
+        'tbprofiler_version':args.version,
+        'db_version':args.conf['version'],
+    }
+
+    return ProfileResult(**data, qc=qc)
+
+
+def clean_up_duplicate_annotations(variants: Variant) -> None:
+    """
+    Remove duplicate annotations from a list of Variant objects
+    
+    Arguments
+    ---------
+    variants : List[Variant]
+        List of Variant objects
+    
+    Returns
+    -------
+    None
+    """
+    confidence_levels = ['Assoc w R','Assoc w R - Interim','Uncertain significance','Not assoc w R - Interim','Not assoc w R']
+    for var in variants:
+        keys = set([(ann['type'],ann['drug']) for ann in var.annotation])
+        new_annotations = []
+        for key in keys:
+            anns = [ann for ann in var.annotation if ann['type']==key[0] and ann['drug']==key[1]]
+            if len(anns)>1:
+                anns = sorted(anns,key=lambda x: confidence_levels.index(x['confidence']))
+            new_annotations.append(anns[0])
+        var.annotation = new_annotations

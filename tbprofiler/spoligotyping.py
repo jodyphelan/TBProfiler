@@ -1,6 +1,7 @@
 import os
 import pathogenprofiler as pp
 import csv
+from .models import Spoligotype
 
 def spoligotype(args):
     if "bam_file" in vars(args) and args.bam_file:
@@ -11,7 +12,8 @@ def spoligotype(args):
         result = fa2spoligotype(args.fasta,args.files_prefix,args.conf,threads=args.threads,max_mem=args.ram,counter=args.kmer_counter)
     ann = get_spoligotype_annotation(result["octal"],args.conf['spoligotype_annotations'])
     result.update(ann)
-    return result
+
+    return Spoligotype(**result)
 
 def fa2spoligotype(fasta,files_prefix,conf,threads=1,max_mem=2,counter="kmc"):
     fasta = pp.Fasta(fasta)

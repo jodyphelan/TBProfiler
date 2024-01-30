@@ -17,6 +17,7 @@ from tqdm import tqdm
 import logging
 from rich.logging import RichHandler
 
+
 __softwarename__ = 'tbprofiler'
 
 @atexit.register
@@ -81,7 +82,7 @@ def multisample_vcf_run(args):
 
 
 def main_profile(args):
-    args.conf['variant_filters'] = pp.get_variant_filters(args)
+    pp.process_args(args)
 
     if args.vcf:
         nsamples = len(tbp.get_vcf_samples(args.vcf))
@@ -93,32 +94,56 @@ def main_profile(args):
         os.mkdir(args.dir)
 
 
+    tbp.process_tb_profiler_args(args)
 
-    args = pp.set_platform_params(args)
+    variants_profile = pp.run_profiler(args)
+    if 'rules' in args.conf:
+        rules_applied = pp.apply_rules(args.conf['rules'], variants_profile)
+    else:
+        rules_applied = []
 
-    if args.snp_dist or args.update_phylo:
-        args.call_whole_genome = True
+    tbp.clean_up_duplicate_annotations(variants_profile)
+    # Convert variant objects to DrVariant if they cause resistance
+    for var in variants_profile:
+        var.convert_to_dr_element()
 
 
-    if args.no_lineage:
-        del args.conf["barcode"]
-    results = {
-        "id":args.prefix,
-        "tbprofiler_version": tbp.__version__
-    }
+    if args.call_lineage:
+        barcode_result = tbp.barcode2lineage(pp.run_barcoder(args))
 
-    results.update(pp.run_profiler(args))
     if args.spoligotype:
-        if args.vcf:
-            pp.warninglog("Spoligotyping not available with vcf format... skipping!")
-        else:
-            results["spoligotype"] = tbp.spoligotype(args)
+        spoligotype = tbp.spoligotype(args)
+    else:
+        spoligotype = None
+
+    if args.data_source in ('bam','fastq'):
+        qc = pp.run_bam_qc(args)
+    elif args.data_source=="fasta":
+        qc = pp.run_fasta_qc(args)
+    else:
+        qc = pp.run_vcf_qc(args)
+
+    notes = []
+    for rule in rules_applied:
+        notes.append(f"Rule applied: {rule}")
+
+    result = tbp.create_resistance_result(
+        args = args,
+        notes=notes,
+        lineage=barcode_result,
+        spoligotype=spoligotype,
+        variants=variants_profile,
+        qc=qc
+    )
 
 
+    if args.snp_dist:
+        tbp.run_snp_dists(args,result)
+        tbp.update_neighbour_snp_dist_output(args,result)
 
-    ### Reformat the results to TB-Profiler style ###
-    results = tbp.reformat(results, args.conf, mutation_metadata=args.add_mutation_metadata,use_suspect=args.suspect)
-    results["id"] = args.prefix
+    if args.update_phylo:
+        tbp.phylo.usher_add_sample(args)
+
 
     ### Create folders for results if they don't exist ###
     if pp.nofolder(d:=args.dir+"/bam") and args.read1:
@@ -128,27 +153,16 @@ def main_profile(args):
     if pp.nofolder(d:=args.dir+"/results"):
         os.mkdir(d)
 
-    if args.bam_for_depth:
-        args.bam = args.bam_for_depth
-        
-    if args.snp_dist:
-        tbp.run_snp_dists(args,results)
-    
-    if args.update_phylo:
-        tbp.usher_add_sample(args)
 
-    results["pipeline"] = [
-        {"Analysis":"Mapping","Program":args.read1 if not args.bam else "N/A"},
-        {"Analysis":"Variant calling","Program":args.caller}
-    ]
+    tbp.write_outputs(args,result)
 
 
 
 
-    ### Move files to respective directories ###
+    # ### Move files to respective directories ###
     result_files = {
-        "%s.delly.bcf" % args.files_prefix: "%s/vcf/%s.delly.bcf" % (args.dir,args.prefix),
-        "%s.targets.csq.vcf.gz" % args.files_prefix: "%s/vcf/%s.targets.csq.vcf.gz" % (args.dir,args.prefix),
+    
+        "%s.targets.vcf.gz" % args.files_prefix: "%s/vcf/%s.targets.csq.vcf.gz" % (args.dir,args.prefix),
         "%s.vcf.gz" % args.files_prefix: "%s/vcf/%s.vcf.gz" % (args.dir,args.prefix),
         "%s.bam" % args.files_prefix: "%s/bam/%s.bam" % (args.dir,args.prefix),
         "%s.bam.bai" % args.files_prefix: "%s/bam/%s.bam.bai" % (args.dir,args.prefix),
@@ -158,12 +172,9 @@ def main_profile(args):
         if os.path.isfile(file):
             shutil.move(file,target)
 
-    pp.run_cmd("rm %s*" % args.files_prefix)
+    if not args.no_clean:
+        pp.run_cmd("rm %s*" % args.files_prefix)
     
-    tbp.write_outputs(args,results,template_file=args.text_template)
-    if args.snp_dist:
-        tbp.update_neighbour_snp_dist_output(args,results)
-        
     
     pp.logging.info("[green]Profiling finished sucessfully![/]",extra={"markup": True})
 
@@ -192,7 +203,7 @@ def main_create_db(args):
     extra_files = {
         "spoligotype_spacers": args.spoligotypes,
         "spoligotype_annotations": args.spoligotype_annotations,
-        "bedmask": {"name":args.bedmask,"convert":1}
+        "bedmask": {"name":args.bedmask,"convert":1},
     }
     if args.barcode:
         extra_files["barcode"] = args.barcode
@@ -247,16 +258,16 @@ def main_spoligotype(args):
     tbp.write_outputs(args,results,template_file=args.text_template)
 
 def main_collate(args):
-    tbp.collate_results(args.prefix,args.conf,sample_file=args.samples,result_dirs=args.dir,mark_missing=args.mark_missing)
+    tbp.collate_results(args)
 
 def main_version(args):
     sys.stdout.write("tb-profiler version %s\n" % tbp.__version__)
 
 def main_reformat(args):
-
-    results = json.load(open(args.json))
-    args.prefix = results["id"]
-    tbp.write_outputs(args,results,template_file=args.text_template)
+    data = json.load(open(args.json))
+    result = tbp.ProfileResult(**data)
+    args.prefix = result.id
+    tbp.write_outputs(args,result,template_file=args.text_template)
 
 def main_batch(args):
     if args.args==None:
@@ -358,8 +369,8 @@ algorithm.add_argument('--snp_dist',type=int,help="Store variant set and get all
 algorithm.add_argument('--snp_diff_db',type=str,help=argparse.SUPPRESS)
 algorithm.add_argument('--snp_diff_no_store',action='store_true',help=argparse.SUPPRESS)
 algorithm.add_argument('--no_trim',action="store_true",help="Don't trim files using trimmomatic")
-algorithm.add_argument('--no_flagstat',action="store_true",help="Don't collect flagstats")
-algorithm.add_argument('--no_clip',action="store_false",help="Don't clip reads")
+algorithm.add_argument('--no_coverage_qc',action="store_true",help="Don't collect flagstats")
+algorithm.add_argument('--no_samclip',action="store_false",help="Don't remove clipped reads from variant calling")
 algorithm.add_argument('--no_delly',action="store_true",help="Don't run delly")
 algorithm.add_argument('--no_lineage',action="store_true",help=argparse.SUPPRESS)
 algorithm.add_argument('--add_variant_annotations',action="store_true",help=argparse.SUPPRESS)
@@ -425,10 +436,12 @@ parser_sub.set_defaults(func=main_spoligotype)
 parser_sub = subparsers.add_parser('collate', help='Collate results form multiple samples together', formatter_class=ArgumentDefaultsRichHelpFormatter)
 parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
 parser_sub.add_argument('--samples',help='File with samples (one per line)')
+parser_sub.add_argument('--itol',action="store_true",help='Generate itol config files')
 parser_sub.add_argument('--full',action="store_true",help='Output mutations in main result file')
 parser_sub.add_argument('--all_variants',action="store_true",help='Output all variants in variant matrix')
 parser_sub.add_argument('--mark_missing',action="store_true",help='An asteriks will be use to mark predictions which are affected by missing data at a drug resistance position')
 parser_sub.add_argument('--db',default='tbdb',help='Full path to mutation database json file to use')
+parser_sub.add_argument('--format',default='txt',choices=['txt','csv'],help='Format of the output')
 parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 parser_sub.add_argument('--dir','-d',nargs="+",default=["results"],help='Storage directory')
 parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
@@ -457,8 +470,8 @@ parser_sub.set_defaults(func=main_reformat)
 
 parser_sub = subparsers.add_parser('create_db', help='Generate the files required to run tb-profiler', formatter_class=ArgumentDefaultsRichHelpFormatter)
 parser_sub.add_argument('--prefix','-p',default="tbdb",type=str,help='The input CSV file containing the mutations')
-parser_sub.add_argument('--csv','-c',default="tbdb.csv",type=str,help='The prefix for all output files')
-parser_sub.add_argument('--watchlist','-w',default="tbdb.watchlist.csv",type=str,help='A csv file containing genes to profile but without any specific associated mutations')
+parser_sub.add_argument('--csv','-c',default="mutations.csv",type=str,help='The prefix for all output files')
+parser_sub.add_argument('--watchlist','-w',default="watchlist.csv",type=str,help='A csv file containing genes to profile but without any specific associated mutations')
 parser_sub.add_argument('--spoligotypes',default="spoligotype_spacers.txt",type=str,help='A file containing a list of spoligotype spacers')
 parser_sub.add_argument('--spoligotype_annotations',default="spoligotype_list.csv")
 parser_sub.add_argument('--barcode',default="barcode.bed",type=str,help='A bed file containing lineage barcode SNPs')
@@ -466,7 +479,6 @@ parser_sub.add_argument('--bedmask',default="mask.bed",type=str,help='A bed file
 parser_sub.add_argument('--rules',type=str,help='A file containing python rules')
 parser_sub.add_argument('--amplicon_primers',type=str,help='A file containing a list of amplicon primers')
 parser_sub.add_argument('--match_ref',type=str,help='The prefix for all output files')
-parser_sub.add_argument('--other_annotations',default="tbdb.other_annotations.csv",type=str,help="A CSV containing gene, mutation, drug and confidence columns")
 parser_sub.add_argument('--custom',action="store_true",help='Tells the script this is a custom database, this is used to alter the generation of the version file')
 parser_sub.add_argument('--db_name',help='Overrides the name of the database in the version file')
 parser_sub.add_argument('--db_commit',help='Overrides the commit string of the database in the version file')
@@ -541,6 +553,7 @@ logging.basicConfig(
 
 if hasattr(args, 'func'):
     args.software_name = __softwarename__
+    args.version = tbp.__version__
     args.tmp_prefix = str(uuid4())
     args.files_prefix = os.path.abspath(f"{args.temp}/{args.tmp_prefix}")
     if hasattr(args,'dir'):

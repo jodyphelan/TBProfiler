@@ -8,8 +8,9 @@ import subprocess as sp
 from uuid import uuid4
 import sys
 from pathogenprofiler import run_cmd, cmd_out
+import argparse
 
-def usher_add_sample(args):
+def usher_add_sample(args: argparse.Namespace) -> None:
     logging.info(f"Adding sample to phylogeny")
 
 
@@ -44,7 +45,7 @@ def usher_add_sample(args):
         run_cmd("mv %(tmp_output_phylo)s %(input_phylo)s " % vars(args))
         os.chdir(cwd)
 
-def generate_low_dp_mask(bam,ref,outfile,min_dp = 10):
+def generate_low_dp_mask(bam: str,ref: str,outfile: str,min_dp: int = 10) -> None:
     missing_positions = []
     ok_positions = set()
     for l in cmd_out(f"samtools depth {bam}"):
@@ -62,10 +63,10 @@ def generate_low_dp_mask(bam,ref,outfile,min_dp = 10):
         for x in missing_positions:
             O.write(f"{x[0]}\t{x[1]}\t{x[1]+1}\n")
 
-def prepare_usher(treefile,vcf_file):
+def prepare_usher(treefile: str,vcf_file: str) -> None:
     run_cmd(f"usher --tree {treefile} --vcf {vcf_file} --collapse-tree --save-mutation-annotated-tree phylo.pb")
     
-def prepare_sample_consensus(sample,input_vcf,args):
+def prepare_sample_consensus(sample: str,input_vcf: str,args: argparse.Namespace) -> str:
     s = sample
     tmp_vcf = f"{args.files_prefix}.{s}.vcf.gz"
     run_cmd(f"bcftools norm -m - {input_vcf} | bcftools view -T ^{args.conf['bedmask']} | bcftools filter --SnpGap 50 | annotate_maaf.py | bcftools filter -S . -e 'MAAF<0.7' |bcftools filter -S . -e 'FMT/DP<20' | rename_vcf_sample.py --sample-name {s} | bcftools view -v snps -Oz -o {tmp_vcf}")
@@ -76,7 +77,7 @@ def prepare_sample_consensus(sample,input_vcf,args):
     run_cmd(f"bcftools consensus --sample {s} -m {mask_bed} -M N -f {args.conf['ref']} {tmp_vcf} | sed 's/>/>{s} /' > {args.files_prefix}.{s}.consensus.fa")
     return f"{args.files_prefix}.{s}.consensus.fa"
 
-def get_consensus_vcf(sample,input_vcf,args):
+def get_consensus_vcf(sample: str,input_vcf: str,args: argparse.Namespace) -> str:
     consensus_file = prepare_sample_consensus(sample,input_vcf,args)
     tmp_aln = str(uuid4())
     run_cmd(f"cat {args.conf['ref']} {consensus_file}> {tmp_aln}")
@@ -85,11 +86,11 @@ def get_consensus_vcf(sample,input_vcf,args):
     os.remove(tmp_aln)
     return outfile
 
-def wrapper_function(s,args):
+def wrapper_function(s: str,args: argparse.Namespace) -> str:
     args.bam = f"{args.dir}/bam/{s}.bam"
     return prepare_sample_consensus(s,f"{args.dir}/vcf/{s}.vcf.gz",args)
 
-def calculate_phylogeny(args):
+def calculate_phylogeny(args: argparse.Namespace) -> None:
     samples = [l.strip() for l in open(args.samples)]
     args.tmp_masked_vcf = f"{args.files_prefix}.masked.vcf.gz"
     
