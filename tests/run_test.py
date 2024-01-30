@@ -31,9 +31,9 @@ por5_dr_variants = [
 ]
 
 def test_db():
-    run_cmd("tb-profiler update_tbdb --branch test")
+    run_cmd("tb-profiler update_tbdb --branch test --prefix testdb")
 
-db = 'whov2'
+db = 'testdb'
 
 def check_assertations(filename):
     results = json.load(open(filename))
