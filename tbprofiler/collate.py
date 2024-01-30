@@ -242,20 +242,21 @@ def generate_distance_matrix(rows: List[dict], edges: List[TransmissionEdge], pr
         Prefix for output files
     """    
     samples = [r['sample'] for r in rows]
-    with open(prefix+".distance_matrix.txt","w") as MAT:
-        MAT.write("samples\t%s\n" % "\t".join(samples))
-        transformed_edges = {}
-        for e in edges:
-            transformed_edges[(e.source,e.target)] = e.distance
-        for si in samples:
-            row = [si]
-            for sj in samples:
-                ss = tuple(sorted([si,sj]))
-                if si==sj:
-                    row.append("0.0")
-                else:
-                    row.append(str(transformed_edges[ss]) if ss in transformed_edges else "NA")
-            MAT.write("%s\n" % "\t".join(row))
+    if len(edges)>0:
+        with open(prefix+".distance_matrix.txt","w") as MAT:
+            MAT.write("samples\t%s\n" % "\t".join(samples))
+            transformed_edges = {}
+            for e in edges:
+                transformed_edges[(e.source,e.target)] = e.distance
+            for si in samples:
+                row = [si]
+                for sj in samples:
+                    ss = tuple(sorted([si,sj]))
+                    if si==sj:
+                        row.append("0.0")
+                    else:
+                        row.append(str(transformed_edges[ss]) if ss in transformed_edges else "NA")
+                MAT.write("%s\n" % "\t".join(row))
 
 
 def generate_variant_matrix(variant_db: VariantDB, prefix: str) -> None:
