@@ -165,11 +165,11 @@ def main_profile(args):
     # ### Move files to respective directories ###
     result_files = {
     
-        "%s.targets.vcf.gz" % args.files_prefix: "%s/%s.targets.csq.vcf.gz" % (args.dir,args.prefix),
-        "%s.vcf.gz" % args.files_prefix: "%s/%s.vcf.gz" % (args.dir,args.prefix),
-        "%s.bam" % args.files_prefix: "%s/%s.bam" % (args.dir,args.prefix),
-        "%s.bam.bai" % args.files_prefix: "%s/%s.bam.bai" % (args.dir,args.prefix),
-        "%s.nwk" % args.files_prefix: "%s/%s.nwk" % (args.dir,args.prefix),
+        "%s.targets.vcf.gz" % args.files_prefix: "%s/vcf/%s.targets.vcf.gz" % (args.dir,args.prefix),
+        "%s.vcf.gz" % args.files_prefix: "%s/vcf/%s.vcf.gz" % (args.dir,args.prefix),
+        "%s.bam" % args.files_prefix: "%s/bam/%s.bam" % (args.dir,args.prefix),
+        "%s.bam.bai" % args.files_prefix: "%s/bam/%s.bam.bai" % (args.dir,args.prefix),
+        "%s.nwk" % args.files_prefix: "%s/results/%s.nwk" % (args.dir,args.prefix),
     }
     for file,target in result_files.items():
         if os.path.isfile(file):
