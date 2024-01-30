@@ -494,7 +494,7 @@ parser_sub.add_argument('--bedmask',default="mask.bed",type=str,help='A bed file
 parser_sub.add_argument('--rules',type=str,help='A file containing python rules')
 parser_sub.add_argument('--amplicon_primers',type=str,help='A file containing a list of amplicon primers')
 parser_sub.add_argument('--match_ref',type=str,help='The prefix for all output files')
-parser_sub.add_argument('--custom',action="store_true",help='Tells the script this is a custom database, this is used to alter the generation of the version file')
+parser_sub.add_argument('--custom',action="store_true",help='Tells the script this is a custom database, this is used to alter the generation of the version definition')
 parser_sub.add_argument('--db_name',help='Overrides the name of the database in the version file')
 parser_sub.add_argument('--db_commit',help='Overrides the commit string of the database in the version file')
 parser_sub.add_argument('--db_author',help='Overrides the author of the database in the version file')
