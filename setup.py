@@ -15,5 +15,5 @@ setuptools.setup(
 		'tb-profiler',
         'scripts/tb-profiler-tools'
 		],
-	data_files=[('share/tbprofiler',[glob("db/*")])],
+	data_files=[('share/tbprofiler',glob("db/*"))],
 )
