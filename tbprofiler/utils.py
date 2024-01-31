@@ -1,6 +1,7 @@
 from collections import defaultdict
 from pathogenprofiler import Vcf
 import argparse
+import csv
 
 def process_tb_profiler_args(args: argparse.Namespace) -> None:
     if args.snp_dist or args.update_phylo:
@@ -62,3 +63,25 @@ def genes2rv(bed_file):
     rv2g = rv2genes(bed_file)
     gene2rv = {v:k for k,v in rv2g.items()}
     return gene2rv
+
+def reformat_variant_csv_file(filename: str, outfile: str) -> None:
+    rows = []
+    for row in csv.DictReader(open(filename)):
+        new_rows = {
+            'Gene': row['Gene'],
+        }
+        if "Mutation" in row:
+            new_rows['Mutation'] = row['Mutation']
+        info = {}
+        for k,v in row.items():
+            if k in ('Gene','Mutation'):
+                continue
+            info[k] = v
+        info_string = ";".join([f"{k.lower()}={v}" for k,v in info.items()])
+        new_rows['Info'] = info_string
+        rows.append(new_rows)
+    
+    with open(outfile, 'w') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=['Gene','Mutation','Info'])
+        writer.writeheader()
+        writer.writerows(rows)

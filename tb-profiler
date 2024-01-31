@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 import sys
 import pathogenprofiler as pp
+from pathogenprofiler import TempFilePrefix
 import argparse
 from rich_argparse import ArgumentDefaultsRichHelpFormatter
 import json
@@ -197,7 +198,12 @@ def main_update_tbdb(args):
         extra_args.append("--match_ref %s" % os.path.abspath(args.match_ref))
 
     extra_args = " ".join(extra_args)
-    pp.run_cmd(f"tb-profiler create_db --prefix {args.prefix} {extra_args} --load")
+    with TempFilePrefix() as tmpfile:
+        tbp.reformat_variant_csv_file("tbdb.csv",f'{tmpfile}.variants.csv')
+        tbp.reformat_variant_csv_file("tbdb.watchlist.csv",f'{tmpfile}.watchlist.csv')
+        pp.run_cmd(f"tb-profiler create_db --prefix {args.prefix} --csv {tmpfile}.variants.csv --watchlist {tmpfile}.watchlist.csv {extra_args} --load")
+
+    # pp.run_cmd(f"tb-profiler create_db --prefix {args.prefix} {extra_args} --load")
     os.chdir("../")
     pp.logging.info("Sucessfully updated TBDB")
 
