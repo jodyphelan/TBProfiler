@@ -64,14 +64,16 @@ def genes2rv(bed_file):
     gene2rv = {v:k for k,v in rv2g.items()}
     return gene2rv
 
-def reformat_variant_csv_file(filename: str, outfile: str) -> None:
+def reformat_variant_csv_file(filename: str, outfile: str) -> str:
     rows = []
+    include_mutation = False
     for row in csv.DictReader(open(filename)):
         new_rows = {
             'Gene': row['Gene'],
         }
         if "Mutation" in row:
             new_rows['Mutation'] = row['Mutation']
+            include_mutation = True
         info = {}
         for k,v in row.items():
             if k in ('Gene','Mutation'):
@@ -80,8 +82,12 @@ def reformat_variant_csv_file(filename: str, outfile: str) -> None:
         info_string = ";".join([f"{k.lower()}={v}" for k,v in info.items()])
         new_rows['Info'] = info_string
         rows.append(new_rows)
+
     
     with open(outfile, 'w') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=['Gene','Mutation','Info'])
+        fieldnames = ['Gene','Mutation','Info'] if include_mutation else ['Gene','Info']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rows)
+    
+    return outfile

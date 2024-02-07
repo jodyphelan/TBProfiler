@@ -224,8 +224,12 @@ def main_create_db(args):
         extra_files["barcode"] = args.barcode
     if args.rules:
         extra_files["rules"] = args.rules
+    
+    with TempFilePrefix() as tmpfile:
+        args.csv = tbp.reformat_variant_csv_file(args.csv,f'{tmpfile}.variants.csv')
+        args.watchlist = tbp.reformat_variant_csv_file(args.watchlist,f'{tmpfile}.watchlist.csv')
 
-    pp.create_db(args,extra_files=extra_files)
+        pp.create_db(args,extra_files=extra_files)
 
 def main_load_library(args):
     variables_file = "%(prefix)s.variables.json" % vars(args)
