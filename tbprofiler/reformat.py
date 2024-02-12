@@ -1,4 +1,4 @@
-from pathogenprofiler.models import BarcodeResult, Variant, BamQC, FastaQC, DrVariant, GenomicPosition
+from pathogenprofiler.models import BarcodeResult, Variant, BamQC, FastaQC, DrVariant, GenomePosition
 # from .xdb import *
 from .models import Lineage, Result, TbDrVariant, TbVariant, ProfileResult, Spoligotype
 from typing import List, Tuple , Union, Optional
@@ -185,7 +185,7 @@ def split_variants(
             fail_variants.append(var)
     return dr_variants,other_variants,fail_variants
 
-def filter_missing_positions(missing_positions: List[GenomicPosition]) -> List[GenomicPosition]:
+def filter_missing_positions(missing_positions: List[GenomePosition]) -> List[GenomePosition]:
     for pos in missing_positions:
         who_annotations = [
             ann for ann in pos.annotation if 

@@ -30,10 +30,11 @@ por5_dr_variants = [
     ('embB', 'p.Met306Val'),
 ]
 
-def test_db():
-    run_cmd("tb-profiler update_tbdb --branch test --prefix testdb")
-
 db = 'testdb'
+
+def test_db():
+    run_cmd(f"tb-profiler update_tbdb --branch test --prefix {db}")
+
 
 def check_assertations(filename):
     results = json.load(open(filename))

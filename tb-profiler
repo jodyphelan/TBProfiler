@@ -108,9 +108,10 @@ def main_profile(args):
     for var in variants_profile:
         var.convert_to_dr_element()
 
-
+    print(args.call_lineage)
     if args.call_lineage:
         barcode_result = tbp.barcode2lineage(pp.run_barcoder(args))
+        
 
     if args.spoligotype:
         spoligotype = tbp.spoligotype(args)
@@ -199,9 +200,9 @@ def main_update_tbdb(args):
 
     extra_args = " ".join(extra_args)
     with TempFilePrefix() as tmpfile:
-        tbp.reformat_variant_csv_file("tbdb.csv",f'{tmpfile}.variants.csv')
-        tbp.reformat_variant_csv_file("tbdb.watchlist.csv",f'{tmpfile}.watchlist.csv')
-        pp.run_cmd(f"tb-profiler create_db --prefix {args.prefix} --csv {tmpfile}.variants.csv --watchlist {tmpfile}.watchlist.csv {extra_args} --load")
+        # tbp.reformat_variant_csv_file("mutations.csv",f'{tmpfile}.variants.csv')
+        # tbp.reformat_variant_csv_file("watchlist.csv",f'{tmpfile}.watchlist.csv')
+        pp.run_cmd(f"tb-profiler create_db --prefix {args.prefix} --csv mutations.csv --watchlist watchlist.csv {extra_args} --load")
 
     # pp.run_cmd(f"tb-profiler create_db --prefix {args.prefix} {extra_args} --load")
     os.chdir("../")
