@@ -108,7 +108,7 @@ def main_profile(args):
     for var in variants_profile:
         var.convert_to_dr_element()
 
-    print(args.call_lineage)
+
     if args.call_lineage:
         barcode_result = tbp.barcode2lineage(pp.run_barcoder(args))
         

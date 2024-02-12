@@ -73,6 +73,8 @@ def prepare_sample_consensus(sample: str,input_vcf: str,args: argparse.Namespace
     run_cmd(f"bcftools index {tmp_vcf}")
 
     mask_bed = f"{args.files_prefix}.{s}.mask.bed"
+    if args.bam_for_depth:
+        args.bam = args.bam_for_depth
     generate_low_dp_mask(f"{args.bam}",args.conf['ref'],mask_bed)
     run_cmd(f"bcftools consensus --sample {s} -m {mask_bed} -M N -f {args.conf['ref']} {tmp_vcf} | sed 's/>/>{s} /' > {args.files_prefix}.{s}.consensus.fa")
     return f"{args.files_prefix}.{s}.consensus.fa"
