@@ -41,7 +41,6 @@ parser_sub.add_argument('--tree',required=True,help="Samples files")
 parser_sub.add_argument('--vcf',help="Temp firectory to process all files",required=True)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
-parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
 parser_sub.add_argument('--logging',default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.set_defaults(func=prepare_usher)
 
