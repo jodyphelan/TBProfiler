@@ -32,10 +32,10 @@ def usher_add_sample(args: argparse.Namespace) -> None:
     lock = filelock.SoftFileLock(args.input_phylo + ".lock")
 
     cwd = os.getcwd()
+    args.tmp_masked_vcf = get_consensus_vcf(args.prefix, args.wg_vcf,args)
     with lock:
         os.chdir(args.temp)
 
-        args.tmp_masked_vcf = get_consensus_vcf(args.prefix, args.wg_vcf,args)
         run_cmd("usher --vcf %(tmp_masked_vcf)s --load-mutation-annotated-tree %(input_phylo)s --save-mutation-annotated-tree %(tmp_output_phylo)s --write-uncondensed-final-tree" % vars(args))
         run_cmd("mv uncondensed-final-tree.nh %(output_nwk)s" % vars(args))
         run_cmd("matUtils extract -i %(tmp_output_phylo)s -t phylo.nwk" % vars(args))
