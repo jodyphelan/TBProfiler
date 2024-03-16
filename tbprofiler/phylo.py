@@ -19,7 +19,6 @@ def usher_add_sample(args: argparse.Namespace) -> None:
     else:
         args.wg_vcf = args.files_prefix + ".vcf.gz"
     
-    print(args.wg_vcf)
     args.tmp_masked_vcf = f"{args.files_prefix}.masked.vcf.gz"
     args.input_phylo = f"{args.dir}/results/phylo.pb"
     args.tmp_output_phylo = f"{args.files_prefix}.pb"
