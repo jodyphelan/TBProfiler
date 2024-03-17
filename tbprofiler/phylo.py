@@ -38,7 +38,6 @@ def usher_add_sample(args: argparse.Namespace) -> None:
 
         run_cmd("usher --vcf %(tmp_masked_vcf)s --load-mutation-annotated-tree %(input_phylo)s --save-mutation-annotated-tree %(tmp_output_phylo)s --write-uncondensed-final-tree" % vars(args))
         run_cmd("mv uncondensed-final-tree.nh %(output_nwk)s" % vars(args))
-        run_cmd("matUtils extract -i %(tmp_output_phylo)s -t phylo.nwk" % vars(args))
         for f in ["mutation-paths.txt","placement_stats.tsv"]:
             if os.path.exists(f):
                 os.remove(f)
