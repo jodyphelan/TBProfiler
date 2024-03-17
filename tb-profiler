@@ -81,6 +81,12 @@ def multisample_vcf_run(args):
         args.vcf = args.tmp_vcf
         main_profile(args)
 
+def create_output_directories(args,directories=["bam","vcf","results"]):
+    if pp.nofolder(args.dir):
+        os.mkdir(args.dir)
+    for d in directories:
+        if pp.nofolder(args.dir+"/"+d):
+            os.mkdir(args.dir+"/"+d)
 
 def main_profile(args):
     pp.process_args(args)
@@ -89,11 +95,6 @@ def main_profile(args):
         nsamples = len(tbp.get_vcf_samples(args.vcf))
         if nsamples>1:
             return multisample_vcf_run(args)
-
-    ### Create folders for results if they don't exist ###
-    if pp.nofolder(args.dir):
-        os.mkdir(args.dir)
-
 
     tbp.process_tb_profiler_args(args)
 
@@ -249,42 +250,21 @@ def main_load_library(args):
 
 
 def main_lineage(args):
-    results = {
-        "id":args.prefix,
-        "tbprofiler_version": tbp.__version__,
-        "db_version": args.conf["version"]
-    }
-    results["pipeline"] = [
-        {"Analysis":"Variant calling","Program":args.caller}
-    ]
-    args.bam_file = args.bam
-    bam = pp.Bam(args.bam,args.bam,args.conf["ref"])
-    mutations = bam.get_bed_gt(args.conf["barcode"],args.conf["ref"],args.caller,args.platform)
-
-    snps_file = args.prefix+".lineage.snps.txt" if args.snps else None
-
-    if args.spoligotype:
-        results["spoligotype"] = tbp.spoligotype(args)
-
-    results["barcode"] = pp.barcode(mutations,args.conf["barcode"],snps_file=snps_file)
-    tbp.barcode2lineage(results)
-    tbp.write_outputs(args,results,template_file=args.text_template)
+    create_output_directories(args,directories=["results"])
+    args.data_source = "bam"
+    barcode_result = tbp.barcode2lineage(pp.run_barcoder(args))
+    result = tbp.create_lineage_result(args,barcode_result)
+    json_output = args.dir+"/results/"+args.prefix+".lineage.json"
+    open(json_output,"w").write(result.model_dump_json(indent=4))
 
 def main_spoligotype(args):
-    if pp.nofolder("results"):
-        os.mkdir("results")
+    create_output_directories(args,directories=["results"])
     if args.bam:
         args.bam_file = args.bam
-    results = {
-        "id":args.prefix,
-        "tbprofiler_version": tbp.__version__,
-        "spoligotype":tbp.spoligotype(args),
-        "db_version": args.conf["version"]
-    }
-    results["pipeline"] = [
-        {"Analysis":"Kmer-counting","Program":"kmc"}
-    ]
-    tbp.write_outputs(args,results,template_file=args.text_template)
+    spoligotype = tbp.spoligotype(args)
+    json_output = args.dir+"/results/"+args.prefix+".spoligotype.json"
+    open(json_output,"w").write(spoligotype.model_dump_json(indent=4))
+    
 
 def main_collate(args):
     tbp.collate_results(args)
@@ -297,11 +277,6 @@ def main_reformat(args):
     result = tbp.ProfileResult(**data)
     args.prefix = result.id
     tbp.write_outputs(args,result,template_file=args.text_template)
-
-def create_output_directories(args):
-    for d in ["bam","vcf","results"]:
-        if pp.nofolder(args.dir+"/"+d):
-            os.mkdir(args.dir+"/"+d)
 
 def main_batch(args):
     if args.args==None:
@@ -426,17 +401,15 @@ parser_sub.set_defaults(func=main_profile)
 parser_sub = subparsers.add_parser('lineage', help='Profile only lineage', formatter_class=ArgumentDefaultsRichHelpFormatter)
 parser_sub.add_argument('--bam','-a',required=True, help='BAM file. Make sure it has been generated using the H37Rv genome (GCA_000195955.2)')
 parser_sub.add_argument('--prefix','-p',default="tbprofiler",help='Sample prefix')
-parser_sub.add_argument('--txt',action="store_true",help="Add text output")
-parser_sub.add_argument('--csv',action="store_true",help="Add CSV output")
-parser_sub.add_argument('--docx',action="store_true",help="Add docx output. This requires docxtpl to be installed")
 parser_sub.add_argument('--snps',action="store_true",help='Sample prefix')
 parser_sub.add_argument('--caller',default='freebayes',choices=["bcftools","freebayes","gatk"],type=str,help="Variant caller")
 parser_sub.add_argument('--kmer_counter',default='kmc',choices=["kmc","dsk"],type=str,help="Kmer counter")
 parser_sub.add_argument('--platform','-m',choices=["illumina","nanopore","pacbio"],default="illumina",help='NGS Platform used to generate data')
 parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
-parser_sub.add_argument('--spoligotype',action="store_true",help="Perform in-silico spoligotyping (experimental feature)")
+parser_sub.add_argument('--spoligotype',action="store_true",help="Perform in-silico spoligotyping")
 parser_sub.add_argument('--external_db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 parser_sub.add_argument('--text_template',type=str,help='Jinja2 formatted template for output')
+parser_sub.add_argument('--threads','-t',default=1,help='Threads to use',type=int)
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
@@ -444,7 +417,7 @@ parser_sub.add_argument('--version', action='version', version="tb-profiler vers
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.set_defaults(func=main_lineage)
 
-parser_sub = subparsers.add_parser('spoligotype', help='Profile spoligotype (experimental feature)', formatter_class=ArgumentDefaultsRichHelpFormatter)
+parser_sub = subparsers.add_parser('spoligotype', help='Profile spoligotype', formatter_class=ArgumentDefaultsRichHelpFormatter)
 group = parser_sub.add_mutually_exclusive_group(required=True)
 group.add_argument('--read1','-1',help='First read file')
 parser_sub.add_argument('--read2','-2',help='Second read file')

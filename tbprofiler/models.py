@@ -95,3 +95,14 @@ class ProfileResult(Result):
         else:
             text = "Not available for VCF input"
         return text
+
+class LineageResult(Result):
+    lineage: Optional[List[Lineage]] = []
+    main_lineage: str = None
+    sub_lineage: str = None
+
+    def get_lineage(self):
+        if self.lineage:
+            return object_list2text(l = self.lineage)
+        else:
+            return "Not available"

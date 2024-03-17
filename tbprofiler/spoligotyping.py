@@ -2,6 +2,7 @@ import os
 import pathogenprofiler as pp
 import csv
 from .models import Spoligotype
+import logging
 
 def spoligotype(args):
     if "bam_file" in vars(args) and args.bam_file:
@@ -10,6 +11,9 @@ def spoligotype(args):
         result = fq2spoligotype(r1=args.read1,r2=args.read2,files_prefix=args.files_prefix,conf=args.conf,threads=args.threads,max_mem=args.ram,kmer_counter=args.kmer_counter)
     elif args.fasta:
         result = fa2spoligotype(args.fasta,args.files_prefix,args.conf,threads=args.threads,max_mem=args.ram,counter=args.kmer_counter)
+    else:
+        logging.error("Please provide a valid input file")
+        quit()
     ann = get_spoligotype_annotation(result["octal"],args.conf['spoligotype_annotations'])
     result.update(ann)
 

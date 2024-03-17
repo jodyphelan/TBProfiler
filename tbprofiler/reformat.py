@@ -1,6 +1,6 @@
 from pathogenprofiler.models import BarcodeResult, Variant, BamQC, FastaQC, DrVariant, GenomePosition
 # from .xdb import *
-from .models import Lineage, Result, TbDrVariant, TbVariant, ProfileResult, Spoligotype
+from .models import Lineage, Result, TbDrVariant, TbVariant, ProfileResult, Spoligotype, LineageResult
 from typing import List, Tuple , Union, Optional
 from .utils import get_gene2drugs
 import argparse
@@ -196,6 +196,21 @@ def filter_missing_positions(missing_positions: List[GenomePosition]) -> List[Ge
         pos.annotation = who_annotations + other_annotations
     
     return [pos for pos in missing_positions if len(pos.annotation)>0]
+
+def create_lineage_result(
+    args: argparse.Namespace,
+    lineage: List[Lineage]
+):
+    main_lineage, sub_lineage = get_main_lineage(lineage)
+    data = {
+        'id':args.prefix,
+        'lineage':lineage,
+        'sub_lineage':sub_lineage,
+        'main_lineage':main_lineage,
+        'tbprofiler_version':args.version,
+        'db_version':args.conf['version'],
+    }
+    return LineageResult(**data)
 
 def create_resistance_result(
     args: argparse.Namespace,

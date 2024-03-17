@@ -17,7 +17,7 @@ def cleanup(files_prefix):
 
 def main_phylogeny(args):
     tbp.phylo.calculate_phylogeny(args)
-    # cleanup(args.files_prefix)
+    cleanup(args.files_prefix)
 
 def prepare_usher(args):
     tbp.phylo.prepare_usher(args.tree,args.vcf)
