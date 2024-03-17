@@ -96,7 +96,6 @@ def reformat_variant_csv_file(files: list, outfile: str) -> str:
     return outfile
 
 def check_db_version(db_version: str, tbprofiler_version: str) -> None:
-    print(db_version)
     for d in db_version.split(","):
         r = re.search('([<>=]+)(.*)',d)
         if r==None:

@@ -168,7 +168,7 @@ def main_profile(args):
     # ### Move files to respective directories ###
     if os.path.isfile("%s.nwk" % args.files_prefix):
         shutil.copy("%s.nwk" % args.files_prefix,"%s/results/latest.nwk" % (args.dir))
-        
+
     result_files = {
     
         "%s.targets.vcf.gz" % args.files_prefix: "%s/vcf/%s.targets.vcf.gz" % (args.dir,args.prefix),
@@ -487,7 +487,7 @@ parser_sub.add_argument('--spoligotypes',default="spoligotype_spacers.txt",type=
 parser_sub.add_argument('--spoligotype_annotations',default="spoligotype_list.csv")
 parser_sub.add_argument('--barcode',default="barcode.bed",type=str,help='A bed file containing lineage barcode SNPs')
 parser_sub.add_argument('--bedmask',default="mask.bed",type=str,help='A bed file containing a list of low-complexity regions')
-parser_sub.add_argument('--rules',type=str,help='A file containing python rules')
+parser_sub.add_argument('--rules',type=str,default="rules.txt",help='A file containing python rules')
 parser_sub.add_argument('--amplicon_primers',type=str,help='A file containing a list of amplicon primers')
 parser_sub.add_argument('--match_ref',type=str,help='The prefix for all output files')
 parser_sub.add_argument('--custom',action="store_true",help='Tells the script this is a custom database, this is used to alter the generation of the version definition')
