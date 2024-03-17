@@ -193,10 +193,8 @@ def main_update_tbdb(args):
     if args.commit:
         pp.run_cmd(f"git checkout {args.commit}")
 
-    min_required_version = json.load(open('variables.json'))['min-tb-profiler-version']
-    if tbp.__version__ < min_required_version:
-        logging.error(f"Your version of tb-profiler ({tbp.__version__}) is too old to use this version of the database. Please update tb-profiler to at least {min_required_version}")
-        sys.exit()
+    
+
 
     extra_args = []
     if os.path.isfile('rules.txt'):
@@ -212,6 +210,10 @@ def main_update_tbdb(args):
     pp.logging.info("Sucessfully updated TBDB")
 
 def main_create_db(args):
+
+    version_string = json.load(open('variables.json'))['tb-profiler-version']
+    tbp.check_db_version(version_string,tbp.__version__)
+    
     if args.no_overwrite:
         dbs = pp.list_db(args.software_name)
         names = [x['version']['name'] for x in dbs]

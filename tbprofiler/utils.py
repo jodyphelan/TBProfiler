@@ -2,6 +2,8 @@ from collections import defaultdict
 from pathogenprofiler import Vcf
 import argparse
 import csv
+import logging
+import re
 
 def process_tb_profiler_args(args: argparse.Namespace) -> None:
     if args.snp_dist or args.update_phylo:
@@ -92,3 +94,19 @@ def reformat_variant_csv_file(files: list, outfile: str) -> str:
         writer.writerows(rows)
     
     return outfile
+
+def check_db_version(db_version: str, tbprofiler_version: str) -> None:
+    print(db_version)
+    for d in db_version.split(","):
+        r = re.search('([<>=]+)(.*)',d)
+        if r==None:
+            logging.error(f"Invalid version string: {d}")
+            quit()
+
+        d = f"{r.group(1)} '{r.group(2)}'"
+        if eval(f"'{tbprofiler_version}' {d}")==False:
+            if ">" in d:
+                logging.error(f"Your version of tb-profiler ({tbprofiler_version}) is too old to use this version of the database. Please update tb-profiler to {db_version}")
+            else:
+                logging.error(f"Your version of tb-profiler ({tbprofiler_version}) is too new to use this version of the database. Please update the database to {db_version}")
+            quit()
