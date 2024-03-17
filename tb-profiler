@@ -166,6 +166,8 @@ def main_profile(args):
 
 
     # ### Move files to respective directories ###
+    if os.path.isfile("%s.nwk" % args.files_prefix):
+        shutil.copy("%s.nwk" % args.files_prefix,"%s/results/latest.nwk" % (args.dir))
     result_files = {
     
         "%s.targets.vcf.gz" % args.files_prefix: "%s/vcf/%s.targets.vcf.gz" % (args.dir,args.prefix),
