@@ -1,2 +1,0 @@
-Variant(gene_name=mmpL5,type=lof) inactivates_resistance Variant(gene_name=mmpR5)
-Variant(gene_name=eis,type=lof) inactivates_resistance Variant(gene_name=eis)
