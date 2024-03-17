@@ -17,10 +17,10 @@ def cleanup(files_prefix):
 
 def main_phylogeny(args):
     tbp.phylo.calculate_phylogeny(args)
-    # cleanup(args.files_prefix)
+    cleanup(args.files_prefix)
 
 def prepare_usher(args):
-    tbp.phylotree.prepare_usher(args)
+    tbp.phylo.prepare_usher(args.tree,args.vcf)
 
 
 argparser = argparse.ArgumentParser(description='TBProfiler pipeline',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -38,9 +38,9 @@ parser_sub.set_defaults(func=main_phylogeny)
 
 parser_sub = subparsers.add_parser('prepare_usher', help='Update tbdb')
 parser_sub.add_argument('--tree',required=True,help="Samples files")
-parser_sub.add_argument('--vcf',help="Temp firectory to process all files",type=str,default=".")
+parser_sub.add_argument('--vcf',help="Temp firectory to process all files",required=True)
+parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
-parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
 parser_sub.add_argument('--logging',default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.set_defaults(func=prepare_usher)
 
@@ -57,8 +57,9 @@ if hasattr(args, 'func'):
     if hasattr(args,'dir'):
         args.dir = os.path.abspath(args.dir)
     if hasattr(args, 'db'):
-        if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
-            pp.errlog("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix,ext=True)
+        if args.db=="who-v2" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/who-v2.fasta"):
+            logging.error("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix)
+            quit()
         if args.external_db:
             args.conf = pp.get_db(args.software_name,args.external_db)
         else:

@@ -1,6 +1,8 @@
 import os
 import pathogenprofiler as pp
 import csv
+from .models import Spoligotype
+import logging
 
 def spoligotype(args):
     if "bam_file" in vars(args) and args.bam_file:
@@ -8,14 +10,18 @@ def spoligotype(args):
     elif args.read1:
         result = fq2spoligotype(r1=args.read1,r2=args.read2,files_prefix=args.files_prefix,conf=args.conf,threads=args.threads,max_mem=args.ram,kmer_counter=args.kmer_counter)
     elif args.fasta:
-        result = fa2spoligotype(args.fasta,args.files_prefix,args.conf,threads=args.threads,max_mem=args.ram,kmer_counter=args.kmer_counter)
+        result = fa2spoligotype(args.fasta,args.files_prefix,args.conf,threads=args.threads,max_mem=args.ram,counter=args.kmer_counter)
+    else:
+        logging.error("Please provide a valid input file")
+        quit()
     ann = get_spoligotype_annotation(result["octal"],args.conf['spoligotype_annotations'])
     result.update(ann)
-    return result
+
+    return Spoligotype(**result)
 
 def fa2spoligotype(fasta,files_prefix,conf,threads=1,max_mem=2,counter="kmc"):
     fasta = pp.Fasta(fasta)
-    kmers = fasta.get_kmer_counts(files_prefix,klen=25,threads=threads,max_mem=max_mem,kmer_counter=kmer_counter)
+    kmers = fasta.get_kmer_counts(files_prefix,klen=25,threads=threads,max_mem=max_mem,counter=counter)
     counts = kmers.load_kmer_counts(conf['spoligotype_spacers'])
     binary,octal = counts2spoligotype(counts,cutoff=1)
     return {"binary":binary_to_unicode(binary),"octal":octal,"spacers":counts}

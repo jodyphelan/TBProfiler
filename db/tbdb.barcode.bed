@@ -259,6 +259,7 @@ Chromosome	506385	506386	lineage4.4.1.1	C	Euro-American	S;Orphans	None
 Chromosome	511349	511350	lineage5.3	A	West-Africa 1	AFRI_2;AFRI_3	RD711
 Chromosome	514244	514245	lineage4.1.1	T	Euro-American (X-type)	X1;X2;X3	None
 Chromosome	522052	522053	lineage2.1	A	East-Asian (non-Beijing)	None	None
+Chromosome	526895	526896	M.canetti	C	M.canetti	None	None
 Chromosome	528780	528781	lineage1.2.1.2	A	Indo-Oceanic	NA	RD239
 Chromosome	529362	529363	lineage1.1.1	T	Indo-Oceanic	EAI4;EAI5	RD239
 Chromosome	533327	533328	La2	A	M.caprae	None	None
@@ -330,6 +331,7 @@ Chromosome	703721	703722	lineage4.1.1.3.1	G	Euro-American (X-type)	X1;X3	RD193
 Chromosome	705061	705062	lineage4.4.1.1	C	Euro-American	S;Orphans	None
 Chromosome	705569	705570	lineage1.1	T	Indo-Oceanic	EAI3;EAI4;EAI5;EAI6	RD239
 Chromosome	705594	705595	lineage4.3.2	T	Euro-American (LAM)	LAM3	None
+Chromosome	707485	707486	M.canetti	C	M.canetti	None	None
 Chromosome	709492	709493	lineage4.8.3	T	Euro-American (mainly T)	T1;T2;T3;T5	RD219
 Chromosome	709656	709657	lineage5.1.4	C	West-Africa 1	AFRI_2;AFRI_3	RD711
 Chromosome	711154	711155	lineage1.1.2	A	Indo-Oceanic	EAI3;EAI5	RD239
@@ -352,6 +354,7 @@ Chromosome	748922	748923	lineage4.8.3	T	Euro-American (mainly T)	T1;T2;T3;T5	RD2
 Chromosome	753087	753088	lineage4.4	T	Euro-American	S;T	None
 Chromosome	756567	756568	lineage6.2	A	West-Africa 2	AFRI_1	RD702
 Chromosome	758121	758122	lineage4.6.3	T	Euro-American	T;LAM	None
+Chromosome	764151	764152	M.canetti	T	M.canetti	None	None
 Chromosome	771653	771654	lineage5.3	G	West-Africa 1	AFRI_2;AFRI_3	RD711
 Chromosome	771722	771723	lineage6.3.2	A	West-Africa 2	AFRI_1	RD702
 Chromosome	772739	772740	La1.7	T	M.bovis	None	None
@@ -609,6 +612,7 @@ Chromosome	1560776	1560777	lineage5.1.3	A	West-Africa 1	AFRI_2;AFRI_3	RD711
 Chromosome	1560911	1560912	lineage1	A	Indo-Oceanic	EAI	RD239
 Chromosome	1561244	1561245	lineage7	T	Lineage 7	None	None
 Chromosome	1564798	1564799	lineage4.1.3	T	Euro-American	T;X;H	None
+Chromosome	1565424	1565425	M.canetti	A	M.canetti	None	None
 Chromosome	1565565	1565566	lineage2.2.2	T	East-Asian (Beijing)	Beijing-RD105/RD207	RD105;RD207
 Chromosome	1567984	1567985	lineage1.2.1.2	G	Indo-Oceanic	NA	RD239
 Chromosome	1568017	1568018	lineage4.2	T	Euro-American	H;T;LAM	None
@@ -725,6 +729,7 @@ Chromosome	2024412	2024413	lineage6.3.1	T	West-Africa 2	AFRI_1	RD702
 Chromosome	2027616	2027617	La1.2.BCG	A	M.bovis	BCG	None
 Chromosome	2033747	2033748	lineage4.6.1	C	Euro-American (Uganda)	T2	RD724
 Chromosome	2033889	2033890	lineage4.4.1	T	Euro-American (S-type)	S;T	None
+Chromosome	2043079	2043080	M.canetti	G	M.canetti	None	None
 Chromosome	2053681	2053682	lineage4.3	T	Euro-American (LAM)	mainly-LAM	None
 Chromosome	2054804	2054805	lineage4.1.1.3	A	Euro-American (X-type)	X1;X3	RD193
 Chromosome	2058446	2058447	lineage4.6.1.2	A	Euro-American	T2	RD724
@@ -933,6 +938,7 @@ Chromosome	3147315	3147316	lineage1.2.2.2	A	Indo-Oceanic	NA	RD239
 Chromosome	3147375	3147376	lineage4.4.1	A	Euro-American (S-type)	S;T	None
 Chromosome	3147510	3147511	lineage2.2.2	G	East-Asian (Beijing)	Beijing-RD105/RD207	RD105;RD207
 Chromosome	3147741	3147742	lineage4.1.2	G	Euro-American	T;H	None
+Chromosome	3148166	3148167	M.canetti	G	M.canetti	None	None
 Chromosome	3153182	3153183	lineage6.3	G	West-Africa 2	AFRI_1	RD702
 Chromosome	3168966	3168967	lineage4.8	A	Euro-American (mainly T)	T1;T2;T3;T5	RD219
 Chromosome	3170459	3170460	lineage4.6	T	Euro-American	T;LAM	None
@@ -950,6 +956,7 @@ Chromosome	3253570	3253571	lineage4.1.1.3.1	T	Euro-American (X-type)	X1;X3	RD193
 Chromosome	3259271	3259272	lineage4.2.2.1	C	Euro-American	LAM7-TUR	None
 Chromosome	3270288	3270289	lineage4.7	A	Euro-American (mainly T)	T1;T5	None
 Chromosome	3285944	3285945	lineage4.3.4.1	G	Euro-American (LAM)	LAM1;LAM2	RD174
+Chromosome	3287787	3287788	M.canetti	G	M.canetti	None	None
 Chromosome	3293314	3293315	lineage4.6.2.1	T	Euro-American	T3	RD726
 Chromosome	3323664	3323665	lineage1.2.2.1	A	Indo-Oceanic	NA	RD239
 Chromosome	3332625	3332626	lineage4.6.1.2	T	Euro-American	T2	RD724
@@ -963,6 +970,7 @@ Chromosome	3354624	3354625	lineage4.6.2.2	A	Euro-American (Cameroon)	LAM10-CAM	R
 Chromosome	3360031	3360032	lineage4.3.1.1	A	Euro-American (LAM)	LAM9	None
 Chromosome	3360151	3360152	lineage4.6.2.2	A	Euro-American (Cameroon)	LAM10-CAM	RD726
 Chromosome	3363400	3363401	lineage6.3.3	A	West-Africa 2	AFRI_1	RD702
+Chromosome	3367416	3367417	M.canetti	A	M.canetti	None	None
 Chromosome	3367764	3367765	lineage4.9	G	Euro-American (H37Rv-like)	T1	None
 Chromosome	3368283	3368284	lineage5.1.1	T	West-Africa 1	AFRI_2;AFRI_3	RD711
 Chromosome	3368414	3368415	lineage6.2.2	A	West-Africa 2	AFRI_1	RD702
@@ -1027,6 +1035,7 @@ Chromosome	3886877	3886878	lineage4.4.2	C	Euro-American	T1;T2	None
 Chromosome	3893138	3893139	lineage5.1.4	A	West-Africa 1	AFRI_2;AFRI_3	RD711
 Chromosome	3918066	3918067	lineage6.1.1	C	West-Africa 2	AFRI_1	RD702
 Chromosome	3955403	3955404	lineage6.1.1	A	West-Africa 2	AFRI_1	RD702
+Chromosome	4000017	4000018	M.canetti	G	M.canetti	None	None
 Chromosome	4001040	4001041	lineage6.2.1	A	West-Africa 2	AFRI_1	RD702
 Chromosome	4004035	4004036	lineage4.4	T	Euro-American	S;T	None
 Chromosome	4024367	4024368	lineage1.2.1.2	T	Indo-Oceanic	NA	RD239
@@ -1063,6 +1072,7 @@ Chromosome	4200992	4200993	lineage1.2.2.2	G	Indo-Oceanic	NA	RD239
 Chromosome	4204695	4204696	La1.8.2	A	M.bovis	None	None
 Chromosome	4228100	4228101	lineage4.1.3	T	Euro-American	T;X;H	None
 Chromosome	4229086	4229087	lineage4.1.1.3	T	Euro-American (X-type)	X1;X3	RD193
+Chromosome	4231381	4231382	M.canetti	G	M.canetti	None	None
 Chromosome	4236890	4236891	lineage6	A	West-Africa 2	AFRI_1	RD702
 Chromosome	4236902	4236903	lineage4.6.4	A	Euro-American	T;LAM	None
 Chromosome	4237382	4237383	lineage1.2.1.2	A	Indo-Oceanic	NA	RD239
