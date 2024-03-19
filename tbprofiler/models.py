@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List, Union
 from pathogenprofiler import object_list2text
-from pathogenprofiler.models import BamQC, FastaQC, VcfQC, Variant, DrVariant
+from pathogenprofiler.models import BamQC, FastaQC, VcfQC, Variant, DrVariant, BarcodePosition
 from datetime import datetime
 
 
@@ -25,6 +25,7 @@ class Lineage(BaseModel):
     lineage: str
     family: str
     rd: Optional[str] = None
+    support: List[BarcodePosition]
 
 
 class Result(BaseModel):

@@ -97,6 +97,7 @@ def barcode2lineage(barcode: List[BarcodeResult]) -> List[Lineage]:
                 family=d.info[0],
                 spoligotype=d.info[1],
                 rd=d.info[2],
+                support=d.support
             )
         )
     return lineage
@@ -259,11 +260,14 @@ def clean_up_duplicate_annotations(variants: Variant) -> None:
     """
     confidence_levels = ['Assoc w R','Assoc w R - Interim','Uncertain significance','Not assoc w R - Interim','Not assoc w R']
     for var in variants:
+        print(var)
         keys = set([(ann['type'],ann['drug']) for ann in var.annotation])
         new_annotations = []
         for key in keys:
-            anns = [ann for ann in var.annotation if ann['type']==key[0] and ann['drug']==key[1]]
-            if len(anns)>1:
-                anns = sorted(anns,key=lambda x: confidence_levels.index(x['confidence']))
-            new_annotations.append(anns[0])
+            confidence_anns = [ann for ann in var.annotation if ann['type']==key[0] and ann['drug']==key[1] and 'confidence' in ann and ann['confidence'] in confidence_levels]
+            other_anns = [ann for ann in var.annotation if ann['type']==key[0] and ann['drug']==key[1] and ('confidence' not in ann or ann['confidence'] not in confidence_levels)]
+            if len(confidence_anns)>1:
+                confidence_anns = sorted(confidence_anns,key=lambda x: confidence_levels.index(x['confidence']))
+            new_annotations.append(confidence_anns[0])
+            new_annotations += other_anns
         var.annotation = new_annotations
