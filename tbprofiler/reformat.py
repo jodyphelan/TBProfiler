@@ -273,8 +273,9 @@ def clean_up_duplicate_annotations(variants: Variant) -> None:
                         other_anns.append(ann)
             # confidence_anns = [ann for ann in var.annotation if ann['type']==key[0] and ann['drug']==key[1] and 'confidence' in ann and ann['confidence'] in confidence_levels]
             # other_anns = [ann for ann in var.annotation if ann['type']==key[0] and ann['drug']==key[1] and ('confidence' not in ann or ann['confidence'] not in confidence_levels)]
-            if len(confidence_anns)>1:
+            if len(confidence_anns)>0:
                 confidence_anns = sorted(confidence_anns,key=lambda x: confidence_levels.index(x['confidence']))
                 new_annotations.append(confidence_anns[0])
+
             new_annotations += other_anns
         var.annotation = new_annotations
