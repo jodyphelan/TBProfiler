@@ -225,7 +225,6 @@ def create_resistance_result(
     dr_variants, other_variants, fail_variants = split_variants(variants,args.conf['bed'])
     main_lineage, sub_lineage = get_main_lineage(lineage)
     drtype = get_drtypes(dr_variants)
-    print(shared_dict)
     pipeline = Pipeline(
         software_version=args.version, 
         db_version=args.conf['version'], 
