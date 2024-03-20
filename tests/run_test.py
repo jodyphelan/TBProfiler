@@ -76,9 +76,3 @@ def test_collate():
         O.write("por5_vcf\n")
     run_cmd(f"tb-profiler collate --db {db} --samples samples.txt")
     assert open("tbprofiler.txt").read() == collate_text
-    
-
-
-
-# def test_seqs_from_bam():
-#     assert pp.get_seqs_from_bam("bam/por5A_illumina_nanopore.bam") == ['Chromosome']
