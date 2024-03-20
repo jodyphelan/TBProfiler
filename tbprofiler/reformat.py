@@ -1,9 +1,10 @@
 from pathogenprofiler.models import BarcodeResult, Variant, BamQC, FastaQC, DrVariant, GenomePosition
 # from .xdb import *
-from .models import Lineage, Result, TbDrVariant, TbVariant, ProfileResult, Spoligotype, LineageResult
+from .models import Lineage, TbDrVariant, TbVariant, ProfileResult, Spoligotype, LineageResult, Pipeline
 from typing import List, Tuple , Union, Optional
 from .utils import get_gene2drugs
 import argparse
+from pathogenprofiler.utils import shared_dict
 
 def get_main_lineage(lineages: List[Lineage],max_node_skip: int = 1) -> Tuple[str, str]:
     """
@@ -224,6 +225,12 @@ def create_resistance_result(
     dr_variants, other_variants, fail_variants = split_variants(variants,args.conf['bed'])
     main_lineage, sub_lineage = get_main_lineage(lineage)
     drtype = get_drtypes(dr_variants)
+    print(shared_dict)
+    pipeline = Pipeline(
+        software_version=args.version, 
+        db_version=args.conf['version'], 
+        software=[{'process':k,'software':v} for k,v in shared_dict.items()]
+    )
     if hasattr(qc, 'missing_positions'):
         qc.missing_positions = filter_missing_positions(qc.missing_positions)
      
@@ -238,8 +245,7 @@ def create_resistance_result(
         'qc_fail_variants':fail_variants,
         'sub_lineage':sub_lineage,
         'main_lineage':main_lineage,
-        'tbprofiler_version':args.version,
-        'db_version':args.conf['version'],
+        'pipeline':pipeline
     }
 
     return ProfileResult(**data, qc=qc)

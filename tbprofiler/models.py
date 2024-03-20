@@ -27,6 +27,22 @@ class Lineage(BaseModel):
     rd: Optional[str] = None
     support: List[BarcodePosition]
 
+class Pipeline(BaseModel):
+    """
+    A class to hold information about the TB-Profiler pipeline
+    
+    Attributes
+    ----------
+    tbprofiler_version : str
+        TB-Profiler version
+    db_version : dict
+        TB-Profiler database version
+    software : List[dict]
+        Software used in the pipeline
+    """
+    software_version: str
+    db_version: dict
+    software: List[dict]
 
 class Result(BaseModel):
     """
@@ -45,8 +61,7 @@ class Result(BaseModel):
     """
     id: str
     timestamp: datetime = Field(default_factory=datetime.now)
-    tbprofiler_version: str
-    db_version: dict
+    pipeline: Pipeline
 
 class TbDrVariant(DrVariant):
     locus_tag: str
