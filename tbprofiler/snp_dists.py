@@ -6,39 +6,12 @@ import json
 from .output import write_outputs
 from copy import copy
 import filelock
-from time import time
 import sqlite3
 from tqdm import tqdm
 from .phylo import get_consensus_vcf
 import argparse
 from .models import ProfileResult, LinkedSample
 from typing import List, Tuple
-
-# def extract_variant_set_old(vcf_file, exclude_bed, min_cov=10, min_freq=0.8):
-#     ref_diffs = set()
-#     missing = set()
-#     for l in cmd_out(f"bcftools view -V indels -T ^{exclude_bed} {vcf_file} | bcftools query -f '%POS[\t%GT:%AD]\n'"):
-#         if l[0]=="#": continue
-#         row = l.strip().split()
-#         pos = int(row[0])
-#         gt,ad = row[1].split(":")
-#         if ad==".": # delly
-#             continue
-#         if gt==".": 
-#             missing.add(pos)
-#             continue
-#         ad = [int(x) for x in ad.split(",")]
-#         if sum(ad)<=min_cov:
-#             missing.add(pos)
-#             continue
-#         adf = sorted([float(x/sum(ad)) for x in ad])
-#         if adf[-1]<min_freq:
-#             missing.add(pos)
-#             continue
-#         if gt=="1/1":
-#             ref_diffs.add(int(pos))
-
-#     return ref_diffs,missing
 
 def extract_variant_set(vcf_file: str) -> Tuple[set,set]:
     ref_diffs = set()
@@ -170,4 +143,3 @@ def update_neighbour_snp_dist_output(args: argparse.Namespace,result: ProfileRes
                 temp_args.prefix = s.sample
                 write_outputs(temp_args,data,template_file=args.text_template)
                 logging.debug("Finished with lock for %s" % f)
-

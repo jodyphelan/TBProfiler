@@ -86,7 +86,7 @@ def reformat_variant_csv_file(files: list, outfile: str) -> str:
             new_rows['Info'] = info_string
             rows.append(new_rows)
 
-    
+
     with open(outfile, 'w') as csvfile:
         fieldnames = ['Gene','Mutation','Info'] if include_mutation else ['Gene','Info']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)

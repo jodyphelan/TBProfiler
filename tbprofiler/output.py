@@ -1,8 +1,6 @@
 from .text import write_text
 from .docx import write_docx
-from datetime import datetime
 import logging
-import json
 from .models import ProfileResult
 
 def write_outputs(args,result: ProfileResult,template_file: str = None):

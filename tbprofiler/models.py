@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List, Union
-from pathogenprofiler import object_list2text
+from pathogenprofiler import object_list2text, dict_list2text
 from pathogenprofiler.models import BamQC, FastaQC, VcfQC, Variant, DrVariant, BarcodePosition
 from datetime import datetime
 
@@ -110,6 +110,13 @@ class ProfileResult(Result):
             text = object_list2text(l = self.qc.target_qc)
         else:
             text = "Not available for VCF input"
+        return text
+    
+    def get_missing_pos(self,sep="\t"):
+        if isinstance(self.qc, (BamQC,)):
+            text = dict_list2text(self.qc.missing_positions,mappings={"pos":"Genome Position","annotation.gene":"Gene","annotation.variant":"Variant", "depth":"Depth"},sep=sep)
+        else:
+            text = "Not available for input data type"
         return text
 
 class LineageResult(Result):

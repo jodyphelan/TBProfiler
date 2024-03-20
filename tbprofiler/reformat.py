@@ -1,5 +1,4 @@
 from pathogenprofiler.models import BarcodeResult, Variant, BamQC, FastaQC, DrVariant, GenomePosition
-# from .xdb import *
 from .models import Lineage, TbDrVariant, TbVariant, ProfileResult, Spoligotype, LineageResult, Pipeline
 from typing import List, Tuple , Union, Optional
 from .utils import get_gene2drugs
@@ -151,7 +150,7 @@ def variant_present(var,results):
             if (v['gene']==var['gene'] or v['locus_tag']==var['gene']) and v['type']==var['type']:
                 result = v
     return result
-   
+
 def process_variants(
     variants: List[Union[Variant,DrVariant]], 
     bed_file: str
@@ -227,12 +226,12 @@ def create_resistance_result(
     drtype = get_drtypes(dr_variants)
     pipeline = Pipeline(
         software_version=args.version, 
-        db_version=args.conf['version'], 
+        db_version=args.conf['version'],
         software=[{'process':k,'software':v} for k,v in shared_dict.items()]
     )
     if hasattr(qc, 'missing_positions'):
         qc.missing_positions = filter_missing_positions(qc.missing_positions)
-     
+
     data = {
         'id':args.prefix,
         'notes':notes,

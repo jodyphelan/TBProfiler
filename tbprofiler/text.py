@@ -1,14 +1,7 @@
-import time
-from unittest import result
-from pathogenprofiler import get_summary
-from pathogenprofiler import dict_list2text
-import logging
-from .utils import get_drug_list
 import jinja2
-from copy import copy
 import pathogenprofiler as pp
 from .models import ProfileResult, Lineage
-from typing import Union, List
+from typing import List
 
 def lineagejson2text(lineages: List[Lineage],sep: str = "\t") -> str:
     textlines = []
@@ -142,7 +135,7 @@ def write_text(
     text_strings['strain'] = result.sub_lineage
     text_strings['drtype'] = result.drtype
     text_strings['median_depth'] = result.qc.get_target_median_depth()
-    text_strings['missing_report'] = pp.object_list2text(result.qc.missing_positions,mappings={"pos":"Genome Position","annotation.gene":"Gene","annotation.variant":"Variant", "depth":"Depth"},sep=sep)
+    text_strings['missing_report'] = result.get_missing_pos()
     text_strings['version'] = result.pipeline.software_version
     text_strings['db_version'] = result.pipeline.db_version['commit']
     text_strings['software'] = pp.dict_list2text(result.pipeline.software,sep=sep)

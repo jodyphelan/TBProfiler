@@ -2,9 +2,8 @@ import json
 import os
 from collections import defaultdict
 from tqdm import tqdm
-from .utils import get_lt2drugs
 import logging
-import csv 
+import csv
 import argparse
 from .models import ProfileResult
 from typing import List, Tuple, Optional
@@ -51,7 +50,7 @@ class TransmissionEdge(BaseModel):
     source: str
     target: str
     distance: float
-    
+
     def dump(self):
         return {"source":self.source,"target":self.target,"properties":{"distance":self.distance}}
     
@@ -130,7 +129,7 @@ def collate_results(args: argparse.Namespace) -> None:
                 TransmissionEdge(
                     source=s,
                     target=linked_sample.sample,
-                    distance=linked_sample.distance    
+                    distance=linked_sample.distance
                 )
             )
 
@@ -240,7 +239,7 @@ def generate_distance_matrix(rows: List[dict], edges: List[TransmissionEdge], pr
         List of edges in transmission network
     prefix : str
         Prefix for output files
-    """    
+    """
     samples = [r['sample'] for r in rows]
     if len(edges)>0:
         with open(prefix+".distance_matrix.txt","w") as MAT:
