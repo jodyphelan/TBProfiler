@@ -13,7 +13,7 @@ def spoligotype(args):
         result = fa2spoligotype(args.fasta,args.files_prefix,args.conf,threads=args.threads,max_mem=args.ram,counter=args.kmer_counter)
     else:
         logging.error("Please provide a valid input file")
-        quit()
+        quit(1)
     ann = get_spoligotype_annotation(result["octal"],args.conf['spoligotype_annotations'])
     result.update(ann)
 

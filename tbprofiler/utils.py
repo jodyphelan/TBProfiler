@@ -100,7 +100,7 @@ def check_db_version(db_version: str, tbprofiler_version: str) -> None:
         r = re.search('([<>=]+)(.*)',d)
         if r==None:
             logging.error(f"Invalid version string: {d}")
-            quit()
+            quit(1)
 
         d = f"{r.group(1)} '{r.group(2)}'"
         if eval(f"'{tbprofiler_version}' {d}")==False:
@@ -108,4 +108,4 @@ def check_db_version(db_version: str, tbprofiler_version: str) -> None:
                 logging.error(f"Your version of tb-profiler ({tbprofiler_version}) is too old to use this version of the database. Please update tb-profiler to {db_version}")
             else:
                 logging.error(f"Your version of tb-profiler ({tbprofiler_version}) is too new to use this version of the database. Please update the database to {db_version}")
-            quit()
+            quit(1)
