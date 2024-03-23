@@ -90,6 +90,7 @@ def create_output_directories(args,directories=["bam","vcf","results"]):
 
 def main_profile(args):
     pp.process_args(args)
+    create_output_directories(args)
 
     if args.vcf:
         nsamples = len(tbp.get_vcf_samples(args.vcf))
@@ -158,7 +159,6 @@ def main_profile(args):
 
 
 
-    create_output_directories(args)
 
     tbp.write_outputs(args,result)
 
