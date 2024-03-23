@@ -1,7 +1,6 @@
 import sys
 from docxtpl import DocxTemplate
 from collections import defaultdict
-import datetime
 
 
 def sanitize(d):

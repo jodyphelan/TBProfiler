@@ -8,7 +8,6 @@ import json
 import tbprofiler as tbp
 import os
 import csv
-from datetime import datetime
 from uuid import uuid4
 import glob
 import atexit
@@ -198,9 +197,6 @@ def main_update_tbdb(args):
         pp.run_cmd(f"git checkout {args.commit}")
 
     if args.prefix==None:
-        if args.branch == "master":
-            args.prefix = "tbdb"
-        else:
             args.prefix = args.branch
 
 
@@ -517,7 +513,7 @@ parser_sub.set_defaults(func=main_load_library)
 parser_sub = subparsers.add_parser('update_tbdb', help='Pull the latest tbdb library and load', formatter_class=ArgumentDefaultsRichHelpFormatter)
 parser_sub.add_argument('--prefix','-p',help='Database name')
 parser_sub.add_argument('--repo','-r',default="https://github.com/jodyphelan/tbdb.git",help='Repository to pull from')
-parser_sub.add_argument('--branch','-b',default="master",help='Branch to pull from')
+parser_sub.add_argument('--branch','-b',default="tbdb",help='Branch to pull from')
 parser_sub.add_argument('--commit','-c',help='Git commit hash to checkout (default: latest)')
 parser_sub.add_argument('--match_ref',type=str,help='The prefix for all output files')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
