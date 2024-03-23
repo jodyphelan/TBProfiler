@@ -381,6 +381,7 @@ algorithm.add_argument('--call_whole_genome',action="store_true",help="Call vari
 algorithm.add_argument('--snp_dist',type=int,help="Store variant set and get all samples with snp distance less than this cutoff (experimental feature)")
 algorithm.add_argument('--snp_diff_db',type=str,help=argparse.SUPPRESS)
 algorithm.add_argument('--snp_diff_no_store',action='store_true',help=argparse.SUPPRESS)
+algorithm.add_argument('--snp_dist_search_all',action='store_true',help=argparse.SUPPRESS)
 algorithm.add_argument('--no_trim',action="store_true",help="Don't trim files using trimmomatic")
 algorithm.add_argument('--no_coverage_qc',action="store_true",help="Don't collect flagstats")
 algorithm.add_argument('--no_samclip',action="store_false",help="Don't remove clipped reads from variant calling")

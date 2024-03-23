@@ -14,32 +14,6 @@ import argparse
 from .models import ProfileResult, LinkedSample
 from typing import List, Tuple
 
-# def extract_variant_set_old(vcf_file, exclude_bed, min_cov=10, min_freq=0.8):
-#     ref_diffs = set()
-#     missing = set()
-#     for l in cmd_out(f"bcftools view -V indels -T ^{exclude_bed} {vcf_file} | bcftools query -f '%POS[\t%GT:%AD]\n'"):
-#         if l[0]=="#": continue
-#         row = l.strip().split()
-#         pos = int(row[0])
-#         gt,ad = row[1].split(":")
-#         if ad==".": # delly
-#             continue
-#         if gt==".": 
-#             missing.add(pos)
-#             continue
-#         ad = [int(x) for x in ad.split(",")]
-#         if sum(ad)<=min_cov:
-#             missing.add(pos)
-#             continue
-#         adf = sorted([float(x/sum(ad)) for x in ad])
-#         if adf[-1]<min_freq:
-#             missing.add(pos)
-#             continue
-#         if gt=="1/1":
-#             ref_diffs.add(int(pos))
-
-#     return ref_diffs,missing
-
 def extract_variant_set(vcf_file: str) -> Tuple[set,set]:
     ref_diffs = set()
     missing = set()
@@ -99,9 +73,12 @@ class DB:
         self.conn.commit()
         self.diffs = diffs
         self.missing = missing
-    def search(self,result: ProfileResult, vcf_file: str, cutoff: int = 20) -> List[LinkedSample]:
+    def search(self,result: ProfileResult, vcf_file: str, cutoff: int = 20, snp_dist_search_all: bool = False) -> List[LinkedSample]:
         logging.info("Searching for close samples in %s" % self.filename)
-        self.c.execute("SELECT sample, diffs, missing FROM variants WHERE lineage=?",(result.sub_lineage,))
+        if snp_dist_search_all:
+            self.c.execute("SELECT sample, diffs, missing FROM variants")
+        else:
+            self.c.execute("SELECT sample, diffs, missing FROM variants WHERE lineage=?",(result.sub_lineage,))
         self.diffs,self.missing = extract_variant_set(vcf_file)
         sample_dists = []
         for s,d,m in tqdm(self.c.fetchall(),desc="Searching for close samples"):
@@ -141,7 +118,7 @@ def run_snp_dists(args: argparse.Namespace,result: ProfileResult) -> None:
     lock = f"{dbname}.lock"
     with filelock.SoftFileLock(lock):
         db = DB(dbname)
-        linked_samples = db.search(result,input_vcf,args.snp_dist)
+        linked_samples = db.search(result,input_vcf,args.snp_dist,args.snp_dist_search_all)
         if not args.snp_diff_no_store:
             db.store(result,input_vcf)
         result.linked_samples = [d for d in linked_samples if d.sample!=result.id]
