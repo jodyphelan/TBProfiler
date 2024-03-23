@@ -9,7 +9,7 @@ from pathogenprofiler import run_cmd, cmd_out
 import argparse
 
 def usher_add_sample(args: argparse.Namespace) -> None:
-    logging.info(f"Adding sample to phylogeny")
+    logging.info("Adding sample to phylogeny")
 
 
     if args.vcf:
@@ -54,7 +54,7 @@ def generate_low_dp_mask(bam: str,ref: str,outfile: str,min_dp: int = 10) -> Non
         for p in range(length):
             if (chrom,p) not in ok_positions:
                 missing_positions.append((chrom,p))
-    
+
     # write missing positions to bed file
     with open(outfile,"w") as O:
         for x in missing_positions:

@@ -225,7 +225,7 @@ def create_resistance_result(
     main_lineage, sub_lineage = get_main_lineage(lineage)
     drtype = get_drtypes(dr_variants)
     pipeline = Pipeline(
-        software_version=args.version, 
+        software_version=args.version,
         db_version=args.conf['version'],
         software=[{'process':k,'software':v} for k,v in shared_dict.items()]
     )
