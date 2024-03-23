@@ -73,12 +73,9 @@ class DB:
         self.conn.commit()
         self.diffs = diffs
         self.missing = missing
-    def search(self,result: ProfileResult, vcf_file: str, cutoff: int = 20, snp_dist_search_all: bool = False) -> List[LinkedSample]:
+    def search(self,result: ProfileResult, vcf_file: str, cutoff: int = 20) -> List[LinkedSample]:
         logging.info("Searching for close samples in %s" % self.filename)
-        if snp_dist_search_all:
-            self.c.execute("SELECT sample, diffs, missing FROM variants")
-        else:
-            self.c.execute("SELECT sample, diffs, missing FROM variants WHERE lineage=?",(result.sub_lineage,))
+        self.c.execute("SELECT sample, diffs, missing FROM variants WHERE lineage=?",(result.sub_lineage,))
         self.diffs,self.missing = extract_variant_set(vcf_file)
         sample_dists = []
         for s,d,m in tqdm(self.c.fetchall(),desc="Searching for close samples"):
@@ -118,7 +115,7 @@ def run_snp_dists(args: argparse.Namespace,result: ProfileResult) -> None:
     lock = f"{dbname}.lock"
     with filelock.SoftFileLock(lock):
         db = DB(dbname)
-        linked_samples = db.search(result,input_vcf,args.snp_dist,args.snp_dist_search_all)
+        linked_samples = db.search(result,input_vcf,args.snp_dist)
         if not args.snp_diff_no_store:
             db.store(result,input_vcf)
         result.linked_samples = [d for d in linked_samples if d.sample!=result.id]
