@@ -13,7 +13,7 @@ setuptools.setup(
 	long_description="TBProfiler command line tool",
 	scripts= [
 		'tb-profiler',
-        'scripts/tb-profiler-tools'
+		'scripts/tb-profiler-tools'
 		],
 	data_files=[('share/tbprofiler',glob("db/*"))],
 )

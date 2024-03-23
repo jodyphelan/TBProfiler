@@ -90,6 +90,7 @@ def create_output_directories(args,directories=["bam","vcf","results"]):
 
 def main_profile(args):
     pp.process_args(args)
+    create_output_directories(args)
 
     if args.vcf:
         nsamples = len(tbp.get_vcf_samples(args.vcf))
@@ -158,7 +159,6 @@ def main_profile(args):
 
 
 
-    create_output_directories(args)
 
     tbp.write_outputs(args,result)
 
@@ -247,7 +247,7 @@ def main_create_db(args):
 
 def main_load_library(args):
     variables_file = "%(prefix)s.variables.json" % vars(args)
-    source_dir = "/".join(variables_file.split("/")[:-1])
+    source_dir = os.path.realpath(args.dir)
     pp.load_db(variables_file,args.software_name,source_dir=source_dir)
     
 
