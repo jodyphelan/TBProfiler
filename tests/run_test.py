@@ -50,19 +50,19 @@ def test_fastq():
 variant_callers = ['bcftools','freebayes','gatk','lofreq','pilon']
 @pytest.mark.parametrize("caller",variant_callers)
 def test_variant(caller):
-    run_cmd(f"tb-profiler profile --db {db} -a bam/por5A_fastq.bam --caller {caller} -p por5A_{caller} -t 4 --txt --csv ")
+    run_cmd(f"tb-profiler profile --db {db} -a bam/por5A_fastq.bam --caller {caller} -p por5A_{caller} -t 4 --txt --csv --docx ")
     check_assertations(f"results/por5A_{caller}.results.json")
 
 def test_vcf():
-    run_cmd(f"tb-profiler profile --db {db} -v tb-profiler-test-data/por5A1.vcf.gz --prefix por5_vcf --txt --csv")
+    run_cmd(f"tb-profiler profile --db {db} -v tb-profiler-test-data/por5A1.vcf.gz --prefix por5_vcf --txt --csv --docx")
     check_assertations("results/por5_vcf.results.json")
     
 def test_nanopore():
-    run_cmd(f"tb-profiler profile --db {db} -1 tb-profiler-test-data/por5A.nanopore_reduced.fastq.gz --platform nanopore -p por5A_illumina_nanopore -t 4 --af '0.5,0.7' --depth '0,5' --txt --csv ")
+    run_cmd(f"tb-profiler profile --db {db} -1 tb-profiler-test-data/por5A.nanopore_reduced.fastq.gz --platform nanopore -p por5A_illumina_nanopore -t 4 --af '0.5,0.7' --depth '0,5' --txt --csv --docx")
     check_assertations("results/por5A_illumina_nanopore.results.json")
 
 def test_fasta():
-    run_cmd(f"tb-profiler profile --db {db} -f tb-profiler-test-data/por5A1.fasta  -p por5A_fasta --txt --csv")
+    run_cmd(f"tb-profiler profile --db {db} -f tb-profiler-test-data/por5A1.fasta  -p por5A_fasta --txt --csv --docx")
     results = json.load(open('results/por5A_fasta.results.json'))
     assert results["sub_lineage"] == "lineage4.3.4.2"
     assert results["main_lineage"] == "lineage4"
@@ -76,9 +76,3 @@ def test_collate():
         O.write("por5_vcf\n")
     run_cmd(f"tb-profiler collate --db {db} --samples samples.txt")
     assert open("tbprofiler.txt").read() == collate_text
-    
-
-
-
-# def test_seqs_from_bam():
-#     assert pp.get_seqs_from_bam("bam/por5A_illumina_nanopore.bam") == ['Chromosome']

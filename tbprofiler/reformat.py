@@ -1,9 +1,9 @@
 from pathogenprofiler.models import BarcodeResult, Variant, BamQC, FastaQC, DrVariant, GenomePosition
-# from .xdb import *
-from .models import Lineage, Result, TbDrVariant, TbVariant, ProfileResult, Spoligotype, LineageResult
+from .models import Lineage, TbDrVariant, TbVariant, ProfileResult, Spoligotype, LineageResult, Pipeline
 from typing import List, Tuple , Union, Optional
 from .utils import get_gene2drugs
 import argparse
+from pathogenprofiler.utils import shared_dict
 
 def get_main_lineage(lineages: List[Lineage],max_node_skip: int = 1) -> Tuple[str, str]:
     """
@@ -97,6 +97,7 @@ def barcode2lineage(barcode: List[BarcodeResult]) -> List[Lineage]:
                 family=d.info[0],
                 spoligotype=d.info[1],
                 rd=d.info[2],
+                support=d.support
             )
         )
     return lineage
@@ -149,7 +150,7 @@ def variant_present(var,results):
             if (v['gene']==var['gene'] or v['locus_tag']==var['gene']) and v['type']==var['type']:
                 result = v
     return result
-   
+
 def process_variants(
     variants: List[Union[Variant,DrVariant]], 
     bed_file: str
@@ -223,9 +224,14 @@ def create_resistance_result(
     dr_variants, other_variants, fail_variants = split_variants(variants,args.conf['bed'])
     main_lineage, sub_lineage = get_main_lineage(lineage)
     drtype = get_drtypes(dr_variants)
+    pipeline = Pipeline(
+        software_version=args.version, 
+        db_version=args.conf['version'],
+        software=[{'process':k,'software':v} for k,v in shared_dict.items()]
+    )
     if hasattr(qc, 'missing_positions'):
         qc.missing_positions = filter_missing_positions(qc.missing_positions)
-     
+
     data = {
         'id':args.prefix,
         'notes':notes,
@@ -237,8 +243,7 @@ def create_resistance_result(
         'qc_fail_variants':fail_variants,
         'sub_lineage':sub_lineage,
         'main_lineage':main_lineage,
-        'tbprofiler_version':args.version,
-        'db_version':args.conf['version'],
+        'pipeline':pipeline
     }
 
     return ProfileResult(**data, qc=qc)
@@ -262,8 +267,19 @@ def clean_up_duplicate_annotations(variants: Variant) -> None:
         keys = set([(ann['type'],ann['drug']) for ann in var.annotation])
         new_annotations = []
         for key in keys:
-            anns = [ann for ann in var.annotation if ann['type']==key[0] and ann['drug']==key[1]]
-            if len(anns)>1:
-                anns = sorted(anns,key=lambda x: confidence_levels.index(x['confidence']))
-            new_annotations.append(anns[0])
+            confidence_anns = []
+            other_anns = []
+            for ann in var.annotation:
+                if ann['type']==key[0] and ann['drug']==key[1]:
+                    if 'confidence' in ann and ann['confidence'] in confidence_levels:
+                        confidence_anns.append(ann)
+                    else:
+                        other_anns.append(ann)
+            # confidence_anns = [ann for ann in var.annotation if ann['type']==key[0] and ann['drug']==key[1] and 'confidence' in ann and ann['confidence'] in confidence_levels]
+            # other_anns = [ann for ann in var.annotation if ann['type']==key[0] and ann['drug']==key[1] and ('confidence' not in ann or ann['confidence'] not in confidence_levels)]
+            if len(confidence_anns)>0:
+                confidence_anns = sorted(confidence_anns,key=lambda x: confidence_levels.index(x['confidence']))
+                new_annotations.append(confidence_anns[0])
+
+            new_annotations += other_anns
         var.annotation = new_annotations

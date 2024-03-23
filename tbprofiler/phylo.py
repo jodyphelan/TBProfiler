@@ -4,9 +4,7 @@ import os
 from tqdm import tqdm
 import pysam
 from joblib import Parallel, delayed
-import subprocess as sp
 from uuid import uuid4
-import sys
 from pathogenprofiler import run_cmd, cmd_out
 import argparse
 
@@ -18,17 +16,17 @@ def usher_add_sample(args: argparse.Namespace) -> None:
         args.wg_vcf = args.vcf
     else:
         args.wg_vcf = args.files_prefix + ".vcf.gz"
-    
+
     args.tmp_masked_vcf = f"{args.files_prefix}.masked.vcf.gz"
     args.input_phylo = f"{args.dir}/results/phylo.pb"
     args.tmp_output_phylo = f"{args.files_prefix}.pb"
     args.output_nwk = f"{args.files_prefix}.nwk"
-    
+
     if not os.path.isfile(args.input_phylo):
         logging.error("Phylogeny doesn't exist. Please create one first with `tb-profiler-tools`")
         quit("Exiting!")
 
-    
+
     lock = filelock.SoftFileLock(args.input_phylo + ".lock")
 
     cwd = os.getcwd()
@@ -64,7 +62,7 @@ def generate_low_dp_mask(bam: str,ref: str,outfile: str,min_dp: int = 10) -> Non
 
 def prepare_usher(treefile: str,vcf_file: str) -> None:
     run_cmd(f"usher --tree {treefile} --vcf {vcf_file} --collapse-tree --save-mutation-annotated-tree phylo.pb")
-    
+
 def prepare_sample_consensus(sample: str,input_vcf: str,args: argparse.Namespace) -> str:
     s = sample
     tmp_vcf = f"{args.files_prefix}.{s}.vcf.gz"
@@ -108,5 +106,3 @@ def calculate_phylogeny(args: argparse.Namespace) -> None:
     prepare_usher(f"{alignment_file}.treefile",tmp_vcf)
     run_cmd(f"mv phylo.pb {args.dir}/results/")
     os.remove("condensed-tree.nh")
-    
-        

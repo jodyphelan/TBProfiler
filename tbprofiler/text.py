@@ -1,14 +1,7 @@
-import time
-from unittest import result
-from pathogenprofiler import get_summary
-from pathogenprofiler import dict_list2text
-import logging
-from .utils import get_drug_list
 import jinja2
-from copy import copy
 import pathogenprofiler as pp
 from .models import ProfileResult, Lineage
-from typing import Union, List
+from typing import List
 
 def lineagejson2text(lineages: List[Lineage],sep: str = "\t") -> str:
     textlines = []
@@ -89,9 +82,10 @@ Spoligotype spacers
 {% endif %}
 Analysis pipeline specifications
 --------------------------------
-Pipeline version{{d['sep']}}{{d['version']}}
+Software version{{d['sep']}}{{d['version']}}
 Database version{{d['sep']}}{{d['db_version']}}
-{{d['pipeline']}}
+
+{{d['software']}}
 
 Citation
 --------
@@ -135,12 +129,16 @@ def write_text(
     text_strings["dr_report"] = pp.dict_list2text(summary_table,sep=sep)
     text_strings["dr_var_report"] = pp.object_list2text(result.dr_variants,mappings={"pos":"Genome Position","gene_id":"Locus Tag",'gene_name':'Gene name',"type":"Variant type","change":"Change","freq":"Estimated fraction","drugs.drug":"Drug","drugs.confidence":"Confidence","drugs.comment":"Comment"},sep=sep)
     text_strings["other_var_report"] = pp.object_list2text(result.other_variants,mappings={"pos":"Genome Position","gene_id":"Locus Tag",'gene_name':'Gene name',"type":"Variant type","change":"Change","freq":"Estimated fraction","annotation.drug":"Gene associated drug","annotation.confidence":"Confidence","annotation.comment":"Comment"},sep=sep)
-    text_strings["fail_var_report"] = pp.object_list2text(result.qc_fail_variants,mappings={"pos":"Genome Position","gene_id":"Locus Tag",'gene_name':'Gene name',"type":"Variant type","change":"Change","freq":"Estimated fraction","annotation.drug":"Gene associated drug","annotation.confidence":"Confidence","annotation.comment":"Comment"},sep=sep)
+    text_strings["qc_fail_var_report"] = pp.object_list2text(result.qc_fail_variants,mappings={"pos":"Genome Position","gene_id":"Locus Tag",'gene_name':'Gene name',"type":"Variant type","change":"Change","freq":"Estimated fraction","annotation.drug":"Gene associated drug","annotation.confidence":"Confidence","annotation.comment":"Comment"},sep=sep)
     text_strings["coverage_report"] = result.get_qc()
     text_strings['lineage_report'] = pp.object_list2text(result.lineage,mappings={"lineage":"Lineage","fraction":"Fraction","family":"Family","rd":"rd"},sep=sep)#result.lineage)
     text_strings['strain'] = result.sub_lineage
     text_strings['drtype'] = result.drtype
     text_strings['median_depth'] = result.qc.get_target_median_depth()
+    text_strings['missing_report'] = result.get_missing_pos()
+    text_strings['version'] = result.pipeline.software_version
+    text_strings['db_version'] = result.pipeline.db_version['commit']
+    text_strings['software'] = pp.dict_list2text(result.pipeline.software,sep=sep)
 
     if result.spoligotype:
         text_strings.update(result.spoligotype.model_dump())

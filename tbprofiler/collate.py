@@ -2,9 +2,8 @@ import json
 import os
 from collections import defaultdict
 from tqdm import tqdm
-from .utils import get_lt2drugs
 import logging
-import csv 
+import csv
 import argparse
 from .models import ProfileResult
 from typing import List, Tuple, Optional
@@ -51,7 +50,7 @@ class TransmissionEdge(BaseModel):
     source: str
     target: str
     distance: float
-    
+
     def dump(self):
         return {"source":self.source,"target":self.target,"properties":{"distance":self.distance}}
     
@@ -130,7 +129,7 @@ def collate_results(args: argparse.Namespace) -> None:
                 TransmissionEdge(
                     source=s,
                     target=linked_sample.sample,
-                    distance=linked_sample.distance    
+                    distance=linked_sample.distance
                 )
             )
 
@@ -169,8 +168,8 @@ def generate_itol_config(rows: List[dict], drugs: list, prefix: str) -> None:
     prefix : str
         Prefix for output files
     """
-    all_lineage_cols = {"lineage1":"#104577","lineage2":"#ab2323","lineage3":"#18a68c","lineage4":"#f68e51","lineage5":"#7cb5d2","lineage6":"#fde05e","lineage7":"#bc94b7","lineage8":"#ccc9e7","lineage9":"#bd9391","Animal strains":"#f8e0c8","Other":"#000000"}
-    lineage_aggregation = {"M.caprae":"Animal strains","M.bovis":"Animal strains","M.orygis":"Animal strains"}
+    all_lineage_cols = {"lineage1":"#104577","lineage2":"#ab2323","lineage3":"#18a68c","lineage4":"#f68e51","lineage5":"#7cb5d2","lineage6":"#fde05e","lineage7":"#bc94b7","lineage8":"#ccc9e7","lineage9":"#bd9391","Animal strains":"#f8e0c8","Other":"#000000","Not called": "#ffffff"}
+    lineage_aggregation = {"": "Not called","M.caprae":"Animal strains","M.bovis":"Animal strains","M.orygis":"Animal strains"}
     lineage_dict = {r['sample']:lineage_aggregation.get(r["main_lineage"],r["main_lineage"]) if ";" not in r["main_lineage"] else "Other" for r in rows}
     lineages_present = set(lineage_dict.values())
     lineage_cols = {key:val for key,val in all_lineage_cols.items() if key in lineages_present}
@@ -240,7 +239,7 @@ def generate_distance_matrix(rows: List[dict], edges: List[TransmissionEdge], pr
         List of edges in transmission network
     prefix : str
         Prefix for output files
-    """    
+    """
     samples = [r['sample'] for r in rows]
     if len(edges)>0:
         with open(prefix+".distance_matrix.txt","w") as MAT:

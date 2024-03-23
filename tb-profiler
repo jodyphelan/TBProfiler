@@ -137,7 +137,7 @@ def main_profile(args):
         lineage=barcode_result,
         spoligotype=spoligotype,
         variants=variants_profile,
-        qc=qc
+        qc=qc,
     )
 
 

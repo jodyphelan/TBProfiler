@@ -6,7 +6,6 @@ import json
 from .output import write_outputs
 from copy import copy
 import filelock
-from time import time
 import sqlite3
 from tqdm import tqdm
 from .phylo import get_consensus_vcf
@@ -144,4 +143,3 @@ def update_neighbour_snp_dist_output(args: argparse.Namespace,result: ProfileRes
                 temp_args.prefix = s.sample
                 write_outputs(temp_args,data,template_file=args.text_template)
                 logging.debug("Finished with lock for %s" % f)
-

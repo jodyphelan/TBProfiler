@@ -1,7 +1,5 @@
 import sys
-import argparse
 from docxtpl import DocxTemplate
-import json
 from collections import defaultdict
 import datetime
 
@@ -11,27 +9,25 @@ def sanitize(d):
     return d
 
 
-def write_docx(json_results,conf,outfile,template_file = None):
+def write_docx(result,conf,outfile,template_file = None):
     if template_file is None:
         template_file = sys.prefix+"/share/tbprofiler/default_template.docx"
-    data = json_results
+    data = result.model_dump()
     drug_variants = defaultdict(list)
     confidence = defaultdict(list)
     for var in data['dr_variants']:
         for d in var['drugs']:
-            if d['type']=='drug':
-                if "who confidence" not in d: continue
-                drug_variants[d['drug']].append(f"{var['gene']}_{var['change']}")
-                confidence[d['drug']].append(d['who confidence'])
+            if d['type']=='drug_resistance':
+                drug_variants[d['drug']].append(f"{var['gene_name']}_{var['change']}")
+                confidence[d['drug']].append(d['confidence'])
 
-    
-    time = datetime.datetime.strptime(data['timestamp'], "%d-%m-%Y %H:%M:%S")
+
 
     variables = {
-        'date':time.strftime("%d %b %Y"),
-        'sublineage': data['sublin'],
+        'date':data['timestamp'].strftime("%d %b %Y"),
+        'sublineage': data['sub_lineage'],
         'resistant_drugs': ", ".join([d.capitalize() for d in conf['drugs'] if d in drug_variants]),
-        'version': data['tbprofiler_version'],
+        'version': data['pipeline']['software_version'],
         'sensitive': True if data['drtype'] == "Sensitive" else False,
         'mdr': True if data['drtype'] in ("MDR-TB","Pre-XDR-TB") else False,
         'xdr': True if data['drtype'] in "XDR-TB" else False,
