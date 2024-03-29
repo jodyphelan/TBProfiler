@@ -39,5 +39,6 @@ jobs:
     - name: Run tests
       run: |
         cd tests
+        /home/runner/miniforge3/bin/mamba install pytest -y
         pytest -x .
     
