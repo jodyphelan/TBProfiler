@@ -31,7 +31,7 @@ jobs:
         conda config --set channel_priority strict
     - name: install dependancies
       run: |
-        mamba install tb-profiler -y
+        /home/runner/miniforge3/bin/mamba install tb-profiler -y
         
     - name: Install dependencies
       run: |
