@@ -35,4 +35,9 @@ jobs:
         
     - name: Install dependencies
       run: |
-        pip install .
+        pip install --force-reinstall .
+    - name: Run tests
+      run: |
+        cd tests
+        pytest -x .
+    
