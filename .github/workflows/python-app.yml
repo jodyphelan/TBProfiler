@@ -1,0 +1,38 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Python application
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up miniconda
+      run: |
+        wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
+        bash -b Miniforge3-Linux-x86_64.sh
+        ~/miniforge3/condabin/conda init
+        source .bashrc
+        conda config --add channels defaults
+        conda config --add channels bioconda
+        conda config --add channels conda-forge
+        conda config --set channel_priority strict
+    - name: install dependancies
+      run: |
+        mamba install tb-profiler -y
+        
+    - name: Install dependencies
+      run: |
+        pip install .
