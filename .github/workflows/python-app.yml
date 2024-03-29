@@ -18,17 +18,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up miniconda
-      run: |
-        wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
-        bash Miniforge3-Linux-x86_64.sh -b
-        ~/miniforge3/condabin/conda init
-        source /home/runner/.bashrc
-        conda config --add channels defaults
-        conda config --add channels bioconda
-        conda config --add channels conda-forge
-        conda config --set channel_priority strict
+    - uses: actions/checkout@v4
+    - uses: conda-incubator/setup-miniconda@v3
+      with:
+          python-version: 3.10
+          mamba-version: "*"
+          channels: conda-forge,bioconda,defaults
+          channel-priority: true
+
     - name: install dependancies
       run: |
         /home/runner/miniforge3/bin/mamba install tb-profiler -y
