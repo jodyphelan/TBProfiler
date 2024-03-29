@@ -24,7 +24,7 @@ jobs:
         wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
         bash Miniforge3-Linux-x86_64.sh -b
         ~/miniforge3/condabin/conda init
-        source .bashrc
+        source /home/runner/.bashrc
         conda config --add channels defaults
         conda config --add channels bioconda
         conda config --add channels conda-forge
