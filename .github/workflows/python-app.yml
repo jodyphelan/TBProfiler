@@ -28,7 +28,7 @@ jobs:
 
     - name: install dependancies
       run: |
-        /home/runner/miniforge3/bin/mamba install tb-profiler -y
+        mamba install tb-profiler -y
         
     - name: Install dependencies
       run: |
