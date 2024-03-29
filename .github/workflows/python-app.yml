@@ -28,7 +28,7 @@ jobs:
 
     - name: install dependancies
       run: |
-        mamba install tb-profiler -y
+        mamba create -n test tb-profiler -y
         
     - name: Install dependencies
       run: |
