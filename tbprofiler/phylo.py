@@ -60,13 +60,30 @@ def generate_low_dp_mask(bam: str,ref: str,outfile: str,min_dp: int = 10) -> Non
         for x in missing_positions:
             O.write(f"{x[0]}\t{x[1]}\t{x[1]+1}\n")
 
+def generate_low_dp_mask_vcf(vcf: str,outfile: str,min_dp: int = 10) -> None:
+    missing_positions = []
+    vcf_obj = pysam.VariantFile(vcf)
+    for rec in vcf_obj:
+        # use AD field if available
+        if 'AD' in rec.samples[0]:
+            dp = sum(rec.samples[0]['AD'])
+        else:
+            dp = rec.samples[0]['DP']
+        if dp<min_dp:
+            missing_positions.append((rec.chrom,rec.pos))
+
+    # write missing positions to bed file
+    with open(outfile,"w") as O:
+        for x in missing_positions:
+            O.write(f"{x[0]}\t{x[1]}\t{x[1]+1}\n")
+
 def prepare_usher(treefile: str,vcf_file: str) -> None:
     run_cmd(f"usher --tree {treefile} --vcf {vcf_file} --collapse-tree --save-mutation-annotated-tree phylo.pb")
 
 def prepare_sample_consensus(sample: str,input_vcf: str,args: argparse.Namespace) -> str:
     s = sample
     tmp_vcf = f"{args.files_prefix}.{s}.vcf.gz"
-    run_cmd(f"bcftools norm -m - {input_vcf} | bcftools view -T ^{args.conf['bedmask']} | bcftools filter --SnpGap 50 | bcftools view -v snps | annotate_maaf.py | bcftools filter -S . -e 'MAAF<0.7' |bcftools filter -S . -e 'FMT/DP<20' | rename_vcf_sample.py --sample-name {s} | bcftools view -v snps -Oz -o {tmp_vcf}")
+    run_cmd(f"bcftools norm -m - {input_vcf} | bcftools view -T ^{args.conf['bedmask']} | bcftools filter --SnpGap 50 | bcftools view -v snps | annotate_maaf.py | bcftools filter -S . -e 'MAAF<0.7' |bcftools filter -S . -e 'FMT/DP<{args.conf['variant_filters']['depth_soft']}' | rename_vcf_sample.py --sample-name {s} | bcftools view -v snps -Oz -o {tmp_vcf}")
     run_cmd(f"bcftools index {tmp_vcf}")
 
     mask_bed = f"{args.files_prefix}.{s}.mask.bed"
@@ -74,6 +91,9 @@ def prepare_sample_consensus(sample: str,input_vcf: str,args: argparse.Namespace
         args.bam = args.supplementary_bam
     if args.bam:
         generate_low_dp_mask(f"{args.bam}",args.conf['ref'],mask_bed)
+        mask_cmd = f"-m {mask_bed} -M N"
+    elif args.vcf:
+        generate_low_dp_mask_vcf(args.vcf,mask_bed)
         mask_cmd = f"-m {mask_bed} -M N"
     else:
         mask_cmd = ""
