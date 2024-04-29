@@ -28,11 +28,14 @@ jobs:
 
     - name: install dependancies
       run: |
-        mamba create -n test tb-profiler -y
+        wget https://raw.githubusercontent.com/jodyphelan/TBProfiler/dev/conda/linux-latest.txt
+        conda create --name test --file linux-latest.txt
+      
         
     - name: Install dependencies
       run: |
         conda activate test
+        pip install --force-reinstall git+https://github.com/jodyphelan/pathogen-profiler.git@dev
         pip install --force-reinstall .
     - name: Run tests
       run: |
