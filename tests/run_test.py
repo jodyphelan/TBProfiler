@@ -31,9 +31,10 @@ por5_dr_variants = [
 ]
 
 db = 'testdb'
+branch = 'who'
 
 def test_db():
-    run_cmd(f"tb-profiler update_tbdb --branch test --prefix {db}")
+    run_cmd(f"tb-profiler update_tbdb --branch {branch} --prefix {db}")
 
 
 def check_assertations(filename):

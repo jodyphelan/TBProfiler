@@ -1,0 +1,42 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Python application
+
+on:
+  pull_request:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    defaults:
+      run: 
+        shell: bash -el {0}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: conda-incubator/setup-miniconda@v3
+      with:
+          python-version: 3.8
+          mamba-version: "*"
+          channels: conda-forge,bioconda,defaults
+          channel-priority: true
+
+    - name: install dependancies
+      run: |
+        mamba create -n test tb-profiler -y
+        
+    - name: Install dependencies
+      run: |
+        conda activate test
+        pip install --force-reinstall .
+    - name: Run tests
+      run: |
+        cd tests
+        mamba install pytest -y
+        pytest -x .
+    
