@@ -6,8 +6,6 @@ name: CI testing
 on:
   pull_request:
     branches: [ "master", "dev" ]
-  push:
-    branches: [ "master" ]
 
 permissions:
   contents: read
