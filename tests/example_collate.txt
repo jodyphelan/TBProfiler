@@ -4,4 +4,4 @@ por5A_freebayes	lineage4	lineage4.3.4.2	-	MDR-TB	59.0	99.9	54238	4	24	rpoB p.Ser
 por5A_gatk	lineage4	lineage4.3.4.2	-	MDR-TB	59.0	99.9	54238	4	28	rpoB p.Ser450Leu (1.00)	inhA c.-777C>T (1.00)	embB p.Met306Val (1.00)	pncA p.Val125Gly (1.00)	-	-	-	-	-	-	-	-	-	-	-	inhA c.-777C>T (1.00)
 por5A_lofreq	lineage4	lineage4.3.4.2	-	MDR-TB	59.0	99.9	54238	4	23	rpoB p.Ser450Leu (1.00)	inhA c.-777C>T (1.00)	embB p.Met306Val (1.00)	pncA p.Val125Gly (1.00)	-	-	-	-	-	-	-	-	-	-	-	inhA c.-777C>T (1.00)
 por5A_pilon	lineage4	lineage4.3.4.2	-	MDR-TB	59.0	99.9	54238	4	25	rpoB p.Ser450Leu (1.00)	inhA c.-777C>T (1.00)	embB p.Met306Val (1.00)	pncA p.Val125Gly (1.00)	-	-	-	-	-	-	-	-	-	-	-	inhA c.-777C>T (1.00)
-por5_vcf	lineage4	lineage4.3.4.2	-	MDR-TB	nan	nan	nan	4	24	rpoB p.Ser450Leu (1.00)	inhA c.-777C>T (1.00)	embB p.Met306Val (1.00)	pncA p.Val125Gly (1.00)	-	-	-	-	-	-	-	-	-	-	-	inhA c.-777C>T (1.00)
+por5_vcf	lineage4	lineage4.3.4.2	-	MDR-TB				4	24	rpoB p.Ser450Leu (1.00)	inhA c.-777C>T (1.00)	embB p.Met306Val (1.00)	pncA p.Val125Gly (1.00)	-	-	-	-	-	-	-	-	-	-	-	inhA c.-777C>T (1.00)
