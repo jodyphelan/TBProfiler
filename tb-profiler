@@ -88,6 +88,7 @@ def create_output_directories(args,directories=["bam","vcf","results"]):
             os.mkdir(args.dir+"/"+d)
 
 def main_profile(args):
+    print(args.no_samclip)
     pp.process_args(args)
     create_output_directories(args)
 
@@ -187,6 +188,10 @@ def main_profile(args):
     pp.logging.info("[green]Profiling finished sucessfully![/]",extra={"markup": True})
 
 def main_update_tbdb(args):
+
+    if args.match_ref:
+        args.match_ref = os.path.abspath(args.match_ref)
+
     if pp.nofolder("tbdb"):
         pp.run_cmd(f"git clone {args.repo}")
     os.chdir("tbdb")
@@ -379,7 +384,7 @@ algorithm.add_argument('--snp_diff_db','--snp-diff_db',type=str,help=argparse.SU
 algorithm.add_argument('--snp_diff_no_store','--snp-diff-no-store',action='store_true',help=argparse.SUPPRESS)
 algorithm.add_argument('--no_trim','--no-trim',action="store_true",help="Don't trim files using trimmomatic")
 algorithm.add_argument('--no_coverage_qc','--no-coverage-qc',action="store_true",help="Don't collect flagstats")
-algorithm.add_argument('--no_samclip','--no-samclip',action="store_false",help="Don't remove clipped reads from variant calling")
+algorithm.add_argument('--no_samclip','--no-samclip',action="store_true",help="Don't remove clipped reads from variant calling")
 algorithm.add_argument('--no_delly','--no-delly',action="store_true",help="Don't run delly")
 algorithm.add_argument('--no_lineage','--no-lineage',action="store_true",help=argparse.SUPPRESS)
 algorithm.add_argument('--add_variant_annotations','--add-variant-annotations',action="store_true",help=argparse.SUPPRESS)
