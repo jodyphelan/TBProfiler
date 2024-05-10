@@ -203,6 +203,11 @@ def create_lineage_result(
     lineage: List[Lineage]
 ):
     main_lineage, sub_lineage = get_main_lineage(lineage)
+    pipeline = Pipeline(
+        software_version=args.version,
+        db_version=args.conf['version'],
+        software=[{'process':k,'software':v} for k,v in shared_dict.items()]
+    )
     data = {
         'id':args.prefix,
         'lineage':lineage,
@@ -210,6 +215,7 @@ def create_lineage_result(
         'main_lineage':main_lineage,
         'tbprofiler_version':args.version,
         'db_version':args.conf['version'],
+        'pipeline':pipeline
     }
     return LineageResult(**data)
 
