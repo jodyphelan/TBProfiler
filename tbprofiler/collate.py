@@ -32,6 +32,7 @@ class VariantDB:
             self.samples2variants[result.id].add(key)
             d = var.model_dump()
             d['sample'] = result.id
+            d['drugs'] = ";".join([x['drug'] for x in var.drugs]) if hasattr(var,'drugs')>0 else "-"
             self.variant_rows.append(d)
     def get_frequency(self,key: Tuple[str,str,str]) -> float:
         return self.variant_frequencies.get(key,0.0)
@@ -39,7 +40,7 @@ class VariantDB:
         return list(self.variant2samples.keys())
     def write_dump(self,filename: str) -> None:
         with open(filename,"w") as O:
-            fields = ["sample","gene_name","change","freq","type"]
+            fields = ["sample","gene_name","change","freq","type","drugs"]
             writer = csv.DictWriter(O,fieldnames=fields)
             writer.writeheader()
             for row in self.variant_rows:
