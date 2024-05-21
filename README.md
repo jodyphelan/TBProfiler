@@ -166,6 +166,11 @@ Several files are produced by the `tb-profile collate` function. Among these are
 *   Drug resistance classes \(Sensitive, RR-TB, HR-TB, MDR-TB, Pre-XDR-TB, XDR\)
 *   Drug resistance calls for individual drugs, were filled circles represent resistance.
 
+If you would like the ITOL config files to be generated add the `itol` argument to the `collate` function.
+```bash
+tb-profiler collate --itol
+```
+
 ![](https://github.com/jodyphelan/jodyphelan.github.io/raw/master/img/itol_example.png)
 
 ## Citation
