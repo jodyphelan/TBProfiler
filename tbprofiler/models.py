@@ -79,9 +79,9 @@ class Spacer(BaseModel):
 class Spoligotype(BaseModel):
     binary: str
     octal: str
-    family: str
-    SIT: str
-    countries: str
+    family: Optional[str]
+    SIT: Optional[str]
+    countries: Optional[str]
     spacers: List[Spacer]
 
     def __repr__(self) -> str:
