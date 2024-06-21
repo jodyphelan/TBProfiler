@@ -127,9 +127,9 @@ def write_text(
     summary_table = pp.get_dr_summary(result.dr_variants,conf)
     text_strings["notes"] = "\n".join(result.notes)
     text_strings["dr_report"] = pp.dict_list2text(summary_table,sep=sep)
-    text_strings["dr_var_report"] = pp.object_list2text(result.dr_variants,mappings={"pos":"Genome Position","gene_id":"Locus Tag",'gene_name':'Gene name',"type":"Variant type","change":"Change","freq":"Estimated fraction","drugs.drug":"Drug","drugs.confidence":"Confidence","drugs.comment":"Comment"},sep=sep)
-    text_strings["other_var_report"] = pp.object_list2text(result.other_variants,mappings={"pos":"Genome Position","gene_id":"Locus Tag",'gene_name':'Gene name',"type":"Variant type","change":"Change","freq":"Estimated fraction","annotation.drug":"Gene associated drug","annotation.confidence":"Confidence","annotation.comment":"Comment"},sep=sep)
-    text_strings["qc_fail_var_report"] = pp.object_list2text(result.qc_fail_variants,mappings={"pos":"Genome Position","gene_id":"Locus Tag",'gene_name':'Gene name',"type":"Variant type","change":"Change","freq":"Estimated fraction","annotation.drug":"Gene associated drug","annotation.confidence":"Confidence","annotation.comment":"Comment"},sep=sep)
+    text_strings["dr_var_report"] = pp.object_list2text(result.dr_variants,mappings={"pos":"Genome Position","gene_id":"Locus Tag",'gene_name':'Gene name',"type":"Variant type","change":"Change","depth": "Depth","freq":"Estimated fraction","drugs.drug":"Drug","drugs.confidence":"Confidence","drugs.comment":"Comment"},sep=sep)
+    text_strings["other_var_report"] = pp.object_list2text(result.other_variants,mappings={"pos":"Genome Position","gene_id":"Locus Tag",'gene_name':'Gene name',"type":"Variant type","change":"Change","depth": "Depth","freq":"Estimated fraction","annotation.drug":"Gene associated drug","annotation.confidence":"Confidence","annotation.comment":"Comment"},sep=sep)
+    text_strings["qc_fail_var_report"] = pp.object_list2text(result.qc_fail_variants,mappings={"pos":"Genome Position","gene_id":"Locus Tag",'gene_name':'Gene name',"type":"Variant type","change":"Change","depth": "Depth","freq":"Estimated fraction","annotation.drug":"Gene associated drug","annotation.confidence":"Confidence","annotation.comment":"Comment"},sep=sep)
     text_strings["coverage_report"] = result.get_qc()
     text_strings['lineage_report'] = pp.object_list2text(result.lineage,mappings={"lineage":"Lineage","fraction":"Fraction","family":"Family","rd":"rd"},sep=sep)#result.lineage)
     text_strings['strain'] = result.sub_lineage
