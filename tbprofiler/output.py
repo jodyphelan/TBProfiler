@@ -22,4 +22,6 @@ def write_outputs(args,result: ProfileResult,template_file: str = None):
         write_text(result,args.conf,csv_output,sep=",",template_file = template_file)
     if args.docx:
         logging.info(f"Writing docx file: {docx_output}")
-        write_docx(result,args.conf,docx_output,template_file = args.docx_template)
+        if args.docx_plugin:
+            args.docx_plugin = args.plugins[args.docx_plugin]
+        write_docx(result,args.conf,docx_output,template_file = args.docx_template, plugin = args.docx_plugin)
