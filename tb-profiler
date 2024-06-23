@@ -349,6 +349,7 @@ def int_2_or_more(arg):
 parser = argparse.ArgumentParser(description='tb-profiler: a tool to predict drug resistance and infer lineages',formatter_class=ArgumentDefaultsRichHelpFormatter,add_help=False)
 parser.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
+parser.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
 subparsers = parser.add_subparsers(help="Task to perform")
 
 # Profile #
@@ -408,6 +409,7 @@ algorithm.add_argument('--ram',default=2,help='Maximum memory to use',type=int)
 
 other=parser_sub.add_argument_group("Other options")
 other.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
+other.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
 other.add_argument('--delly_vcf','--delly-vcf',help=argparse.SUPPRESS)
 other.add_argument('--supplementary_bam','--supplementary-bam',help=argparse.SUPPRESS)
 other.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
@@ -434,6 +436,7 @@ parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argp
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
+parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
 parser_sub.set_defaults(func=main_lineage)
 
 parser_sub = subparsers.add_parser('spoligotype', help='Profile spoligotype', formatter_class=ArgumentDefaultsRichHelpFormatter)
@@ -458,6 +461,7 @@ parser_sub.add_argument('--ram',default=2,type=int_2_or_more,help='Maximum memor
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
+parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
 parser_sub.set_defaults(func=main_spoligotype)
 
 parser_sub = subparsers.add_parser('collate', help='Collate results form multiple samples together', formatter_class=ArgumentDefaultsRichHelpFormatter)
@@ -475,6 +479,7 @@ parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argp
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
+parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
 parser_sub.set_defaults(func=main_collate)
 
 
@@ -494,6 +499,7 @@ parser_sub.add_argument('--suspect',action="store_true",help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
+parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
 parser_sub.set_defaults(func=main_reformat)
 
 parser_sub = subparsers.add_parser('create_db', help='Generate the files required to run tb-profiler', formatter_class=ArgumentDefaultsRichHelpFormatter)
@@ -520,6 +526,7 @@ parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argp
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
+parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
 parser_sub.set_defaults(func=main_create_db)
 
 parser_sub = subparsers.add_parser('load_library', help='Load new library', formatter_class=ArgumentDefaultsRichHelpFormatter)
@@ -529,6 +536,7 @@ parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argp
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
+parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
 parser_sub.set_defaults(func=main_load_library)
 
 parser_sub = subparsers.add_parser('update_tbdb', help='Pull the latest tbdb library and load', formatter_class=ArgumentDefaultsRichHelpFormatter)
@@ -542,6 +550,7 @@ parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argp
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
+parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
 parser_sub.set_defaults(func=main_update_tbdb)
 
 parser_sub = subparsers.add_parser('batch', help='Run tb-profiler for several samples', formatter_class=ArgumentDefaultsRichHelpFormatter)
@@ -554,6 +563,7 @@ parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argp
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
+parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
 parser_sub.set_defaults(func=main_batch)
 
 parser_sub = subparsers.add_parser('list_db', help='List loaded databases', formatter_class=ArgumentDefaultsRichHelpFormatter)
@@ -562,6 +572,7 @@ parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argp
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
+parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
 parser_sub.set_defaults(func=main_list_db)
 
 parser_sub = subparsers.add_parser('version', help='Output program version and exit', formatter_class=ArgumentDefaultsRichHelpFormatter)
@@ -570,6 +581,7 @@ parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argp
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
+parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
 parser_sub.set_defaults(func=main_version)
 
 
