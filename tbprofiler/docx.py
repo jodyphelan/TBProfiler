@@ -95,14 +95,15 @@ def write_docx(result: ProfileResult,conf,outfile,template_file = None, plugin =
                 })
 
         gene_qc = []
-        for item in result.qc.target_qc:
+        if 'target_qc' in result.qc:
+            for item in result.qc.target_qc:
 
-            gene_qc.append({
-                'status': 'ok' if item.percent_depth_pass>0.9 else 'fail',
-                'gene': item.target,
-                'median_depth': item.median_depth,
-                'percent_depth_pass': item.percent_depth_pass,
-            })
+                gene_qc.append({
+                    'status': 'ok' if item.percent_depth_pass>0.9 else 'fail',
+                    'gene': item.target,
+                    'median_depth': item.median_depth,
+                    'percent_depth_pass': item.percent_depth_pass,
+                })
 
         dr_variant_table = sorted(dr_variant_table,key=lambda x: conf['drugs'].index(x['drug']))
 
