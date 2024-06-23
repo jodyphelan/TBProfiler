@@ -44,7 +44,6 @@ def merge_cells(filename: str) -> None:
             _merge_cells(tab, rows_with_val, column+1)
     
     for tab in doc.tables:
-        logging.info(f"Merging cells in table {tab}")
         tab.c = cache_cells(tab)
         values_in_next_column = set([tab.rows[r].cells[0].text for r in range(1, len(tab.rows))])
         for val in values_in_next_column:
