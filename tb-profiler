@@ -2,6 +2,7 @@
 import sys
 import pathogenprofiler as pp
 from pathogenprofiler import TempFilePrefix
+import pathogenprofiler.variant_calling as vc
 import argparse
 from rich_argparse import ArgumentDefaultsRichHelpFormatter
 import json
@@ -348,7 +349,7 @@ def int_2_or_more(arg):
 
 
 
-variant_callers = [cls.__software__ for cls in pp.variant_calling.VariantCaller.__subclasses__()]
+variant_callers = [cls.__software__ for cls in vc.VariantCaller.__subclasses__()]
 
 
 
