@@ -348,7 +348,7 @@ def int_2_or_more(arg):
 
 
 
-variant_callers = subclasses = [cls.__software__ for cls in pp.variant_calling.VariantCaller.__subclasses__()]
+variant_callers = [cls.__software__ for cls in pp.variant_calling.VariantCaller.__subclasses__()]
 
 
 
