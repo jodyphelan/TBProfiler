@@ -346,6 +346,13 @@ def int_2_or_more(arg):
     return i
 
 
+
+
+variant_callers = subclasses = [cls.__software__ for cls in pp.variant_calling.VariantCaller.__subclasses__()]
+
+
+
+
 parser = argparse.ArgumentParser(description='tb-profiler: a tool to predict drug resistance and infer lineages',formatter_class=ArgumentDefaultsRichHelpFormatter,add_help=False)
 parser.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
@@ -387,7 +394,7 @@ filtering.add_argument('--sv_len','--sv-len',default="100000,50000",type=str,hel
 
 algorithm=parser_sub.add_argument_group("Algorithm options")
 algorithm.add_argument('--mapper',default="bwa", choices=["bwa","minimap2","bowtie2","bwa-mem2"],help="Mapping tool to use. If you are using nanopore or pacbio data it will default to minimap2",type=str)
-algorithm.add_argument('--caller',default="freebayes", choices=["bcftools","gatk","freebayes","pilon","lofreq"],help="Variant calling tool to use.",type=str)
+algorithm.add_argument('--caller',default="freebayes", choices=variant_callers,help="Variant calling tool to use.",type=str)
 algorithm.add_argument('--calling_params','--calling-params',type=str,help='Override default parameters for variant calling')
 algorithm.add_argument('--kmer_counter','--kmer-counter',default='kmc',choices=["kmc","dsk"],type=str,help="Kmer counter")
 algorithm.add_argument('--coverage_tool','--coverage-tool',default='samtools',choices=["samtools","bedtools"],type=str,help="Kmer counter")
