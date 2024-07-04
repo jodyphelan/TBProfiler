@@ -595,6 +595,8 @@ parser_sub.set_defaults(func=main_version)
 
 args = parser.parse_args()
 
+if args.debug:
+    args.logging = "DEBUG"
 logging.basicConfig(
     level=args.logging, format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
 )
