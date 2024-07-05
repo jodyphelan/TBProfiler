@@ -4,6 +4,7 @@ from pathogenprofiler import object_list2text, dict_list2text
 from pathogenprofiler.models import BamQC, FastaQC, VcfQC, Variant, DrVariant, BarcodePosition
 from datetime import datetime
 
+__model_schema_version__ = '1.0'
 
 
 class Lineage(BaseModel):
@@ -59,6 +60,7 @@ class Result(BaseModel):
     db_version : dict
         TBProfiler database version
     """
+    schema_version: str = __model_schema_version__
     id: str
     timestamp: datetime = Field(default_factory=datetime.now)
     pipeline: Pipeline
