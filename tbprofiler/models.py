@@ -114,7 +114,7 @@ class ProfileResult(Result):
 
     def get_missing_pos(self,sep="\t"):
         if isinstance(self.qc, (BamQC,)):
-            text = dict_list2text(self.qc.missing_positions,mappings={"pos":"Genome Position","annotation.gene":"Gene","annotation.variant":"Variant", "depth":"Depth"},sep=sep)
+            text = object_list2text(self.qc.missing_positions,mappings={"pos":"Genome Position","annotation.gene":"Gene","annotation.variant":"Variant", "depth":"Depth"},sep=sep)
         else:
             text = "Not available for input data type"
         return text
