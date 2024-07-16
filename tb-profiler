@@ -396,7 +396,13 @@ filtering.add_argument('--sv_len','--sv-len',default="100000,50000",type=str,hel
 algorithm=parser_sub.add_argument_group("Algorithm options")
 algorithm.add_argument('--mapper',default="bwa", choices=["bwa","minimap2","bowtie2","bwa-mem2"],help="Mapping tool to use. If you are using nanopore or pacbio data it will default to minimap2",type=str)
 algorithm.add_argument('--caller',default="freebayes", choices=variant_callers,help="Variant calling tool to use.",type=str)
+
 algorithm.add_argument('--calling_params','--calling-params',type=str,help='Override default parameters for variant calling')
+for cls in vc.VariantCaller.__subclasses__():
+    if hasattr(cls,"__cli_params__"):
+        for a in cls.__cli_params__:
+            algorithm.add_argument(*a['args'],**a['kwargs'])
+
 algorithm.add_argument('--kmer_counter','--kmer-counter',default='kmc',choices=["kmc","dsk"],type=str,help="Kmer counter")
 algorithm.add_argument('--coverage_tool','--coverage-tool',default='samtools',choices=["samtools","bedtools"],type=str,help="Kmer counter")
 algorithm.add_argument('--suspect',action="store_true",help="Use the suspect suite of tools to add ML predictions")
@@ -425,6 +431,7 @@ other.add_argument('--temp',help="Temp firectory to process all files",type=str,
 other.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 
 parser_sub.set_defaults(func=main_profile)
+
 
 
 parser_sub = subparsers.add_parser('lineage', help='Profile only lineage', formatter_class=ArgumentDefaultsRichHelpFormatter)
