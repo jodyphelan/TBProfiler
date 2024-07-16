@@ -32,6 +32,7 @@ class VariantDB:
             self.samples2variants[result.id].add(key)
             d = var.model_dump()
             d['sample'] = result.id
+            d['drugs'] = ";".join([x['drug'] for x in var.drugs]) if hasattr(var,'drugs')>0 else "-"
             self.variant_rows.append(d)
     def get_frequency(self,key: Tuple[str,str,str]) -> float:
         return self.variant_frequencies.get(key,0.0)
@@ -39,7 +40,7 @@ class VariantDB:
         return list(self.variant2samples.keys())
     def write_dump(self,filename: str) -> None:
         with open(filename,"w") as O:
-            fields = ["sample","gene_name","change","freq","type"]
+            fields = ["sample","gene_name","change","freq","type","drugs"]
             writer = csv.DictWriter(O,fieldnames=fields)
             writer.writeheader()
             for row in self.variant_rows:
@@ -168,8 +169,32 @@ def generate_itol_config(rows: List[dict], drugs: list, prefix: str) -> None:
     prefix : str
         Prefix for output files
     """
-    all_lineage_cols = {"lineage1":"#104577","lineage2":"#ab2323","lineage3":"#18a68c","lineage4":"#f68e51","lineage5":"#7cb5d2","lineage6":"#fde05e","lineage7":"#bc94b7","lineage8":"#ccc9e7","lineage9":"#bd9391","Animal strains":"#f8e0c8","Other":"#000000","Not called": "#ffffff"}
-    lineage_aggregation = {"": "Not called","M.caprae":"Animal strains","M.bovis":"Animal strains","M.orygis":"Animal strains"}
+    all_lineage_cols = {
+        "lineage1":"#104577",
+        "lineage2":"#ab2323",
+        "lineage3":"#18a68c",
+        "lineage4":"#f68e51",
+        "lineage5":"#7cb5d2",
+        "lineage6":"#fde05e",
+        "lineage7":"#bc94b7",
+        "lineage8":"#ccc9e7",
+        "lineage9":"#bd9391",
+        "Animal strains":"#f8e0c8",
+        "Other":"#000000",
+        "Not called": "#ffffff"
+    }
+
+    lineage_aggregation = {
+        "": "Not called",
+        "La1": "Animal strains",
+        "La2": "Animal strains",
+        "La3": "Animal strains",
+        "M.canetti":"Other",
+        "M.caprae":"Animal strains",
+        "M.bovis":"Animal strains",
+        "M.orygis":"Animal strains"
+    }
+
     lineage_dict = {r['sample']:lineage_aggregation.get(r["main_lineage"],r["main_lineage"]) if ";" not in r["main_lineage"] else "Other" for r in rows}
     lineages_present = set(lineage_dict.values())
     lineage_cols = {key:val for key,val in all_lineage_cols.items() if key in lineages_present}

@@ -4,6 +4,7 @@ from pathogenprofiler import object_list2text, dict_list2text
 from pathogenprofiler.models import BamQC, FastaQC, VcfQC, Variant, DrVariant, BarcodePosition
 from datetime import datetime
 
+__model_schema_version__ = '1.0.0'
 
 
 class Lineage(BaseModel):
@@ -59,6 +60,7 @@ class Result(BaseModel):
     db_version : dict
         TBProfiler database version
     """
+    schema_version: str = __model_schema_version__
     id: str
     timestamp: datetime = Field(default_factory=datetime.now)
     pipeline: Pipeline
@@ -79,9 +81,9 @@ class Spacer(BaseModel):
 class Spoligotype(BaseModel):
     binary: str
     octal: str
-    family: str
-    SIT: str
-    countries: str
+    family: Optional[str]
+    SIT: Optional[str]
+    countries: Optional[str]
     spacers: List[Spacer]
 
     def __repr__(self) -> str:
@@ -114,7 +116,7 @@ class ProfileResult(Result):
 
     def get_missing_pos(self,sep="\t"):
         if isinstance(self.qc, (BamQC,)):
-            text = dict_list2text(self.qc.missing_positions,mappings={"pos":"Genome Position","annotation.gene":"Gene","annotation.variant":"Variant", "depth":"Depth"},sep=sep)
+            text = object_list2text(self.qc.missing_positions,mappings={"pos":"Genome Position","annotation.gene":"Gene","annotation.variant":"Variant", "depth":"Depth"},sep=sep)
         else:
             text = "Not available for input data type"
         return text
