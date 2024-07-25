@@ -7,4 +7,4 @@ from .output import *
 from .snp_dists import *
 from .phylo import *
 
-__version__ = "6.3.0"
+__version__ = "6.3.1"
