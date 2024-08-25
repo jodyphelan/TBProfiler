@@ -304,7 +304,7 @@ def main_batch(args):
 
 
     for row in csv.DictReader(open(args.csv)):
-        line = f"tb-profiler profile -p {row['id']} --threads {args.threads_per_job}"
+        line = f"tb-profiler profile -p {row['id']} --temp {args.temp} --dir {args.dir} --threads {args.threads_per_job}"
         if "bam" in row:
             line += f" -a {row['bam']}" 
         elif "read1" in row:
