@@ -270,7 +270,7 @@ def clean_up_duplicate_annotations(variants: Variant) -> None:
     """
     confidence_levels = ['Assoc w R','Assoc w R - Interim','Uncertain significance','Not assoc w R - Interim','Not assoc w R']
     for var in variants:
-        keys = set([(ann['type'],ann['drug']) for ann in var.annotation])
+        keys = sorted(list(set([(ann['type'],ann['drug']) for ann in var.annotation])))
         new_annotations = []
         for key in keys:
             confidence_anns = []
