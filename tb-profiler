@@ -115,10 +115,12 @@ def main_profile(args):
     tbp.process_tb_profiler_args(args)
 
     variants_profile = pp.run_profiler(args)
+
     if 'rules' in args.conf:
         rules_applied = pp.apply_rules(args.conf['rules'], variants_profile)
     else:
         rules_applied = []
+
 
     tbp.clean_up_duplicate_annotations(variants_profile)
     # Convert variant objects to DrVariant if they cause resistance
