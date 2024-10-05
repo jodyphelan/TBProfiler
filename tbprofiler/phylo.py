@@ -92,6 +92,9 @@ def prepare_sample_consensus(sample: str,input_vcf: str,args: argparse.Namespace
     if args.bam:
         generate_low_dp_mask(f"{args.bam}",args.conf['ref'],mask_bed)
         mask_cmd = f"-m {mask_bed} -M N"
+    elif args.low_dp_mask:
+        mask_bed = args.low_dp_mask
+        mask_cmd = f"-m {mask_bed} -M N"
     elif args.vcf:
         generate_low_dp_mask_vcf(args.vcf,mask_bed)
         mask_cmd = f"-m {mask_bed} -M N"
