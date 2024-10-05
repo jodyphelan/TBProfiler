@@ -116,8 +116,14 @@ def main_profile(args):
 
     variants_profile = pp.run_profiler(args)
 
+    notes = set()
     if 'rules' in args.conf:
         rules_applied = pp.apply_rules(args.conf['rules'], variants_profile)
+        for var in variants_profile:
+            for ann in var.annotation:
+                if 'note' in ann:
+                    notes.add(ann['note'])
+
     else:
         rules_applied = []
 
@@ -144,9 +150,7 @@ def main_profile(args):
     else:
         qc = pp.run_vcf_qc(args)
 
-    notes = []
-    for rule in rules_applied:
-        notes.append(f"Rule applied: {rule}")
+
 
     result = tbp.create_resistance_result(
         args = args,
