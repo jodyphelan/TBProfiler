@@ -21,6 +21,7 @@ from rich.logging import RichHandler
 import importlib
 import pkgutil
 
+
 discovered_plugins = {
     name: importlib.import_module(name)
     for finder, name, ispkg
@@ -28,10 +29,7 @@ discovered_plugins = {
     if name.startswith('tbprofiler_')
 }
 
-docx_plugins = {
-    plugin.docx.__docx_template_name__:plugin for plugin in discovered_plugins.values()
-    if hasattr(plugin, 'docx')
-}
+
 
 
 __softwarename__ = 'tbprofiler'
@@ -358,6 +356,7 @@ def int_2_or_more(arg):
 
 
 variant_callers = [cls.__software__ for cls in vc.VariantCaller.__subclasses__()]
+docx_plugins = [cls.__template_name__ for cls in tbp.docx.DocxResultTemplate.__subclasses__()]
 
 
 
@@ -388,7 +387,7 @@ output.add_argument('--txt',action="store_true",help="Add text output")
 output.add_argument('--text_template','--text-template',type=str,help='Jinja2 formatted template for output')
 output.add_argument('--docx',action="store_true",help="Add docx output")
 output.add_argument('--docx_template','--docx-template',help="Supply custom template for --docx output")
-output.add_argument('--docx_plugin','--docx-plugin',choices=list(docx_plugins),help="Use a plugin template for --docx output")
+output.add_argument('--docx_plugin','--docx-plugin',choices=docx_plugins,help="Use a plugin template for --docx output")
 output.add_argument('--add_columns','--add-columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and csv results")
 output.add_argument('--add_mutation_metadata','--add-mutation-metadata',action="store_true",help=argparse.SUPPRESS)
 output.add_argument('--dir','-d',default=".",help='Storage directory')

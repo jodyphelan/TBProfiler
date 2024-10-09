@@ -1,5 +1,5 @@
 from .text import write_text
-from .docx import write_docx
+from .docx import write_docx, DocxResultTemplate
 import logging
 from .models import ProfileResult
 
@@ -23,5 +23,6 @@ def write_outputs(args,result: ProfileResult,template_file: str = None):
     if args.docx:
         logging.info(f"Writing docx file: {docx_output}")
         if args.docx_plugin:
-            args.docx_plugin = args.plugins[args.docx_plugin]
+            available_plugins = {cls.__template_name__:cls for cls in DocxResultTemplate.__subclasses__()}
+            args.docx_plugin = available_plugins[args.docx_plugin]
         write_docx(result,args.conf,docx_output,template_file = args.docx_template, plugin = args.docx_plugin)

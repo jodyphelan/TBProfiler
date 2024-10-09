@@ -6,6 +6,18 @@ from docx import Document
 from typing import List
 from copy import deepcopy
 import logging
+from abc import abstractmethod
+
+class DocxResultTemplate:
+    @abstractmethod
+    def write_output(self, result: ProfileResult, conf: dict, outfile: str):
+        """Write the output to the Word document"""
+        pass
+    
+    @abstractmethod
+    def get_template():
+        """Return the path to the customised Word document template"""
+        pass
 
 def sanitize(d):
     d = d.replace("-","_")
@@ -60,7 +72,8 @@ def write_docx(result: ProfileResult,conf,outfile,template_file = None, plugin =
         template_file = sys.prefix+"/share/tbprofiler/default_template.docx"
     
     if plugin:
-        variables = plugin.docx.create_output(result, conf)
+        plugin_cls = plugin()
+        variables = plugin_cls.write_output(result, conf,outfile)
 
     else:
 
