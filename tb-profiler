@@ -116,7 +116,7 @@ def main_profile(args):
 
     notes = set()
     if 'rules' in args.conf:
-        rules_applied = pp.apply_rules(args.conf['rules'], variants_profile)
+        rules_applied = pp.apply_rules(args.conf['rules'], variants_profile, just_make_note=True if args.implement_rules==False else False)
         for var in variants_profile:
             for ann in var.annotation:
                 if 'note' in ann:
@@ -125,7 +125,7 @@ def main_profile(args):
     else:
         rules_applied = []
 
-
+    logging.debug(rules_applied)
     tbp.clean_up_duplicate_annotations(variants_profile)
     # Convert variant objects to DrVariant if they cause resistance
     for var in variants_profile:
@@ -147,7 +147,6 @@ def main_profile(args):
         qc = pp.run_fasta_qc(args)
     else:
         qc = pp.run_vcf_qc(args)
-
 
 
     result = tbp.create_resistance_result(
@@ -427,6 +426,7 @@ algorithm.add_argument('--no_lineage','--no-lineage',action="store_true",help=ar
 algorithm.add_argument('--add_variant_annotations','--add-variant-annotations',action="store_true",help=argparse.SUPPRESS)
 algorithm.add_argument('--threads','-t',default=1,help='Threads to use',type=int)
 algorithm.add_argument('--ram',default=2,help='Maximum memory to use',type=int)
+algorithm.add_argument('--implement_rules','--implement-rules',action="store_true",help='Use rules implemented in the resistance library (by default only a note will be made)')
 
 other=parser_sub.add_argument_group("Other options")
 other.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
