@@ -1,7 +1,7 @@
 import sys
 from docxtpl import DocxTemplate
 from collections import defaultdict
-from .models import ProfileResult
+from .models import ProfileResult, VcfQC
 from docx import Document
 from typing import List
 from copy import deepcopy
@@ -44,11 +44,16 @@ def merge_cells(filename: str) -> None:
             return 
         c1 = tab.cell(rows[0], column)
         c2 = tab.cell(rows[-1], column)
-        
+        c1_font_size = c1.paragraphs[0].runs[0].font.size
+
         for r in rows[1:]:
-            tab.cell(r, column).text = ""
+            tab.cell(r, column).text = ''
+     
+
         cm = c1.merge(c2)
 
+
+            
         values_in_next_column = set([tab.rows[r].cells[column+1].text for r in rows])
         for val in values_in_next_column:
             rows_with_val = [r for r in rows if tab.c[r][column+1].text == val]
@@ -89,8 +94,12 @@ class DefaultTemplate(DocxResultTemplate):
         
         tier1_genes.add('mmpL5')
 
-        qc_check = {d.target:d.percent_depth_pass for d in result.qc.target_qc}
-        
+        if isinstance(result.qc, VcfQC):
+            qc_check = {d:100 for d in id2name.values()}
+            result.notes.append("This report was generated from a VCF where gene coverage is not available. It is assumed all genes are covered well sufficiently.")
+        else:
+            qc_check = {d.target:d.percent_depth_pass for d in result.qc.target_qc}
+
 
         gene2drugs = get_gene2drugs(conf['bed'])
         table = [{'name':d, 'genes':[]} for d in conf['drugs']]
@@ -201,7 +210,7 @@ class DefaultTemplate(DocxResultTemplate):
                     'gene':var.gene_name,
                     'qc':qc_check[var.gene_name],
                     'change':var.change,
-                    'confidence':d.get(drug_name,'Uncertain significance'),
+                    'confidence':d.get('confidence','Uncertain significance'),
                     'freq':int(var.freq*100),
                     'depth':var.depth,
                     'comment':other_comments.get(d.get('comment',''),'')
