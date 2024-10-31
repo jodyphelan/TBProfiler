@@ -8,4 +8,4 @@ from .snp_dists import *
 from .phylo import *
 from .docx import *
 
-__version__ = "6.3.1"
+__version__ = "6.4.0"
