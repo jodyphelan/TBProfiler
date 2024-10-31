@@ -21,6 +21,7 @@ from rich.logging import RichHandler
 import importlib
 import pkgutil
 
+
 discovered_plugins = {
     name: importlib.import_module(name)
     for finder, name, ispkg
@@ -28,10 +29,7 @@ discovered_plugins = {
     if name.startswith('tbprofiler_')
 }
 
-docx_plugins = {
-    plugin.docx.__docx_template_name__:plugin for plugin in discovered_plugins.values()
-    if hasattr(plugin, 'docx')
-}
+
 
 
 __softwarename__ = 'tbprofiler'
@@ -115,11 +113,19 @@ def main_profile(args):
     tbp.process_tb_profiler_args(args)
 
     variants_profile = pp.run_profiler(args)
+
+    notes = set()
     if 'rules' in args.conf:
-        rules_applied = pp.apply_rules(args.conf['rules'], variants_profile)
+        rules_applied = pp.apply_rules(args.conf['rules'], variants_profile, just_make_note=True if args.implement_rules==False else False)
+        for var in variants_profile:
+            for ann in var.annotation:
+                if 'note' in ann:
+                    notes.add(ann['note'])
+
     else:
         rules_applied = []
 
+    logging.debug(rules_applied)
     tbp.clean_up_duplicate_annotations(variants_profile)
     # Convert variant objects to DrVariant if they cause resistance
     for var in variants_profile:
@@ -142,9 +148,6 @@ def main_profile(args):
     else:
         qc = pp.run_vcf_qc(args)
 
-    notes = []
-    for rule in rules_applied:
-        notes.append(f"Rule applied: {rule}")
 
     result = tbp.create_resistance_result(
         args = args,
@@ -192,6 +195,8 @@ def main_profile(args):
         "%s.bam.bai" % args.files_prefix: "%s/bam/%s.bam.bai" % (args.dir,args.prefix),
         "%s.nwk" % args.files_prefix: "%s/results/%s.nwk" % (args.dir,args.prefix),
     }
+    if args.save_low_dp_mask:
+        result_files["%s.%s.mask.bed" % (args.files_prefix,args.prefix)] = "%s/results/%s.mask.bed" % (args.dir,args.prefix)
     for file,target in result_files.items():
         if os.path.isfile(file):
             shutil.move(file,target)
@@ -350,6 +355,7 @@ def int_2_or_more(arg):
 
 
 variant_callers = [cls.__software__ for cls in vc.VariantCaller.__subclasses__()]
+docx_plugins = [cls.__template_name__ for cls in tbp.docx.DocxResultTemplate.__subclasses__()]
 
 
 
@@ -380,7 +386,7 @@ output.add_argument('--txt',action="store_true",help="Add text output")
 output.add_argument('--text_template','--text-template',type=str,help='Jinja2 formatted template for output')
 output.add_argument('--docx',action="store_true",help="Add docx output")
 output.add_argument('--docx_template','--docx-template',help="Supply custom template for --docx output")
-output.add_argument('--docx_plugin','--docx-plugin',choices=list(docx_plugins),help="Use a plugin template for --docx output")
+output.add_argument('--docx_plugin','--docx-plugin',choices=docx_plugins,help="Use a plugin template for --docx output")
 output.add_argument('--add_columns','--add-columns',default=None,type=str,help="Add additional columns found in the mutation database to the text and csv results")
 output.add_argument('--add_mutation_metadata','--add-mutation-metadata',action="store_true",help=argparse.SUPPRESS)
 output.add_argument('--dir','-d',default=".",help='Storage directory')
@@ -420,12 +426,15 @@ algorithm.add_argument('--no_lineage','--no-lineage',action="store_true",help=ar
 algorithm.add_argument('--add_variant_annotations','--add-variant-annotations',action="store_true",help=argparse.SUPPRESS)
 algorithm.add_argument('--threads','-t',default=1,help='Threads to use',type=int)
 algorithm.add_argument('--ram',default=2,help='Maximum memory to use',type=int)
+algorithm.add_argument('--implement_rules','--implement-rules',action="store_true",help='Use rules implemented in the resistance library (by default only a note will be made)')
 
 other=parser_sub.add_argument_group("Other options")
 other.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 other.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
 other.add_argument('--delly_vcf','--delly-vcf',help=argparse.SUPPRESS)
 other.add_argument('--supplementary_bam','--supplementary-bam',help=argparse.SUPPRESS)
+other.add_argument('--low_dp_mask','--low-dp-mask',help=argparse.SUPPRESS)
+other.add_argument('--save_low_dp_mask','--save-low-dp-mask',action='store_true',help=argparse.SUPPRESS)
 other.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
 other.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 other.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)

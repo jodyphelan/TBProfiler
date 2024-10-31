@@ -83,7 +83,7 @@ def prepare_usher(treefile: str,vcf_file: str) -> None:
 def prepare_sample_consensus(sample: str,input_vcf: str,args: argparse.Namespace) -> str:
     s = sample
     tmp_vcf = f"{args.files_prefix}.{s}.vcf.gz"
-    run_cmd(f"bcftools norm -m - {input_vcf} | bcftools view -T ^{args.conf['bedmask']} | bcftools filter --SnpGap 50 | bcftools view -v snps | annotate_maaf.py | bcftools filter -S . -e 'MAAF<0.7' |bcftools filter -S . -e 'FMT/DP<{args.conf['variant_filters']['depth_soft']}' | rename_vcf_sample.py --sample-name {s} | bcftools view -v snps -Oz -o {tmp_vcf}")
+    run_cmd(f"bcftools norm -m - {input_vcf} | bcftools view -T ^{args.conf['bedmask']} | bcftools view -v snps | annotate_maaf.py | bcftools filter -S . -e 'MAAF<0.7' |bcftools filter -S . -e 'FMT/DP<{args.conf['variant_filters']['depth_soft']}' | bcftools filter --SnpGap 50 |rename_vcf_sample.py --sample-name {s} | bcftools view -v snps -Oz -o {tmp_vcf}")
     run_cmd(f"bcftools index {tmp_vcf}")
 
     mask_bed = f"{args.files_prefix}.{s}.mask.bed"
@@ -91,6 +91,9 @@ def prepare_sample_consensus(sample: str,input_vcf: str,args: argparse.Namespace
         args.bam = args.supplementary_bam
     if args.bam:
         generate_low_dp_mask(f"{args.bam}",args.conf['ref'],mask_bed)
+        mask_cmd = f"-m {mask_bed} -M N"
+    elif args.low_dp_mask:
+        mask_bed = args.low_dp_mask
         mask_cmd = f"-m {mask_bed} -M N"
     elif args.vcf:
         generate_low_dp_mask_vcf(args.vcf,mask_bed)

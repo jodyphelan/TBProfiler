@@ -1,2 +1,2 @@
-Variant(gene_name=mmpL5,type=lof) inactivates_resistance Variant(gene_name=mmpR5)
-Variant(gene_name=eis,type=lof) inactivates_resistance Variant(gene_name=eis)
+Variant(gene_name=mmpL5,type=lof) inactivates_resistance Variant(gene_name=mmpR5) Loss of function variant found in mmpL5 which can abrogate the effect of genetically linked AwR and AwRI mmpR5 (Rv0678) resistance mutations.
+Variant(gene_name=eis,type=lof) inactivates_resistance Variant(gene_name=eis) Loss of function variant found in eis which can abrogate the effect of genetically linked AwR and AwRI eis resistance mutations.
