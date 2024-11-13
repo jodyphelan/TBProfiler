@@ -104,6 +104,9 @@ def create_output_directories(args,directories=["bam","vcf","results"]):
             os.mkdir(args.dir+"/"+d)
 
 def main_profile(args):
+    for plugin in tbp.ProfilePlugin.__subclasses__():
+        plugin().pre_checks(args)
+        
     pp.process_args(args)
     create_output_directories(args)
 
@@ -208,6 +211,9 @@ def main_profile(args):
     
     
     pp.logging.info("[green]Profiling finished sucessfully![/]",extra={"markup": True})
+
+    for plugin in tbp.ProfilePlugin.__subclasses__():
+        plugin().post_run(args)
 
 def main_update_tbdb(args):
 

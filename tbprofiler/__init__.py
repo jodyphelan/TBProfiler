@@ -15,7 +15,18 @@ class ProfilePlugin:
     """
     A class to define a plugin for tbprofiler
     """
+    
+    @abstractmethod
+    def pre_check(self):
+        """Generic pre-check method"""
+        pass
+
     @abstractmethod
     def run(self):
         """Generic run method"""
+        pass
+
+    @abstractmethod
+    def post_check(self):
+        """Generic post-check method"""
         pass
