@@ -17,7 +17,7 @@ class ProfilePlugin:
     """
     
     @abstractmethod
-    def pre_check(self,args):
+    def pre_process(self,args):
         """Generic pre-check method"""
         pass
 
@@ -27,6 +27,6 @@ class ProfilePlugin:
         pass
 
     @abstractmethod
-    def post_check(self,args):
+    def post_process(self,args):
         """Generic post-check method"""
         pass
