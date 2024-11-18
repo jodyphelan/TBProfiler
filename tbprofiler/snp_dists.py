@@ -8,7 +8,7 @@ from copy import copy
 import filelock
 import sqlite3
 from tqdm import tqdm
-from .phylo import get_consensus_vcf
+from .consensus import get_consensus_vcf
 import argparse
 from .models import ProfileResult, LinkedSample
 from typing import List, Tuple

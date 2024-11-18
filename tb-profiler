@@ -101,7 +101,20 @@ def create_output_directories(args,directories=["bam","vcf","results"]):
         if pp.nofolder(args.dir+"/"+d):
             os.mkdir(args.dir+"/"+d)
 
+def plugin_decorator(func):
+    def wrapper(args):
+        for plugin in tbp.ProfilePlugin.__subclasses__():
+            logging.debug(f"Running pre process for {plugin}")
+            plugin().pre_process(args)
+        func(args)
+        for plugin in tbp.ProfilePlugin.__subclasses__():
+            logging.debug(f"Running post process for {plugin}")
+            plugin().post_process(args)
+    return wrapper
+
+@plugin_decorator
 def main_profile(args):
+        
     pp.process_args(args)
     create_output_directories(args)
 
@@ -163,8 +176,8 @@ def main_profile(args):
         tbp.run_snp_dists(args,result)
         tbp.update_neighbour_snp_dist_output(args,result)
 
-    if args.update_phylo:
-        tbp.phylo.usher_add_sample(args)
+    for plugin in tbp.ProfilePlugin.__subclasses__():
+        plugin().run(args)
 
 
     ### Create folders for results if they don't exist ###
@@ -413,7 +426,7 @@ algorithm.add_argument('--kmer_counter','--kmer-counter',default='kmc',choices=[
 algorithm.add_argument('--coverage_tool','--coverage-tool',default='samtools',choices=["samtools","bedtools"],type=str,help="Kmer counter")
 algorithm.add_argument('--suspect',action="store_true",help="Use the suspect suite of tools to add ML predictions")
 algorithm.add_argument('--spoligotype',action="store_true",help="Perform in-silico spoligotyping")
-algorithm.add_argument('--update_phylo','--update-phylo',action="store_true",help="Update phylogeny using usher (experimental feature)")
+# algorithm.add_argument('--update_phylo','--update-phylo',action="store_true",help="Update phylogeny using usher (experimental feature)")
 algorithm.add_argument('--call_whole_genome','--call-whole-genome',action="store_true",help="Call variant across the whole genome")
 algorithm.add_argument('--snp_dist','--snp-dist',type=int,help="Store variant set and get all samples with snp distance less than this cutoff (experimental feature)")
 algorithm.add_argument('--snp_diff_db','--snp-diff_db',type=str,help=argparse.SUPPRESS)
@@ -427,6 +440,12 @@ algorithm.add_argument('--add_variant_annotations','--add-variant-annotations',a
 algorithm.add_argument('--threads','-t',default=1,help='Threads to use',type=int)
 algorithm.add_argument('--ram',default=2,help='Maximum memory to use',type=int)
 algorithm.add_argument('--implement_rules','--implement-rules',action="store_true",help='Use rules implemented in the resistance library (by default only a note will be made)')
+
+plugins=parser_sub.add_argument_group("Plugin options")
+for cls in tbp.ProfilePlugin.__subclasses__():
+    if hasattr(cls,"__cli_params__"):
+        for a in cls.__cli_params__:
+            plugins.add_argument(*a['args'],**a['kwargs'])
 
 other=parser_sub.add_argument_group("Other options")
 other.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
