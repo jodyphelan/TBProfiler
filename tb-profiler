@@ -101,6 +101,18 @@ def create_output_directories(args,directories=["bam","vcf","results"]):
         if pp.nofolder(args.dir+"/"+d):
             os.mkdir(args.dir+"/"+d)
 
+def plugin_decorator(func):
+    def wrapper(args):
+        for plugin in tbp.ProfilePlugin.__subclasses__():
+            logging.debug(f"Running pre process for {plugin}")
+            plugin().pre_process(args)
+        func(args)
+        for plugin in tbp.ProfilePlugin.__subclasses__():
+            logging.debug(f"Running post process for {plugin}")
+            plugin().post_process(args)
+    return wrapper
+
+@plugin_decorator
 def main_profile(args):
         
     pp.process_args(args)
