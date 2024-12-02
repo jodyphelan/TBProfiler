@@ -8,7 +8,7 @@ from .snp_dists import *
 from .docx import *
 from abc import ABC, abstractmethod
 
-__version__ = "6.4.1"
+__version__ = "6.5.0"
 
 
 class ProfilePlugin:
