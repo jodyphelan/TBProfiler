@@ -12,6 +12,7 @@ from .consensus import get_consensus_vcf
 import argparse
 from .models import ProfileResult, LinkedSample
 from typing import List, Tuple
+from datetime import datetime
 
 def extract_variant_set(vcf_file: str) -> Tuple[set,set]:
     ref_diffs = set()
@@ -74,6 +75,7 @@ class DB:
         self.missing = missing
     def search(self,result: ProfileResult, vcf_file: str, cutoff: int = 20) -> List[LinkedSample]:
         logging.info("Searching for close samples in %s" % self.filename)
+        start_timestamp = datetime.now()
         self.c.execute("SELECT sample, diffs, missing FROM variants WHERE lineage=?",(result.sub_lineage,))
         self.diffs,self.missing = extract_variant_set(vcf_file)
         sample_dists = []
@@ -89,6 +91,8 @@ class DB:
                         positions = list(dist)
                     )
                 )
+        end_timestamp = datetime.now()
+        logging.info("Finished searching for close samples in %s. Took %s" % (self.filename,end_timestamp-start_timestamp))
         logging.info("Found %s close samples" % len(sample_dists))
         return sample_dists
 
