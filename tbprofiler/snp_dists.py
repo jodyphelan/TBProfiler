@@ -92,8 +92,6 @@ class DB:
                     )
                 )
         end_timestamp = datetime.now()
-        if logging.getLevelName(logging.root.level)=="DEBUG":
-            open(f"{result.id}.snp_dists.log","a").write(f"{end_timestamp-start_timestamp}\n")
         logging.info("Finished searching for close samples in %s. Took %s" % (self.filename,end_timestamp-start_timestamp))
         logging.info("Found %s close samples" % len(sample_dists))
         return sample_dists
