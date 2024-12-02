@@ -71,6 +71,7 @@ def get_consensus_vcf(sample: str,input_vcf: str,args: argparse.Namespace) -> st
     run_cmd(f"cat {args.conf['ref']} {consensus_file}> {tmp_aln}")
     outfile = f"{args.files_prefix}.masked.vcf"
     run_cmd(f"fa2vcf.py {tmp_aln} {outfile}")
-    os.remove(tmp_aln)
+    run_cmd(f'rm {tmp_aln} {tmp_aln}.fai')
+    
     return outfile
 
