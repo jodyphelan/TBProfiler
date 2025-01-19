@@ -34,6 +34,7 @@ discovered_plugins = {
 
 
 __softwarename__ = 'tbprofiler'
+__default_db_dir__ = f'{sys.base_prefix}/share/{__softwarename__}'
 
 @atexit.register
 def cleanup():
@@ -117,6 +118,7 @@ def plugin_decorator(func):
         for plugin in tbp.ProfilePlugin.__subclasses__():
             logging.debug(f"Running pre process for {plugin}")
             plugin().pre_process(args)
+            print(plugin)
         func(args)
         for plugin in tbp.ProfilePlugin.__subclasses__():
             logging.debug(f"Running post process for {plugin}")
@@ -137,6 +139,8 @@ def main_profile(args):
     tbp.process_tb_profiler_args(args)
 
     variants_profile = pp.run_profiler(args)
+    for plugin in tbp.ProfilePlugin.__subclasses__():
+        plugin().process_variants(args,variants_profile)
 
     notes = set()
     if 'rules' in args.conf:
@@ -187,8 +191,7 @@ def main_profile(args):
         tbp.run_snp_dists(args,result)
         tbp.update_neighbour_snp_dist_output(args,result)
 
-    for plugin in tbp.ProfilePlugin.__subclasses__():
-        plugin().run(args)
+
 
 
     ### Create folders for results if they don't exist ###
@@ -291,9 +294,30 @@ def main_create_db(args):
         pp.create_db(args,extra_files=extra_files)
 
 def main_load_library(args):
-    variables_file = "%(prefix)s.variables.json" % vars(args)
     source_dir = os.path.realpath(args.dir)
-    pp.load_db(variables_file,args.software_name,source_dir=source_dir)
+    with TempFolder() as tmpfolder:
+        if args.prefix.endswith(".tar.gz") or args.prefix.endswith(".zip"):
+            if args.prefix.endswith(".tar.gz"):
+                import tarfile
+                with tarfile.open(args.prefix, 'r:gz') as tar_ref:
+                    tar_ref.extractall(tmpfolder)
+            elif args.prefix.endswith(".zip"):
+                import zipfile
+                with zipfile.ZipFile(args.prefix, 'r') as zip_ref:
+                    zip_ref.extractall(tmpfolder)
+
+            variables_files = glob.glob(f"{tmpfolder}/*.variables.json")
+            if len(variables_files)!=1:
+                pp.errorlog("Archive must contain only one variables file")
+                sys.exit()
+            variables_file = variables_files[0]
+            args.prefix = "{}/{}".format(tmpfolder,variables_file.split("/")[-1].replace(".variables.json",""))
+            source_dir = os.path.realpath(tmpfolder)
+
+    
+        
+        variables_file = "%(prefix)s.variables.json" % vars(args)
+        pp.load_db(variables_file,args.software_name,source_dir=source_dir)
     
 
 
@@ -459,12 +483,14 @@ for cls in tbp.ProfilePlugin.__subclasses__():
             plugins.add_argument(*a['args'],**a['kwargs'])
 
 other=parser_sub.add_argument_group("Other options")
+other.add_argument('--snpeff_config','--snpeff-config',type=str,help='Set the config filed used by snpEff')
 other.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 other.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
 other.add_argument('--delly_vcf','--delly-vcf',help=argparse.SUPPRESS)
 other.add_argument('--supplementary_bam','--supplementary-bam',help=argparse.SUPPRESS)
 other.add_argument('--low_dp_mask','--low-dp-mask',help=argparse.SUPPRESS)
 other.add_argument('--save_low_dp_mask','--save-low-dp-mask',action='store_true',help=argparse.SUPPRESS)
+other.add_argument('--db_dir',default=__default_db_dir__,help='Database directory')
 other.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
 other.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 other.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
@@ -488,6 +514,7 @@ parser_sub.add_argument('--threads','-t',default=1,help='Threads to use',type=in
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
+parser_sub.add_argument('--db_dir',default=__default_db_dir__,help='Database directory')
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
@@ -513,6 +540,7 @@ parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argp
 parser_sub.add_argument('--threads','-t',default=1,help='Threads to use',type=int)
 parser_sub.add_argument('--ram',default=2,type=int_2_or_more,help='Maximum memory to use in Gb')
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
+parser_sub.add_argument('--db_dir',default=__default_db_dir__,help='Database directory')
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
@@ -531,6 +559,7 @@ parser_sub.add_argument('--external_db','--external-db',type=str,help='Path to d
 parser_sub.add_argument('--dir','-d',nargs="+",default=["results"],help='Storage directory')
 parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
+parser_sub.add_argument('--db_dir',default=__default_db_dir__,help='Database directory')
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
@@ -551,6 +580,7 @@ parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--suspect',action="store_true",help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
+parser_sub.add_argument('--db_dir',default=__default_db_dir__,help='Database directory')
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
@@ -576,6 +606,7 @@ parser_sub.add_argument('--include_original_mutation','--include-original-mutati
 parser_sub.add_argument('--load',action="store_true", help='Automaticaly load database')
 parser_sub.add_argument('--no_overwrite','--no-overwrite',action="store_true", help="Don't load if existing database with prefix exists")
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+parser_sub.add_argument('--db_dir',default=__default_db_dir__,help='Database directory')
 parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
@@ -659,13 +690,13 @@ if hasattr(args, 'func'):
             args.dir = os.path.abspath(args.dir)
 
     if hasattr(args, 'db'):
-        if args.db=="tbdb" and not args.external_db and pp.nofile(sys.base_prefix+"/share/tbprofiler/tbdb.fasta"):
+        if args.db=="tbdb" and not args.external_db and pp.nofile(f"{args.db_dir}/tbdb.fasta"):
             logging.error("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix)
             raise SystemExit
         if args.external_db:
-            args.conf = pp.get_db(args.software_name,args.external_db)
+            args.conf = pp.get_db(args.db_dir,args.external_db)
         else:
-            args.conf = pp.get_db(args.software_name,args.db)
+            args.conf = pp.get_db(args.db_dir,args.db)
         if args.conf is None:
             logging.error("Can't find the database %s. Please run 'tb-profiler create_db' to create the database or specify another using the '--external_db' flag" % args.db)
             raise SystemExit
