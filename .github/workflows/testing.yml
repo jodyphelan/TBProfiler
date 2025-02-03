@@ -21,7 +21,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: conda-incubator/setup-miniconda@v3
       with:
-          miniforge-version: "*"
+          miniforge-version: latest
           channels: conda-forge,bioconda
           channel-priority: true
 
