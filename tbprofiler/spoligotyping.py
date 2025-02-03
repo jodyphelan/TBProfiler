@@ -5,6 +5,8 @@ from .models import Spoligotype
 import logging
 
 def spoligotype(args):
+    if args.bam:
+        args.bam_file = args.bam
     if "bam_file" in vars(args) and args.bam_file:
         result = bam2spoligotype(args.bam_file,args.files_prefix,args.conf,threads=args.threads,max_mem=args.ram)
     elif args.read1:
