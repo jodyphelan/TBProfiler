@@ -194,7 +194,7 @@ class DefaultTemplate(DocxResultTemplate):
                         
         fail_variants_unique = set([(f['gene'],f['change']) for f in fail_variants])
         if len(fail_variants)>0:
-            result.notes.append(f"{len(fail_variants_unique)} resistance variants failed QC checks. These have not been used to generate the mutation report. See QC failed variants table for details.")
+            result.notes.append(f"{len(fail_variants_unique)} resistance variant(s) failed QC checks. These have not been used to generate the mutation report. See QC failed variants table for details.")
 
 
         other_variants = []
@@ -224,7 +224,7 @@ class DefaultTemplate(DocxResultTemplate):
             'rows':rows,
             'comments': comments,
             'qc_check': qc_check,
-            'notes': ' '.join(result.notes),
+            'notes': '\n\n'.join(result.notes),
             'fail_variants': fail_variants,
             'fail_comments': fail_comments,
             'other_variants': other_variants,
