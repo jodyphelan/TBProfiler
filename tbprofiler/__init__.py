@@ -9,4 +9,4 @@ from .docx import *
 from .plugins import *
 from .rules import *
 
-__version__ = "6.5.0"
+__version__ = "6.6.0"
