@@ -118,7 +118,6 @@ def plugin_decorator(func):
         for plugin in tbp.ProfilePlugin.__subclasses__():
             logging.debug(f"Running pre process for {plugin}")
             plugin().pre_process(args)
-            print(plugin)
         func(args)
         for plugin in tbp.ProfilePlugin.__subclasses__():
             logging.debug(f"Running post process for {plugin}")
@@ -139,22 +138,13 @@ def main_profile(args):
     tbp.process_tb_profiler_args(args)
 
     variants_profile = pp.run_profiler(args)
+    args.notes = []
     for plugin in tbp.ProfilePlugin.__subclasses__():
         plugin().process_variants(args,variants_profile)
 
-    notes = set()
-    if 'rules' in args.conf:
-        rules_applied = pp.apply_rules(args.conf['rules'], variants_profile, just_make_note=True if args.implement_rules==False else False)
-        for var in variants_profile:
-            for ann in var.annotation:
-                if 'note' in ann:
-                    notes.add(ann['note'])
-
-    else:
-        rules_applied = []
-
-    logging.debug(rules_applied)
+    
     tbp.clean_up_duplicate_annotations(variants_profile)
+
     # Convert variant objects to DrVariant if they cause resistance
     for var in variants_profile:
         var.convert_to_dr_element()
@@ -179,12 +169,15 @@ def main_profile(args):
 
     result = tbp.create_resistance_result(
         args = args,
-        notes=notes,
+        notes=args.notes,
         lineage=barcode_result,
         spoligotype=spoligotype,
         variants=variants_profile,
         qc=qc,
     )
+
+    for plugin in tbp.ProfilePlugin.__subclasses__():
+        plugin().process_result(args,result)
 
 
     if args.snp_dist:
@@ -260,7 +253,7 @@ def main_update_tbdb(args):
 
     extra_args = " ".join(extra_args)
     with TempFilePrefix() as tmpfile:
-        pp.run_cmd(f"tb-profiler create_db --prefix {args.prefix} --csv mutations.csv --watchlist watchlist.csv {extra_args} --load")
+        pp.run_cmd(f"tb-profiler create_db --db_dir {args.db_dir} --prefix {args.prefix} --csv mutations.csv --watchlist watchlist.csv {extra_args} --load")
 
     os.chdir("../")
     pp.logging.info("Sucessfully updated TBDB")
@@ -490,7 +483,7 @@ other.add_argument('--delly_vcf','--delly-vcf',help=argparse.SUPPRESS)
 other.add_argument('--supplementary_bam','--supplementary-bam',help=argparse.SUPPRESS)
 other.add_argument('--low_dp_mask','--low-dp-mask',help=argparse.SUPPRESS)
 other.add_argument('--save_low_dp_mask','--save-low-dp-mask',action='store_true',help=argparse.SUPPRESS)
-other.add_argument('--db_dir',default=__default_db_dir__,help='Database directory')
+other.add_argument('--db_dir',type=os.path.abspath,default=__default_db_dir__,help='Database directory')
 other.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
 other.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 other.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
@@ -514,7 +507,7 @@ parser_sub.add_argument('--threads','-t',default=1,help='Threads to use',type=in
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
-parser_sub.add_argument('--db_dir',default=__default_db_dir__,help='Database directory')
+parser_sub.add_argument('--db_dir',type=os.path.abspath,default=__default_db_dir__,help='Database directory')
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
@@ -540,7 +533,7 @@ parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argp
 parser_sub.add_argument('--threads','-t',default=1,help='Threads to use',type=int)
 parser_sub.add_argument('--ram',default=2,type=int_2_or_more,help='Maximum memory to use in Gb')
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
-parser_sub.add_argument('--db_dir',default=__default_db_dir__,help='Database directory')
+parser_sub.add_argument('--db_dir',type=os.path.abspath,default=__default_db_dir__,help='Database directory')
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
@@ -559,7 +552,7 @@ parser_sub.add_argument('--external_db','--external-db',type=str,help='Path to d
 parser_sub.add_argument('--dir','-d',nargs="+",default=["results"],help='Storage directory')
 parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
-parser_sub.add_argument('--db_dir',default=__default_db_dir__,help='Database directory')
+parser_sub.add_argument('--db_dir',type=os.path.abspath,default=__default_db_dir__,help='Database directory')
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
@@ -580,7 +573,7 @@ parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--suspect',action="store_true",help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
-parser_sub.add_argument('--db_dir',default=__default_db_dir__,help='Database directory')
+parser_sub.add_argument('--db_dir',type=os.path.abspath,default=__default_db_dir__,help='Database directory')
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
@@ -606,7 +599,7 @@ parser_sub.add_argument('--include_original_mutation','--include-original-mutati
 parser_sub.add_argument('--load',action="store_true", help='Automaticaly load database')
 parser_sub.add_argument('--no_overwrite','--no-overwrite',action="store_true", help="Don't load if existing database with prefix exists")
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
-parser_sub.add_argument('--db_dir',default=__default_db_dir__,help='Database directory')
+parser_sub.add_argument('--db_dir',type=os.path.abspath,default=__default_db_dir__,help='Database directory')
 parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
@@ -619,6 +612,7 @@ parser_sub.add_argument('prefix',type=str,help='Prefix to the library files')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
+parser_sub.add_argument('--db_dir',type=os.path.abspath,default=__default_db_dir__,help='Database directory')
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
@@ -630,7 +624,8 @@ parser_sub.add_argument('--repo','-r',default="https://github.com/jodyphelan/tbd
 parser_sub.add_argument('--branch','-b',default="tbdb",help='Branch to pull from')
 parser_sub.add_argument('--commit','-c',help='Git commit hash to checkout (default: latest)')
 parser_sub.add_argument('--match_ref','--match-ref',type=str,help='The prefix for all output files')
-parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+parser_sub.add_argument('--dir','-d',default=".",help=argparse.SUPPRESS)
+parser_sub.add_argument('--db_dir',type=os.path.abspath,default=__default_db_dir__,help='Database directory')
 parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
