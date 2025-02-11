@@ -1,5 +1,5 @@
 {
-  "db-schema-version": "1.0.0",
+  "db-schema-version": "1.1.0",
   "snpEff_db": "Mycobacterium_tuberculosis_h37rv",
   "drugs": [
     "rifampicin",
@@ -27,7 +27,7 @@
     "commit": "72ef6fa",
     "Author": "Jody Phelan <jody.phelan@lshtm.ac.uk>",
     "Date": "Tue Jul 16 16:56:19 2024 +0100",
-    "db-schema-version": "1.0.0"
+    "db-schema-version": "1.1.0"
   },
   "amplicon": false,
   "files": {
