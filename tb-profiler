@@ -277,8 +277,6 @@ def main_create_db(args):
     }
     if args.barcode:
         extra_files["barcode"] = args.barcode
-    if args.rules:
-        extra_files["rules"] = args.rules
     
     with TempFilePrefix() as tmpfile:
         args.csv = tbp.reformat_variant_csv_file(args.csv,f'{tmpfile}.variants.csv')
@@ -587,7 +585,6 @@ parser_sub.add_argument('--spoligotypes',default="spoligotype_spacers.txt",type=
 parser_sub.add_argument('--spoligotype_annotations','--spoligotype-annotations',default="spoligotype_list.csv")
 parser_sub.add_argument('--barcode',default="barcode.bed",type=str,help='A bed file containing lineage barcode SNPs')
 parser_sub.add_argument('--bedmask',default="mask.bed",type=str,help='A bed file containing a list of low-complexity regions')
-parser_sub.add_argument('--rules',type=str,default="rules.txt",help='A file containing python rules')
 parser_sub.add_argument('--amplicon_primers','--amplicon-primers',type=str,help='A file containing a list of amplicon primers')
 parser_sub.add_argument('--match_ref','--match-ref',type=str,help='Match the chromosome name to the given fasta file')
 parser_sub.add_argument('--custom',action="store_true",help='Tells the script this is a custom database, this is used to alter the generation of the version definition')
