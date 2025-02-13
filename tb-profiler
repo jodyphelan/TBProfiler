@@ -371,7 +371,7 @@ def main_list_db(args):
     for db in dbs:
         if 'version' in db:
             d = dict(**db['version'], location=f"{args.db_dir}/{db['version']['name']}")
-            sys.stdout.write("%(name)s\t%(commit)s\t%(Author)s\t%(Date)s\t%(location)s\n" % d)
+            sys.stdout.write("%(name)s\t%(commit)s\t%(author)s\t%(date)s\t%(location)s\n" % d)
 
 
 
