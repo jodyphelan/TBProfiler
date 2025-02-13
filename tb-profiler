@@ -246,8 +246,6 @@ def main_update_tbdb(args):
 
 
     extra_args = []
-    if os.path.isfile('rules.txt'):
-        extra_args.append("--rules rules.txt")
     if args.match_ref:
         extra_args.append("--match_ref %s" % os.path.abspath(args.match_ref))
 
@@ -369,10 +367,10 @@ def main_batch(args):
     
 
 def main_list_db(args):
-    dbs = pp.list_db(args.software_name)
+    dbs = pp.list_db(args.db_dir)
     for db in dbs:
         if 'version' in db:
-            d = dict(**db['version'], location=f"{sys.base_prefix}/share/{args.software_name}/{db['version']['name']}")
+            d = dict(**db['version'], location=f"{args.db_dir}/{db['version']['name']}")
             sys.stdout.write("%(name)s\t%(commit)s\t%(Author)s\t%(Date)s\t%(location)s\n" % d)
 
 
@@ -415,7 +413,7 @@ group.add_argument('--bam','-a',help='BAM file (make sure it has been generated 
 group.add_argument('--fasta','-f',help='Fasta file')
 group.add_argument('--vcf','-v',help='VCF file')
 input.add_argument('--platform','-m',choices=["illumina","nanopore","pacbio"],default="illumina",help='NGS Platform used to generate data')
-input.add_argument('--db',default='tbdb',help='Mutation panel name')
+input.add_argument('--db',default='who',help='Mutation panel name')
 input.add_argument('--external_db','--external-db',type=str,help='Path to db files prefix (overrides --db parameter)')
 
 output=parser_sub.add_argument_group("Output options")
@@ -497,7 +495,7 @@ parser_sub.add_argument('--barcode_snps','--barcode-snps',help='Dump barcoding m
 parser_sub.add_argument('--caller',default='freebayes',choices=["bcftools","freebayes","gatk"],type=str,help="Variant caller")
 parser_sub.add_argument('--kmer_counter','--kmer-counter',default='kmc',choices=["kmc","dsk"],type=str,help="Kmer counter")
 parser_sub.add_argument('--platform','-m',choices=["illumina","nanopore","pacbio"],default="illumina",help='NGS Platform used to generate data')
-parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
+parser_sub.add_argument('--db',default='who',help='Mutation panel name')
 parser_sub.add_argument('--spoligotype',action="store_true",help="Perform in-silico spoligotyping")
 parser_sub.add_argument('--external_db','--external-db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 parser_sub.add_argument('--text_template','--text-template',type=str,help='Jinja2 formatted template for output')
@@ -524,7 +522,7 @@ parser_sub.add_argument('--docx',action="store_true",help="Add docx output. This
 parser_sub.add_argument('--text_template',type=str,help='Jinja2 formatted template for output')
 parser_sub.add_argument('--kmer_counter','--kmer-counter',default='kmc',choices=["kmc","dsk"],type=str,help="Kmer counter")
 parser_sub.add_argument('--platform','-m',choices=["illumina","nanopore","pacbio"],default="illumina",help='NGS Platform used to generate data')
-parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
+parser_sub.add_argument('--db',default='who',help='Mutation panel name')
 parser_sub.add_argument('--external_db','--external-db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
@@ -544,7 +542,7 @@ parser_sub.add_argument('--itol',action="store_true",help='Generate itol config 
 parser_sub.add_argument('--full',action="store_true",help='Output mutations in main result file')
 parser_sub.add_argument('--all_variants','--all-variants',action="store_true",help='Output all variants in variant matrix')
 parser_sub.add_argument('--mark_missing','--mark-missing',action="store_true",help='An asteriks will be use to mark predictions which are affected by missing data at a drug resistance position')
-parser_sub.add_argument('--db',default='tbdb',help='Full path to mutation database json file to use')
+parser_sub.add_argument('--db',default='who',help='Full path to mutation database json file to use')
 parser_sub.add_argument('--format',default='txt',choices=['txt','csv'],help='Format of the output')
 parser_sub.add_argument('--external_db','--external-db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 parser_sub.add_argument('--dir','-d',nargs="+",default=["results"],help='Storage directory')
@@ -565,7 +563,7 @@ parser_sub.add_argument('--docx',action="store_true",help="Add docx output. This
 parser_sub.add_argument('--docx_template','--docx-template',help="Supply custom template for --docx output")
 parser_sub.add_argument('--docx_plugin','--docx-plugin',choices=list(docx_plugins),help="Use a plugin template for --docx output")
 parser_sub.add_argument('--text_template','--text-template',type=str,help='Jinja2 formatted template for output')
-parser_sub.add_argument('--db',default='tbdb',help='Mutation panel name')
+parser_sub.add_argument('--db',default='who',help='Mutation panel name')
 parser_sub.add_argument('--external_db','--external-db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
@@ -618,7 +616,7 @@ parser_sub.set_defaults(func=main_load_library)
 parser_sub = subparsers.add_parser('update_tbdb', help='Pull the latest tbdb library and load', formatter_class=ArgumentDefaultsRichHelpFormatter)
 parser_sub.add_argument('--prefix','-p',help='Database name')
 parser_sub.add_argument('--repo','-r',default="https://github.com/jodyphelan/tbdb.git",help='Repository to pull from')
-parser_sub.add_argument('--branch','-b',default="tbdb",help='Branch to pull from')
+parser_sub.add_argument('--branch','-b',default="who",help='Branch to pull from')
 parser_sub.add_argument('--commit','-c',help='Git commit hash to checkout (default: latest)')
 parser_sub.add_argument('--match_ref','--match-ref',type=str,help='The prefix for all output files')
 parser_sub.add_argument('--dir','-d',default=".",help=argparse.SUPPRESS)
@@ -636,6 +634,7 @@ parser_sub.add_argument('--args',type=str, help='Arguments to use with tb-profil
 parser_sub.add_argument('--jobs','-j',default=1,help='Threads to use',type=int)
 parser_sub.add_argument('--threads_per_job','--threads-per-job','-t',default=1,help='Threads to use',type=int)
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+parser_sub.add_argument('--db_dir',type=os.path.abspath,default=__default_db_dir__,help='Database directory')
 parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
@@ -647,6 +646,7 @@ parser_sub = subparsers.add_parser('list_db', help='List loaded databases', form
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
+parser_sub.add_argument('--db_dir',type=os.path.abspath,default=__default_db_dir__,help='Database directory')
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
