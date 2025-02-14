@@ -3,7 +3,7 @@ from .models import Lineage, TbDrVariant, TbVariant, ProfileResult, Spoligotype,
 from typing import List, Tuple , Union, Optional
 from .utils import get_gene2drugs
 import argparse
-from pathogenprofiler.utils import shared_dict
+from pathogenprofiler.utils import shared_dict, get_software_used
 
 def get_main_lineage(lineages: List[Lineage],max_node_skip: int = 1) -> Tuple[str, str]:
     """
@@ -206,7 +206,7 @@ def create_lineage_result(
     pipeline = Pipeline(
         software_version=args.version,
         db_version=args.conf['version'],
-        software=[{'process':k,'software':v} for k,v in shared_dict.items()]
+        software=get_software_used()
     )
     data = {
         'id':args.prefix,
@@ -233,7 +233,7 @@ def create_resistance_result(
     pipeline = Pipeline(
         software_version=args.version,
         db_version=args.conf['version'],
-        software=[{'process':k,'software':v} for k,v in shared_dict.items()]
+        software=get_software_used()
     )
     if hasattr(qc, 'missing_positions'):
         qc.missing_positions = filter_missing_positions(qc.missing_positions)

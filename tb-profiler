@@ -35,6 +35,7 @@ discovered_plugins = {
 
 __softwarename__ = 'tbprofiler'
 __default_db_dir__ = f'{sys.base_prefix}/share/{__softwarename__}'
+__compatible_db_schema_version__ = '1.0.0'
 
 @atexit.register
 def cleanup():
@@ -246,8 +247,6 @@ def main_update_tbdb(args):
 
 
     extra_args = []
-    if os.path.isfile('rules.txt'):
-        extra_args.append("--rules rules.txt")
     if args.match_ref:
         extra_args.append("--match_ref %s" % os.path.abspath(args.match_ref))
 
@@ -260,8 +259,8 @@ def main_update_tbdb(args):
 
 def main_create_db(args):
 
-    version_string = json.load(open('variables.json'))['tb-profiler-version']
-    tbp.check_db_version(version_string,tbp.__version__)
+    version_string = json.load(open('variables.json'))['db-schema-version']
+    tbp.check_db_version(version_string,__compatible_db_schema_version__)
 
     if args.no_overwrite:
         dbs = pp.list_db(args.software_name)
@@ -277,8 +276,6 @@ def main_create_db(args):
     }
     if args.barcode:
         extra_files["barcode"] = args.barcode
-    if args.rules:
-        extra_files["rules"] = args.rules
     
     with TempFilePrefix() as tmpfile:
         args.csv = tbp.reformat_variant_csv_file(args.csv,f'{tmpfile}.variants.csv')
@@ -371,11 +368,11 @@ def main_batch(args):
     
 
 def main_list_db(args):
-    dbs = pp.list_db(args.software_name)
+    dbs = pp.list_db(args.db_dir)
     for db in dbs:
         if 'version' in db:
-            d = dict(**db['version'], location=f"{sys.base_prefix}/share/{args.software_name}/{db['version']['name']}")
-            sys.stdout.write("%(name)s\t%(commit)s\t%(Author)s\t%(Date)s\t%(location)s\n" % d)
+            d = dict(**db['version'], location=f"{args.db_dir}/{db['version']['name']}")
+            sys.stdout.write("%(name)s\t%(commit)s\t%(author)s\t%(date)s\t%(location)s\n" % d)
 
 
 
@@ -587,7 +584,6 @@ parser_sub.add_argument('--spoligotypes',default="spoligotype_spacers.txt",type=
 parser_sub.add_argument('--spoligotype_annotations','--spoligotype-annotations',default="spoligotype_list.csv")
 parser_sub.add_argument('--barcode',default="barcode.bed",type=str,help='A bed file containing lineage barcode SNPs')
 parser_sub.add_argument('--bedmask',default="mask.bed",type=str,help='A bed file containing a list of low-complexity regions')
-parser_sub.add_argument('--rules',type=str,default="rules.txt",help='A file containing python rules')
 parser_sub.add_argument('--amplicon_primers','--amplicon-primers',type=str,help='A file containing a list of amplicon primers')
 parser_sub.add_argument('--match_ref','--match-ref',type=str,help='Match the chromosome name to the given fasta file')
 parser_sub.add_argument('--custom',action="store_true",help='Tells the script this is a custom database, this is used to alter the generation of the version definition')
@@ -639,6 +635,7 @@ parser_sub.add_argument('--args',type=str, help='Arguments to use with tb-profil
 parser_sub.add_argument('--jobs','-j',default=1,help='Threads to use',type=int)
 parser_sub.add_argument('--threads_per_job','--threads-per-job','-t',default=1,help='Threads to use',type=int)
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
+parser_sub.add_argument('--db_dir',type=os.path.abspath,default=__default_db_dir__,help='Database directory')
 parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
@@ -650,6 +647,7 @@ parser_sub = subparsers.add_parser('list_db', help='List loaded databases', form
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
+parser_sub.add_argument('--db_dir',type=os.path.abspath,default=__default_db_dir__,help='Database directory')
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)

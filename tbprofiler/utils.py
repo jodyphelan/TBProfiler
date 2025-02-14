@@ -4,6 +4,8 @@ import argparse
 import csv
 import logging
 import re
+from packaging.version import Version
+
 
 def process_tb_profiler_args(args: argparse.Namespace) -> None:
     if args.snp_dist:
@@ -93,17 +95,11 @@ def reformat_variant_csv_file(files: list, outfile: str) -> str:
     
     return outfile
 
-def check_db_version(db_version: str, tbprofiler_version: str) -> None:
-    for d in db_version.split(","):
-        r = re.search('([<>=]+)(.*)',d)
-        if r==None:
-            logging.error(f"Invalid version string: {d}")
-            quit(1)
-
-        d = f"{r.group(1)} '{r.group(2)}'"
-        if eval(f"'{tbprofiler_version}' {d}")==False:
-            if ">" in d:
-                logging.error(f"Your version of tb-profiler ({tbprofiler_version}) is too old to use this version of the database. Please update tb-profiler to {db_version}")
-            else:
-                logging.error(f"Your version of tb-profiler ({tbprofiler_version}) is too new to use this version of the database. Please update the database to {db_version}")
-            quit(1)
+def check_db_version(db_current_version_str: str, compatible_schema_version_str: str):
+    db_current_version = Version(db_current_version_str)
+    compatible_schema_version = Version(compatible_schema_version_str)
+    logging.debug(f"Database version: {db_current_version}")
+    logging.debug(f"Compatible schema version: {compatible_schema_version}")
+    if db_current_version.major != compatible_schema_version.major:
+        logging.error(f"Latest database schema version {db_current_version_str} is not compatible with this version of tb-profiler (requires {compatible_schema_version.major}.x.x). Please make sure you are using the latest software and database versions.")
+        quit(1)
