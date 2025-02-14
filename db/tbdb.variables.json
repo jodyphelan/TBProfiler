@@ -43,6 +43,7 @@
     "spoligotype_spacers": "tbdb.spoligotype_spacers.txt",
     "spoligotype_annotations": "tbdb.spoligotype_list.csv",
     "bedmask": "tbdb.mask.bed",
+    "rules": "tbdb.rules.yml",
     "barcode": "tbdb.barcode.bed"
   }
 }
