@@ -35,6 +35,7 @@ discovered_plugins = {
 
 __softwarename__ = 'tbprofiler'
 __default_db_dir__ = f'{sys.base_prefix}/share/{__softwarename__}'
+__compatible_db_schema_version__ = '1.0.0'
 
 @atexit.register
 def cleanup():
@@ -258,8 +259,8 @@ def main_update_tbdb(args):
 
 def main_create_db(args):
 
-    version_string = json.load(open('variables.json'))['tb-profiler-version']
-    tbp.check_db_version(version_string,tbp.__version__)
+    version_string = json.load(open('variables.json'))['db-schema-version']
+    tbp.check_db_version(version_string,__compatible_db_schema_version__)
 
     if args.no_overwrite:
         dbs = pp.list_db(args.software_name)
