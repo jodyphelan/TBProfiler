@@ -13,15 +13,6 @@ os.chdir("scratch")
 if not os.path.isdir("tb-profiler-test-data"):
     run_cmd("git clone https://github.com/jodyphelan/tb-profiler-test-data.git")
 
-# por5_dr_variants = [
-#     ('rpoB', 'p.Ser450Leu'),
-#     ('fabG1', 'c.-15C>T'),
-#     ('inhA', 'p.Ile194Thr'),
-#     ('pncA', 'p.Val125Gly'),
-#     ('embB', 'p.Met306Val'),
-#     ('embB', 'p.Met423Thr'),
-#     ('gid', 'p.Ala80Pro')
-# ]
 
 por5_dr_variants = [
     ('rpoB', 'p.Ser450Leu'),
@@ -59,8 +50,8 @@ def test_vcf():
     check_assertations("results/por5_vcf.results.json")
     
 def test_nanopore():
-    run_cmd(f"tb-profiler profile --db {db} -1 tb-profiler-test-data/por5A.nanopore_reduced.fastq.gz --platform nanopore -p por5A_illumina_nanopore -t 4 --af '0.5,0.7' --depth '0,5' --txt --csv --docx")
-    check_assertations("results/por5A_illumina_nanopore.results.json")
+    run_cmd(f"tb-profiler profile --db {db} -1 tb-profiler-test-data/por5A.nanopore_reduced.fastq.gz --platform nanopore -p por5A_nanopore -t 4 --caller bcftools --af '0.5,0.7' --depth '0,5' --txt --csv --docx")
+    check_assertations("results/por5A_nanopore.results.json")
 
 def test_fasta():
     run_cmd(f"tb-profiler profile --db {db} -f tb-profiler-test-data/por5A1.fasta  -p por5A_fasta --txt --csv --docx")
