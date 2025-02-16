@@ -78,8 +78,7 @@ class epistasisRule(Rule):
 
         target_vars_total_freq = math.ceil(sum([x.freq*100 for x in target_vars]))
         target_vars_total_freq = min(target_vars_total_freq,100)
-
-        print(source_vars_total_freq,target_vars_total_freq)
+        
         if source_vars and target_vars:
             source_vars_changes = ", ".join([x.change for x in source_vars])
             target_vars_changes = ", ".join([x.change for x in target_vars])
@@ -97,67 +96,6 @@ class epistasisRule(Rule):
 def apply_epistasis_rule(args: argparse.Namespace, variants: List[Variant], parameters: dict):
     logging.debug(f"Applying epistasis rule with parameters: {parameters}")
     epistasisRule().process_variants(args=args,variants=variants,**parameters)
-
-# class MmpR5WHORule(ProfilePlugin):
-#     """
-#     Epistasis rule for mmpL5/mmpR5
-#     """
-
-#     def process_variants(self,args,variants: List[Variant]):
-#         """Generic variant processing method"""
-
-#         v1 = search_variant(variants,drug='bedaquiline',gene_name='mmpR5')
-#         v2 = search_variant(variants,gene_name='mmpL5',type='LoF')
-
-#         v1_total_freq = math.ceil(sum([x.freq*100 for x in v1]))
-#         v1_total_freq = min(v1_total_freq,100)
-
-#         v2_total_freq = math.ceil(sum([x.freq*100 for x in v2]))
-#         v2_total_freq = min(v2_total_freq,100)
-
-#         if v1 and v2:
-#             v1_changes = ", ".join([x.change for x in v1])
-#             v2_changes = ", ".join([x.change for x in v2])
-#             note = f"Loss of function mutation(s) detected in mmpL5 ({v2_changes}) which may abrogate the effect of the genetically linked mmpR5 mutation(s) ({v1_changes})."
-            
-#             if v2_total_freq==100:
-#                 inactivate_drug_resistance(v1)
-#             freq_diff = v1_total_freq - v2_total_freq
-#             if freq_diff > 10:
-#                 note += f" However, the combined frequency of the mmpR5 mutation(s) is {freq_diff}% higher than the mmpL5 mutation(s), indicating a potential resistant subpopulation. Please consult the raw data for more information."
-            
-#             args.notes.append(note)
-
-
-# class eisWHORule(ProfilePlugin):
-#     """
-#     Epistasis rule for mmpL5/mmpR5
-#     """
-
-#     def process_variants(self,args,variants: List[Variant]):
-#         """Generic variant processing method"""
-
-#         v1 = search_variant(variants,drug=['kanamycin','amikacin'],gene_name='eis')
-#         v2 = search_variant(variants,gene_name='eis',type='LoF')
-
-#         v1_total_freq = math.ceil(sum([x.freq*100 for x in v1]))
-#         v1_total_freq = min(v1_total_freq,100)
-
-#         v2_total_freq = math.ceil(sum([x.freq*100 for x in v2]))
-#         v2_total_freq = min(v2_total_freq,100)
-
-#         if v1 and v2:
-#             v1_changes = ", ".join([x.change for x in v1])
-#             v2_changes = ", ".join([x.change for x in v2])
-#             note = f"Loss of function mutation(s) detected in eis ({v2_changes}) which may abrogate the effect of the genetically linked eis promoter mutation(s) ({v1_changes})."
-
-#             if v2_total_freq==100:
-#                 inactivate_drug_resistance(v1)
-#             freq_diff = v1_total_freq - v2_total_freq
-#             if freq_diff > 10:
-#                 note += f" However, the combined frequency of the eis promoter mutation(s) is {freq_diff}% higher than the eis coding mutation(s), indicating a potential resistant subpopulation. Please consult the raw data for more information."
-            
-#             args.notes.append(note)
 
 
 class SetConfidence(ProfilePlugin):
