@@ -35,7 +35,7 @@ discovered_plugins = {
 
 __softwarename__ = 'tbprofiler'
 __default_db_dir__ = f'{sys.base_prefix}/share/{__softwarename__}'
-__compatible_db_schema_version__ = '1.0.0'
+__compatible_db_schema_version__ = '2.0.0'
 
 @atexit.register
 def cleanup():
