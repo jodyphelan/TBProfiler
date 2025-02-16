@@ -18,7 +18,7 @@ from tqdm import tqdm
 import logging
 from rich.logging import RichHandler
 from copy import deepcopy
-
+import yaml
 import importlib
 import pkgutil
 
@@ -143,7 +143,11 @@ def main_profile(args):
     for plugin in tbp.ProfilePlugin.__subclasses__():
         plugin().process_variants(args,variants_profile)
 
-    
+
+    rules_file = args.db_dir+"/"+args.conf['files']['rules']
+    for rule in yaml.load(open(rules_file),Loader=yaml.SafeLoader).values():
+        tbp.apply_epistasis_rule(args,variants_profile,rule)
+
     tbp.clean_up_duplicate_annotations(variants_profile)
 
     # Convert variant objects to DrVariant if they cause resistance
@@ -273,6 +277,7 @@ def main_create_db(args):
         "spoligotype_spacers": args.spoligotypes,
         "spoligotype_annotations": args.spoligotype_annotations,
         "bedmask": {"name":args.bedmask,"convert":1},
+        "rules": args.rules,
     }
     if args.barcode:
         extra_files["barcode"] = args.barcode
@@ -584,6 +589,7 @@ parser_sub.add_argument('--spoligotypes',default="spoligotype_spacers.txt",type=
 parser_sub.add_argument('--spoligotype_annotations','--spoligotype-annotations',default="spoligotype_list.csv")
 parser_sub.add_argument('--barcode',default="barcode.bed",type=str,help='A bed file containing lineage barcode SNPs')
 parser_sub.add_argument('--bedmask',default="mask.bed",type=str,help='A bed file containing a list of low-complexity regions')
+parser_sub.add_argument('--rules',default="rules.yml",type=str,help='A yaml file containing rules for the resistance library')
 parser_sub.add_argument('--amplicon_primers','--amplicon-primers',type=str,help='A file containing a list of amplicon primers')
 parser_sub.add_argument('--match_ref','--match-ref',type=str,help='Match the chromosome name to the given fasta file')
 parser_sub.add_argument('--custom',action="store_true",help='Tells the script this is a custom database, this is used to alter the generation of the version definition')
