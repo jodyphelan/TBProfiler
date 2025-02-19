@@ -101,6 +101,14 @@ def apply_epistasis_rule(args: argparse.Namespace, variants: List[Variant], para
 class SetConfidence(ProfilePlugin):
 
     def process_result(self, args: argparse.Namespace, result: ProfileResult):
+        annotation_ids = set()
+        d = args.conf['json_db']
+        for g in d:
+            for m in d[g]:
+                for a in d[g][m]['annotations']:
+                    for key in a:
+                        annotation_ids.add(key)
+
         for var in result.other_variants:
             confidence = {}
             for ann in var.annotation:
@@ -112,14 +120,16 @@ class SetConfidence(ProfilePlugin):
                     if var.type=='synonymous_mutation':
                         confidence[drug] = 'Not Assoc W R - Interim'
                     else:
-                        confidence[drug] = 'Uncertiain Significance'
-                    var.annotation.append(
-                        {
-                            'type':'who_confidence',
-                            'drug':drug,
-                            'confidence':confidence[drug],
-                            'comment':''
-                        }
-                    )
+                        confidence[drug] = 'Uncertain Significance'
+                    ann = {
+                        'type':'who_confidence',
+                        'drug':drug,
+                        'confidence':confidence[drug],
+                        'comment':'Not found in WHO catalogue'
+                    }
+                    for key in annotation_ids:
+                        if key not in ann:
+                            ann[key] = ''
+                    var.annotation.append(ann)
                     logging.debug(f'{var.gene_name} {var.change} does not have a confidence value for {drug}. Setting it to {confidence[drug]}')
 
