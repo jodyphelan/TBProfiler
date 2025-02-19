@@ -125,7 +125,7 @@ class SetConfidence(ProfilePlugin):
                         'type':'who_confidence',
                         'drug':drug,
                         'confidence':confidence[drug],
-                        'comment':''
+                        'comment':'Not found in WHO catalogue'
                     }
                     for key in annotation_ids:
                         if key not in ann:
