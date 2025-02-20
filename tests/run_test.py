@@ -68,3 +68,11 @@ def test_collate():
         O.write("por5_vcf\n")
     run_cmd(f"tb-profiler collate --db {db} --samples samples.txt")
     assert open("tbprofiler.txt").read() == collate_text
+
+def test_tbp_parser():
+    run_cmd("git clone https://github.com/theiagen/tbp-parser.git")
+    run_cmd("samtools index bam/por5A1_freebayes.bam")
+    run_cmd('python tbp-parser/tbp_parser/tbp_parser.py results/por5A_freebayes.results.json bam/por5A1.bam    -o "example-tbp-parser"    --min_depth 12     --min_frequency 0.9     --sequencing_method "Illumina NextSeq"    --operator "John Doe"')
+    test_text = [l.strip() for l in open("example.looker_report.csv")][1]
+    target_text = "por5A_freebayes,Illumina NextSeq,U,S-Interim,U,U,R,R,R,U,S,U,S,R,R,U,lineage4,DNA of Mycobacterium tuberculosis species detected,2025-02-20 12:05,John Doe"
+    assert test_text == target_text
