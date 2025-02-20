@@ -39,6 +39,6 @@ jobs:
     - name: Run tests
       run: |
         cd tests
-        mamba install pytest -y
+        mamba install pytest pandas -y
         pytest -x .
     
