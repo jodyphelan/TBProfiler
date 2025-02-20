@@ -120,7 +120,7 @@ class SetConfidence(ProfilePlugin):
                     if var.type=='synonymous_mutation':
                         confidence[drug] = 'Not Assoc W R - Interim'
                     else:
-                        confidence[drug] = 'Uncertain Significance'
+                        confidence[drug] = 'Uncertain significance'
                     ann = {
                         'type':'who_confidence',
                         'drug':drug,
