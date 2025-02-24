@@ -74,7 +74,7 @@ def test_tbp_parser():
     os.mkdir("tbp-parser/tb-profiler-test")
     os.chdir("tbp-parser/tb-profiler-test")
 
-    run_cmd("samtools index bam/por5A_fastq.bam")
+    run_cmd("samtools index ../../bam/por5A_fastq.bam")
     run_cmd('python ../tbp_parser/tbp_parser.py ../../results/por5A_freebayes.results.json ../../bam/por5A_fastq.bam    -o "example-tbp-parser"    --min_depth 12     --min_frequency 0.9     --sequencing_method "Illumina NextSeq"    --operator "John Doe"')
     test_text = ','.join([l.strip().split(',')[:-2] for l in open("example-tbp-parser.looker_report.csv")][1])
     target_text = "por5A_freebayes,Illumina NextSeq,U,S-Interim,U,U,R,R,R,U,S,U,S,R,R,U,lineage4,DNA of Mycobacterium tuberculosis species detected"
