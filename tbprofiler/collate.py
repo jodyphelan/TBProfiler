@@ -202,7 +202,16 @@ def generate_itol_config(rows: List[dict], drugs: list, prefix: str) -> None:
     writer = ColourStripConfigWriter(lineage_dict,'Main Lineage',lineage_cols)
     writer.write(lineage_outfile)
 
-    all_dr_cols = {"Sensitive":"#28a745","RR-TB":"#007bff","HR-TB":"#E0ACD5","MDR-TB":"#ffc107","Pre-XDR-TB":"#dc3545","XDR-TB":"#343a40","Other":"#f8f9fa"}
+    all_dr_cols = {
+        "Sensitive":"#28a745",
+        "RR-TB":"#007bff",
+        "HR-TB":"#E0ACD5",
+        "MDR-TB":"#ffc107",
+        "Pre-XDR-TB":"#dc3545",
+        "XDR-TB":"#343a40",
+        "Other":"#f8f9fa"
+    }
+    
     dr_data = {row['sample']:row['drtype'] for row in rows}
     drtypes_present = set(dr_data.values())
     dr_cols = {key:val for key,val in all_dr_cols.items() if key in drtypes_present}
