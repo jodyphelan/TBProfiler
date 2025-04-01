@@ -3,25 +3,39 @@ import pysam
 import argparse
 import os
 from uuid import uuid4
+import numpy as np
 
 
 def generate_low_dp_mask(bam: str,ref: str,outfile: str,min_dp: int = 10) -> None:
-    missing_positions = []
-    ok_positions = set()
+    refseq = pysam.FastaFile(ref)
+    seqname = refseq.references[0]
+    dp = np.zeros(refseq.get_reference_length(seqname))
     for l in cmd_out(f"samtools depth {bam}"):
         row = l.strip().split("\t")
-        if int(row[2])>=min_dp:
-            ok_positions.add((row[0],int(row[1])))
-    refseq = pysam.FastaFile(ref)
-    for chrom,length in zip(refseq.references, refseq.lengths):
-        for p in range(length):
-            if (chrom,p) not in ok_positions:
-                missing_positions.append((chrom,p))
+        dp[int(row[1])-1] = int(row[2])
 
-    # write missing positions to bed file
+    def robust_bounds(data, k=4):
+        median = np.median(data)
+        mad = np.median(np.abs(data - median))
+        mad_scaled = 1.4826 * mad
+        lower = median - k * mad_scaled
+        upper = median + k * mad_scaled
+        return lower, upper
+
+
+    lower, upper = robust_bounds(dp)
+    if min_dp>lower:
+        lower = min_dp
+    print(lower,upper)
+
+    masked_positions = []
+    for i, d in enumerate(dp):
+        if d < lower or d > upper:
+            masked_positions.append(i)
+
     with open(outfile,"w") as O:
-        for x in missing_positions:
-            O.write(f"{x[0]}\t{x[1]}\t{x[1]+1}\n")
+        for i in masked_positions:
+            O.write(f"{seqname}\t{i}\t{i+1}\n")
 
 
 
