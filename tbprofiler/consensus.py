@@ -5,6 +5,13 @@ import os
 from uuid import uuid4
 import numpy as np
 
+def robust_bounds(data, k=3):
+    median = np.median(data)
+    mad = np.median(np.abs(data - median))
+    mad_scaled = 1.4826 * mad
+    lower = median - k * mad_scaled
+    upper = median + k * mad_scaled
+    return lower, upper
 
 def generate_low_dp_mask(bam: str,ref: str,outfile: str,min_dp: int = 10) -> None:
     refseq = pysam.FastaFile(ref)
@@ -13,15 +20,6 @@ def generate_low_dp_mask(bam: str,ref: str,outfile: str,min_dp: int = 10) -> Non
     for l in cmd_out(f"samtools depth {bam}"):
         row = l.strip().split("\t")
         dp[int(row[1])-1] = int(row[2])
-
-    def robust_bounds(data, k=4):
-        median = np.median(data)
-        mad = np.median(np.abs(data - median))
-        mad_scaled = 1.4826 * mad
-        lower = median - k * mad_scaled
-        upper = median + k * mad_scaled
-        return lower, upper
-
 
     lower, upper = robust_bounds(dp)
     if min_dp>lower:
