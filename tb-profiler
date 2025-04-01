@@ -548,6 +548,7 @@ parser_sub.add_argument('--itol',action="store_true",help='Generate itol config 
 parser_sub.add_argument('--full',action="store_true",help='Output mutations in main result file')
 parser_sub.add_argument('--all_variants','--all-variants',action="store_true",help='Output all variants in variant matrix')
 parser_sub.add_argument('--mark_missing','--mark-missing',action="store_true",help='An asteriks will be use to mark predictions which are affected by missing data at a drug resistance position')
+parser_sub.add_argument('--add_positions','--add-positions',action="store_true",help='Add variant positions to the transmission graph output')
 parser_sub.add_argument('--db',default='tbdb',help='Full path to mutation database json file to use')
 parser_sub.add_argument('--format',default='txt',choices=['txt','csv'],help='Format of the output')
 parser_sub.add_argument('--external_db','--external-db',type=str,help='Path to db files prefix (overrides "--db" parameter)')

@@ -45,7 +45,17 @@ def generate_low_dp_mask_vcf(vcf: str,outfile: str,min_dp: int = 10) -> None:
 def prepare_sample_consensus(sample: str,input_vcf: str,args: argparse.Namespace) -> str:
     s = sample
     tmp_vcf = f"{args.files_prefix}.{s}.vcf.gz"
-    run_cmd(f"bcftools norm -m - {input_vcf} | bcftools view -T ^{args.conf['bedmask']} | bcftools view -v snps | annotate_maaf.py | bcftools filter -S . -e 'MAAF<0.7' |bcftools filter -S . -e 'FMT/DP<{args.conf['variant_filters']['depth_soft']}' | bcftools filter --SnpGap 50 |rename_vcf_sample.py --sample-name {s} | bcftools view -v snps -Oz -o {tmp_vcf}")
+    run_cmd(f"""
+        bcftools norm -m - {input_vcf} \
+            | bcftools view -T ^{args.conf['bedmask']} \
+            | annotate_maaf.py \
+            | bcftools view -e 'type="indel" && MAAF<0.5' \
+            | bcftools filter -S . -e 'MAAF<0.7' \
+            | bcftools filter -S . -e 'FMT/DP<{args.conf['variant_filters']['depth_soft']}' \
+            | bcftools filter --SnpGap 50 \
+            | rename_vcf_sample.py --sample-name {s} \
+            | bcftools view -v snps -Oz -o {tmp_vcf}
+    """)
     run_cmd(f"bcftools index {tmp_vcf}")
 
     mask_bed = f"{args.files_prefix}.{s}.mask.bed"

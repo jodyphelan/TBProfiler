@@ -51,9 +51,13 @@ class TransmissionEdge(BaseModel):
     source: str
     target: str
     distance: float
+    positions: Optional[List[int]] = None
 
     def dump(self):
-        return {"source":self.source,"target":self.target,"properties":{"distance":self.distance}}
+        if hasattr(self,'positions'):
+            return {"source":self.source,"target":self.target,"properties":{"distance":self.distance,"positions":self.positions}}
+        else:
+            return {"source":self.source,"target":self.target,"properties":{"distance":self.distance}}
     
     def __eq__(self, __value: object) -> bool:
         if isinstance(__value, TransmissionEdge):
@@ -91,7 +95,7 @@ def collate_results(args: argparse.Namespace) -> None:
         samples = {s:samples[s] for s in [l.strip() for l in open(args.samples)]}
 
     rows = []
-    edges = []
+    edges = set()
     variant_db = VariantDB(args.conf['json_db'])
     for s in tqdm(samples):
         data = json.load(open(samples[s]))
@@ -126,12 +130,15 @@ def collate_results(args: argparse.Namespace) -> None:
         rows.append(row)
 
         for linked_sample in res.linked_samples:
-            edges.append(
-                TransmissionEdge(
-                    source=s,
-                    target=linked_sample.sample,
-                    distance=linked_sample.distance
-                )
+            e = {
+                "source": s,
+                "target": linked_sample.sample,
+                "distance": linked_sample.distance,
+            }
+            if args.add_positions:
+                e["positions"] = sorted(list(linked_sample.positions))
+            edges.add(
+                TransmissionEdge(**e)
             )
 
 
