@@ -24,7 +24,7 @@ def generate_low_dp_mask(bam: str,ref: str,outfile: str,min_dp: int = 10) -> Non
     lower, upper = robust_bounds(dp)
     if min_dp>lower:
         lower = min_dp
-    print(lower,upper)
+
 
     masked_positions = []
     for i, d in enumerate(dp):
@@ -62,7 +62,7 @@ def prepare_sample_consensus(sample: str,input_vcf: str,args: argparse.Namespace
             | bcftools view -T ^{args.conf['bedmask']} \
             | annotate_maaf.py \
             | bcftools view -e 'type="indel" && MAAF<0.5' \
-            | bcftools filter -S . -e 'MAAF<0.7' \
+            | bcftools filter -S . -e 'GT="alt" && MAAF<0.7' \
             | bcftools filter -S . -e 'FMT/DP<{args.conf['variant_filters']['depth_soft']}' \
             | bcftools filter --SnpGap 50 \
             | rename_vcf_sample.py --sample-name {s} \
