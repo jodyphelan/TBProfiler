@@ -219,10 +219,11 @@ def main_profile(args):
         "%s.bam" % args.files_prefix: "%s/bam/%s.bam" % (args.dir,args.prefix),
         "%s.bam.bai" % args.files_prefix: "%s/bam/%s.bam.bai" % (args.dir,args.prefix),
         "%s.nwk" % args.files_prefix: "%s/results/%s.nwk" % (args.dir,args.prefix),
-        "%s.consensus.fa" % args.files_prefix: "%s/results/%s.consensus.fa" % (args.dir,args.prefix),
     }
     if args.save_low_dp_mask:
         result_files["%s.%s.mask.bed" % (args.files_prefix,args.prefix)] = "%s/results/%s.mask.bed" % (args.dir,args.prefix)
+    if args.save_consensus:
+        result_files["%s.consensus.fa" % args.files_prefix] = "%s/results/%s.consensus.fa" % (args.dir,args.prefix)
     for file,target in result_files.items():
         if os.path.isfile(file):
             shutil.move(file,target)
@@ -486,6 +487,7 @@ other.add_argument('--delly_vcf','--delly-vcf',help=argparse.SUPPRESS)
 other.add_argument('--supplementary_bam','--supplementary-bam',help=argparse.SUPPRESS)
 other.add_argument('--low_dp_mask','--low-dp-mask',help=argparse.SUPPRESS)
 other.add_argument('--save_low_dp_mask','--save-low-dp-mask',action='store_true',help=argparse.SUPPRESS)
+other.add_argument('--save_consensus','--save-consensus',action='store_true',help=argparse.SUPPRESS)
 other.add_argument('--db_dir',type=os.path.abspath,default=__default_db_dir__,help='Database directory')
 other.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
 other.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
