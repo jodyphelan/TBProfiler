@@ -219,6 +219,7 @@ def main_profile(args):
         "%s.bam" % args.files_prefix: "%s/bam/%s.bam" % (args.dir,args.prefix),
         "%s.bam.bai" % args.files_prefix: "%s/bam/%s.bam.bai" % (args.dir,args.prefix),
         "%s.nwk" % args.files_prefix: "%s/results/%s.nwk" % (args.dir,args.prefix),
+        "%s.consensus.fa" % args.files_prefix: "%s/results/%s.consensus.fa" % (args.dir,args.prefix),
     }
     if args.save_low_dp_mask:
         result_files["%s.%s.mask.bed" % (args.files_prefix,args.prefix)] = "%s/results/%s.mask.bed" % (args.dir,args.prefix)
