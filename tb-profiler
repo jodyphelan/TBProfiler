@@ -314,7 +314,7 @@ def main_load_library(args):
     
         
         variables_file = "%(prefix)s.variables.json" % vars(args)
-        pp.load_db(variables_file,args.software_name,source_dir=source_dir)
+        pp.load_db(variables_file,args.db_dir,source_dir=source_dir)
     
 
 
