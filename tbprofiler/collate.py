@@ -287,14 +287,11 @@ def generate_distance_matrix(rows: List[dict], edges: List[TransmissionEdge], pr
             MAT.write("samples\t%s\n" % "\t".join(samples))
             transformed_edges = {}
             for e in edges:
-                print(e)
                 transformed_edges[tuple(sorted([e.source,e.target]))] = e.distance
-            print(transformed_edges)
             for si in samples:
                 row = [si]
                 for sj in samples:
                     ss = tuple(sorted([si,sj]))
-                    print(ss)
                     if si==sj:
                         row.append("0.0")
                     else:
