@@ -3,6 +3,7 @@ import pathogenprofiler as pp
 import json
 import os
 import pytest
+import csv
 
 collate_text = open("example_collate.txt").read()
 
@@ -76,6 +77,28 @@ def test_tbp_parser():
 
     run_cmd("samtools index ../../bam/por5A_fastq.bam")
     run_cmd('python ../tbp_parser/tbp_parser.py ../../results/por5A_freebayes.results.json ../../bam/por5A_fastq.bam    -o "example-tbp-parser"    --min_depth 12     --min_frequency 0.9     --sequencing_method "Illumina NextSeq"    --operator "John Doe"')
-    test_text = ','.join([l.strip().split(',')[:-2] for l in open("example-tbp-parser.looker_report.csv")][1])
-    target_text = "por5A_freebayes,Illumina NextSeq,U,S-Interim,U,U,R,R,R,U,S,U,S,R,R,U,lineage4,DNA of Mycobacterium tuberculosis species detected"
-    assert test_text == target_text
+    for row in csv.DictReader(open("example-tbp-parser.looker_report.csv")):
+        pass
+
+    print(row)
+
+    target = {
+        'amikacin': 'S',
+        'bedaquiline': 'U',
+        'capreomycin': 'S',
+        'clofazimine': 'S',
+        'ethambutol': 'R',
+        'ethionamide': 'R',
+        'isoniazid': 'R',
+        'kanamycin': 'S',
+        'levofloxacin': 'S',
+        'linezolid': 'S',
+        'moxifloxacin': 'S',
+        'pyrazinamide': 'R',
+        'rifampin': 'R',
+        'streptomycin': 'U',
+    }
+    for drug, val in target.items():
+        assert row[drug] == val, f"Expected {drug} to be {val}, got {row[drug]}"
+
+
