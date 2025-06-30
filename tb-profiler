@@ -222,6 +222,8 @@ def main_profile(args):
     }
     if args.save_low_dp_mask:
         result_files["%s.%s.mask.bed" % (args.files_prefix,args.prefix)] = "%s/results/%s.mask.bed" % (args.dir,args.prefix)
+    if args.save_consensus:
+        result_files["%s.consensus.fa" % args.files_prefix] = "%s/results/%s.consensus.fa" % (args.dir,args.prefix)
     for file,target in result_files.items():
         if os.path.isfile(file):
             shutil.move(file,target)
@@ -312,7 +314,7 @@ def main_load_library(args):
     
         
         variables_file = "%(prefix)s.variables.json" % vars(args)
-        pp.load_db(variables_file,args.software_name,source_dir=source_dir)
+        pp.load_db(variables_file,args.db_dir,source_dir=source_dir)
     
 
 
@@ -485,6 +487,7 @@ other.add_argument('--delly_vcf','--delly-vcf',help=argparse.SUPPRESS)
 other.add_argument('--supplementary_bam','--supplementary-bam',help=argparse.SUPPRESS)
 other.add_argument('--low_dp_mask','--low-dp-mask',help=argparse.SUPPRESS)
 other.add_argument('--save_low_dp_mask','--save-low-dp-mask',action='store_true',help=argparse.SUPPRESS)
+other.add_argument('--save_consensus','--save-consensus',action='store_true',help=argparse.SUPPRESS)
 other.add_argument('--db_dir',type=os.path.abspath,default=__default_db_dir__,help='Database directory')
 other.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
 other.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
@@ -548,6 +551,7 @@ parser_sub.add_argument('--itol',action="store_true",help='Generate itol config 
 parser_sub.add_argument('--full',action="store_true",help='Output mutations in main result file')
 parser_sub.add_argument('--all_variants','--all-variants',action="store_true",help='Output all variants in variant matrix')
 parser_sub.add_argument('--mark_missing','--mark-missing',action="store_true",help='An asteriks will be use to mark predictions which are affected by missing data at a drug resistance position')
+parser_sub.add_argument('--add_positions','--add-positions',action="store_true",help='Add variant positions to the transmission graph output')
 parser_sub.add_argument('--db',default='tbdb',help='Full path to mutation database json file to use')
 parser_sub.add_argument('--format',default='txt',choices=['txt','csv'],help='Format of the output')
 parser_sub.add_argument('--external_db','--external-db',type=str,help='Path to db files prefix (overrides "--db" parameter)')

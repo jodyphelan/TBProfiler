@@ -51,9 +51,13 @@ class TransmissionEdge(BaseModel):
     source: str
     target: str
     distance: float
+    positions: Optional[List[int]] = None
 
     def dump(self):
-        return {"source":self.source,"target":self.target,"properties":{"distance":self.distance}}
+        if hasattr(self,'positions'):
+            return {"source":self.source,"target":self.target,"properties":{"distance":self.distance,"positions":self.positions}}
+        else:
+            return {"source":self.source,"target":self.target,"properties":{"distance":self.distance}}
     
     def __eq__(self, __value: object) -> bool:
         if isinstance(__value, TransmissionEdge):
@@ -91,7 +95,7 @@ def collate_results(args: argparse.Namespace) -> None:
         samples = {s:samples[s] for s in [l.strip() for l in open(args.samples)]}
 
     rows = []
-    edges = []
+    edges = set()
     variant_db = VariantDB(args.conf['json_db'])
     for s in tqdm(samples):
         data = json.load(open(samples[s]))
@@ -126,12 +130,15 @@ def collate_results(args: argparse.Namespace) -> None:
         rows.append(row)
 
         for linked_sample in res.linked_samples:
-            edges.append(
-                TransmissionEdge(
-                    source=s,
-                    target=linked_sample.sample,
-                    distance=linked_sample.distance
-                )
+            e = {
+                "source": s,
+                "target": linked_sample.sample,
+                "distance": linked_sample.distance,
+            }
+            if args.add_positions:
+                e["positions"] = sorted(list(linked_sample.positions))
+            edges.add(
+                TransmissionEdge(**e)
             )
 
 
@@ -202,7 +209,16 @@ def generate_itol_config(rows: List[dict], drugs: list, prefix: str) -> None:
     writer = ColourStripConfigWriter(lineage_dict,'Main Lineage',lineage_cols)
     writer.write(lineage_outfile)
 
-    all_dr_cols = {"Sensitive":"#28a745","RR-TB":"#007bff","HR-TB":"#E0ACD5","MDR-TB":"#ffc107","Pre-XDR-TB":"#dc3545","XDR-TB":"#343a40","Other":"#f8f9fa"}
+    all_dr_cols = {
+        "Sensitive":"#28a745",
+        "RR-TB":"#007bff",
+        "HR-TB":"#E0ACD5",
+        "MDR-TB":"#ffc107",
+        "Pre-XDR-TB":"#dc3545",
+        "XDR-TB":"#343a40",
+        "Other":"#f8f9fa"
+    }
+    
     dr_data = {row['sample']:row['drtype'] for row in rows}
     drtypes_present = set(dr_data.values())
     dr_cols = {key:val for key,val in all_dr_cols.items() if key in drtypes_present}
@@ -271,7 +287,7 @@ def generate_distance_matrix(rows: List[dict], edges: List[TransmissionEdge], pr
             MAT.write("samples\t%s\n" % "\t".join(samples))
             transformed_edges = {}
             for e in edges:
-                transformed_edges[(e.source,e.target)] = e.distance
+                transformed_edges[tuple(sorted([e.source,e.target]))] = e.distance
             for si in samples:
                 row = [si]
                 for sj in samples:
