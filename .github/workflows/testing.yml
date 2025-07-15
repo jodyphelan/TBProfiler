@@ -38,14 +38,9 @@ jobs:
         pip install --force-reinstall .
         pip install semver
     
-    - name: list snpeff contents
+    - name: remove redundant snpeff files
       run: |
-        snpEff databases > /dev/null
-        ls -l /home/runner/miniconda3/envs/test/share/snpeff-5.2-1/
-        ls -l /home/runner/miniconda3/envs/test/share/snpeff-5.2-1/data/
-        ls -l /home/runner/miniconda3/envs/test/share/
-        ls -l /home/runner/miniconda3/envs/test/share/snpeff-5.2-0/
-        snpEff -version
+        rm -r /home/runner/miniconda3/envs/test/share/snpeff-5.2-1
 
     - name: Run tests
       run: |
