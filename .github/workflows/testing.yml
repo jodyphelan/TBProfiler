@@ -36,9 +36,11 @@ jobs:
         conda activate test
         pip install --force-reinstall git+https://github.com/jodyphelan/pathogen-profiler.git@dev
         pip install --force-reinstall .
+        pip install semver
     - name: Run tests
       run: |
         cd tests
         mamba install pytest pandas importlib_resources -y
         pytest -x .
-    
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
