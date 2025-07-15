@@ -37,6 +37,11 @@ jobs:
         pip install --force-reinstall git+https://github.com/jodyphelan/pathogen-profiler.git@dev
         pip install --force-reinstall .
         pip install semver
+    
+    - name: list snpeff contents
+      run: |
+        ls -l /home/runner/miniconda3/envs/test/share/snpeff-5.2-1/
+        
     - name: Run tests
       run: |
         cd db
