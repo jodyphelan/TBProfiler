@@ -39,7 +39,9 @@ jobs:
         pip install semver
     - name: Run tests
       run: |
-        cd tests
+        cd db
+        python ../tb-profiler load_library tbdb
+        cd ../tests
         mamba install pytest pandas importlib_resources -y
         pytest -x .
       env:
