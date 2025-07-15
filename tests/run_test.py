@@ -6,6 +6,20 @@ import pytest
 import csv
 import subprocess as sp
 import semver
+import logging
+
+
+
+def test_version():
+    current_version = semver.VersionInfo.parse(tbp.__version__)
+    stdout = sp.check_output(['gh', 'release', 'view', '--json', 'tagName'], text=True).splitlines()
+    release_version = semver.VersionInfo.parse(json.loads(stdout[0].strip())['tagName'][1:])
+    logging.info(f"Current version: {current_version}, Release version: {release_version}")
+    # check the current version is greater than the release version
+    assert current_version > release_version, f"Current version {current_version} is not greater than the release version {release_version}."
+
+
+
 
 collate_text = open("example_collate.txt").read()
 
@@ -102,9 +116,3 @@ def test_tbp_parser():
         assert row[drug] == val, f"Expected {drug} to be {val}, got {row[drug]}"
 
 
-def test_version():
-    current_version = semver.VersionInfo.parse(tbp.__version__)
-    stdout = sp.check_output(['gh', 'release', 'view', '--json', 'tagName'], text=True).splitlines()
-    release_version = semver.VersionInfo.parse(json.loads(stdout[0].strip())['tagName'][1:])
-    # check the current version is greater than the release version
-    assert current_version > release_version, f"Current version {current_version} is not greater than the release version {release_version}."
