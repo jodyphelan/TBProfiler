@@ -36,9 +36,18 @@ jobs:
         conda activate test
         pip install --force-reinstall git+https://github.com/jodyphelan/pathogen-profiler.git@dev
         pip install --force-reinstall .
+        pip install semver
+    
+    - name: remove redundant snpeff files
+      run: |
+        rm -r /home/runner/miniconda3/envs/test/share/snpeff-5.2-1
+
     - name: Run tests
       run: |
-        cd tests
+        cd db
+        python ../tb-profiler load_library tbdb
+        cd ../tests
         mamba install pytest pandas importlib_resources -y
         pytest -x .
-    
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
