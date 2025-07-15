@@ -1,5 +1,5 @@
 from pathogenprofiler import run_cmd
-import pathogenprofiler as pp
+import tbprofiler as tbp
 import json
 import os
 import pytest
@@ -103,7 +103,7 @@ def test_tbp_parser():
 
 
 def test_version():
-    current_version = semver.VersionInfo.parse(pp.__version__)
+    current_version = semver.VersionInfo.parse(tbp.__version__)
     stdout = sp.check_output(['gh', 'release', 'view', '--json', 'tagName'], text=True).splitlines()
     release_version = semver.VersionInfo.parse(json.loads(stdout[0].strip())['tagName'][1:])
     # check the current version is greater than the release version
