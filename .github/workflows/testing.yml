@@ -40,7 +40,7 @@ jobs:
     
     - name: list snpeff contents
       run: |
-        snpEff databases
+        snpEff databases > /dev/null
         ls -l /home/runner/miniconda3/envs/test/share/snpeff-5.2-1/
 
     - name: Run tests
