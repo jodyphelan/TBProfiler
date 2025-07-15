@@ -44,6 +44,8 @@ jobs:
         ls -l /home/runner/miniconda3/envs/test/share/snpeff-5.2-1/
         ls -l /home/runner/miniconda3/envs/test/share/snpeff-5.2-1/data/
         ls -l /home/runner/miniconda3/envs/test/share/
+        ls -l /home/runner/miniconda3/envs/test/share/snpeff-5.2-0/
+        ls -l /home/runner/miniconda3/envs/test/share/snpeff-5.2-0/data/
 
     - name: Run tests
       run: |
