@@ -40,8 +40,9 @@ jobs:
     
     - name: list snpeff contents
       run: |
+        snpEff databases
         ls -l /home/runner/miniconda3/envs/test/share/snpeff-5.2-1/
-        
+
     - name: Run tests
       run: |
         cd db
