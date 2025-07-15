@@ -42,6 +42,8 @@ jobs:
       run: |
         snpEff databases > /dev/null
         ls -l /home/runner/miniconda3/envs/test/share/snpeff-5.2-1/
+        ls -l /home/runner/miniconda3/envs/test/share/snpeff-5.2-1/data/
+        ls -l /home/runner/miniconda3/envs/test/share/
 
     - name: Run tests
       run: |
