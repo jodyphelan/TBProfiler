@@ -72,9 +72,8 @@ def prepare_sample_consensus(
             bcftools norm -m - {input_vcf} \
                 | {masked_regions_cmd} \
                 | annotate_maaf.py \
-                | bcftools view -e 'type="indel" && MAAF<0.5' \
                 | bcftools filter -S . -e 'GT="alt" && MAAF<0.7' \
-                | bcftools filter --SnpGap 50 \
+                | snp-gap.py \
                 | rename_vcf_sample.py --sample-name {sample_name} \
                 | bcftools view -v snps -Oz -o {tmp_vcf}
         """)
