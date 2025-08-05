@@ -65,9 +65,12 @@ def prepare_sample_consensus(
     ) -> str:
     with TempFilePrefix() as tmp:
         tmp_vcf = f"{tmp}.{sample_name}.vcf.gz"
+        masked_regions_cmd = f"bcftools view -T ^{excluded_regions}"
+        if low_dp_regions:
+            masked_regions_cmd += f" | bcftools view -T ^{low_dp_regions}"
         run_cmd(f"""
             bcftools norm -m - {input_vcf} \
-                | bcftools view -T ^{excluded_regions} \
+                | {masked_regions_cmd} \
                 | annotate_maaf.py \
                 | bcftools view -e 'type="indel" && MAAF<0.5' \
                 | bcftools filter -S . -e 'GT="alt" && MAAF<0.7' \
@@ -76,10 +79,15 @@ def prepare_sample_consensus(
                 | bcftools view -v snps -Oz -o {tmp_vcf}
         """)
         run_cmd(f"bcftools index {tmp_vcf}")
+        
+        run_cmd(f"vcf-extract-mixed-pos-bed.py --vcf {tmp_vcf} > {tmp_vcf}.mixed_positions.bed --lb 0.2 --ub 0.8")
         if low_dp_regions:
-            mask_cmd = f"-m {low_dp_regions} -M N"
+            mask_cmd = f"-m {low_dp_regions} -m {tmp_vcf}.mixed_positions.bed"
         else:
             mask_cmd = ""
+
+
+        
         run_cmd(f"bcftools consensus --sample {sample_name} {mask_cmd} -f {ref} {tmp_vcf} | sed 's/>/>{sample_name} /' > {output_file}")
 
 def cli_prepare_sample_consensus(sample: str,input_vcf: str,args: argparse.Namespace) -> str:
