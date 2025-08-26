@@ -1,3 +1,4 @@
+import logging
 from pathogenprofiler.utils import run_cmd, cmd_out, TempFilePrefix
 import pysam
 import argparse
@@ -5,12 +6,13 @@ import os
 from uuid import uuid4
 import numpy as np
 
-def robust_bounds(data, k=3):
+def robust_bounds(data, k=5):
     median = np.median(data)
     mad = np.median(np.abs(data - median))
     mad_scaled = 1.4826 * mad
     lower = median - k * mad_scaled
     upper = median + k * mad_scaled
+    logging.debug(f"Robust bounds for depth: {median} [{lower}, {upper}]")
     return lower, upper
 
 def generate_low_dp_mask(bam: str,ref: str,outfile: str,min_dp: int = 10) -> None:
@@ -79,7 +81,7 @@ def prepare_sample_consensus(
         """)
         run_cmd(f"bcftools index {tmp_vcf}")
         
-        run_cmd(f"vcf-extract-mixed-pos-bed.py --vcf {tmp_vcf} > {tmp_vcf}.mixed_positions.bed --lb 0.2 --ub 0.8")
+        run_cmd(f"vcf-extract-mixed-pos-bed.py --vcf {tmp_vcf} --lb 0.2 --ub 0.8 > {tmp_vcf}.mixed_positions.bed ")
         if low_dp_regions:
             mask_cmd = f"-m {low_dp_regions} -m {tmp_vcf}.mixed_positions.bed"
         else:
