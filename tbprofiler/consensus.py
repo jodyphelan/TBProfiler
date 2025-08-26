@@ -83,9 +83,9 @@ def prepare_sample_consensus(
         
         run_cmd(f"vcf-extract-mixed-pos-bed.py --vcf {tmp_vcf} --lb 0.2 --ub 0.8 > {tmp_vcf}.mixed_positions.bed ")
         if low_dp_regions:
-            mask_cmd = f"-m {low_dp_regions} -m {tmp_vcf}.mixed_positions.bed"
+            mask_cmd = f"-m {low_dp_regions} -m {tmp_vcf}.mixed_positions.bed -m {excluded_regions}"
         else:
-            mask_cmd = ""
+            mask_cmd = f"-m {excluded_regions}"
 
 
         
