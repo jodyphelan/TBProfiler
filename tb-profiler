@@ -257,7 +257,7 @@ def main_update_tbdb(args):
 
     extra_args = " ".join(extra_args)
     with TempFilePrefix() as tmpfile:
-        pp.run_cmd(f"tb-profiler create_db --db_dir {args.db_dir} --prefix {args.prefix} --csv mutations.csv --watchlist watchlist.csv {extra_args} --load")
+        pp.run_cmd(f"tb-profiler create_db --force --db_dir {args.db_dir} --prefix {args.prefix} --csv mutations.csv --watchlist watchlist.csv {extra_args} --load")
 
     os.chdir("../")
     pp.logging.info("Sucessfully updated TBDB")
@@ -603,6 +603,7 @@ parser_sub.add_argument('--db_date','--db-date',help='Overrides the date of the 
 parser_sub.add_argument('--include_original_mutation','--include-original-mutation',action="store_true", help='Include the original mutation (before reformatting) as part of the variant annotaion')
 parser_sub.add_argument('--load',action="store_true", help='Automaticaly load database')
 parser_sub.add_argument('--no_overwrite','--no-overwrite',action="store_true", help="Don't load if existing database with prefix exists")
+parser_sub.add_argument('--force',action='store_true',help='Force overwrite existing database with the same name')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--db_dir',type=os.path.abspath,default=__default_db_dir__,help='Database directory')
 parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
@@ -618,6 +619,7 @@ parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
 parser_sub.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
 parser_sub.add_argument('--db_dir',type=os.path.abspath,default=__default_db_dir__,help='Database directory')
+parser_sub.add_argument('--force',action='store_true',help='Force overwrite existing database with the same name')
 parser_sub.add_argument('--version', action='version', version="tb-profiler version %s" % tbp.__version__)
 parser_sub.add_argument('--logging',type=str.upper,default="INFO",choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"],help='Logging level')
 parser_sub.add_argument('--debug',action='store_true',help=argparse.SUPPRESS)
@@ -629,6 +631,7 @@ parser_sub.add_argument('--repo','-r',default="https://github.com/jodyphelan/tbd
 parser_sub.add_argument('--branch','-b',default="tbdb",help='Branch to pull from')
 parser_sub.add_argument('--commit','-c',help='Git commit hash to checkout (default: latest)')
 parser_sub.add_argument('--match_ref','--match-ref',type=str,help='The prefix for all output files')
+parser_sub.add_argument('--force',action='store_true',help='Force overwrite existing database with the same name')
 parser_sub.add_argument('--dir','-d',default=".",help=argparse.SUPPRESS)
 parser_sub.add_argument('--db_dir',type=os.path.abspath,default=__default_db_dir__,help='Database directory')
 parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
