@@ -1,0 +1,25 @@
+mmpR5_rule:
+  type: epistasisRule
+  source:
+    gene_name: mmpL5
+    type: LoF
+  target:
+    drug: bedaquiline
+    gene_name: mmpR5
+  source_inactivation_freq_cutoff: 100
+  target_escape_freq_cutoff: 50
+
+eis_rule:
+  type: epistasisRule
+  source:
+    gene_name: eis
+    type: LoF
+  target:
+    drug:
+    - kanamycin
+    - amikacin
+    gene_name: eis
+  source_inactivation_freq_cutoff: 100
+  target_escape_freq_cutoff: 50
+  
+
