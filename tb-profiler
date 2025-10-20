@@ -188,7 +188,8 @@ def main_profile(args):
         tbp.run_snp_dists(args,result)
         tbp.update_neighbour_snp_dist_output(args,result)
 
-
+    for plugin in tbp.ProfilePlugin.__subclasses__():
+        plugin().run(args,result)
 
 
     ### Create folders for results if they don't exist ###
@@ -695,7 +696,7 @@ if hasattr(args, 'func'):
             args.dir = os.path.abspath(args.dir)
 
     if hasattr(args, 'db'):
-        if args.db=="tbdb" and not args.external_db and pp.nofile(f"{args.db_dir}/tbdb.fasta"):
+        if args.db=="tbdb" and not args.external_db and pp.nofile(f"{args.db_dir}/tbdb/variables.json"):
             logging.error("Can't find the tbdb file at %s. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--external_db' flag" % sys.base_prefix)
             raise SystemExit
         if args.external_db:

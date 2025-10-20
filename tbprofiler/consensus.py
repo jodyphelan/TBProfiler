@@ -90,6 +90,7 @@ def prepare_sample_consensus(
 
         
         run_cmd(f"bcftools consensus --sample {sample_name} {mask_cmd} -f {ref} {tmp_vcf} | sed 's/>/>{sample_name} /' > {output_file}")
+        return output_file
 
 def cli_prepare_sample_consensus(sample: str,input_vcf: str,args: argparse.Namespace) -> str:
     
