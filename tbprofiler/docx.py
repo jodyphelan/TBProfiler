@@ -1,7 +1,7 @@
 import sys
 from docxtpl import DocxTemplate
 from collections import defaultdict
-from .models import ProfileResult, VcfQC
+from .models import ProfileResult, VcfQC, FastaQC, BamQC
 from docx import Document
 from typing import List
 from copy import deepcopy
@@ -75,13 +75,13 @@ class DefaultTemplate(DocxResultTemplate):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         __dir__ = os.path.dirname(os.path.abspath(__file__))
-        # self.template_filename = f"{__dir__}/template.docx"
         self.template_filename = sys.prefix+"/share/tbprofiler/default_template.docx"
     def write_output(
             self, 
             result: ProfileResult, 
             conf: dict,
-            output_filename: str):
+            output_filename: str
+        ):
         
         id2name = rv2genes(conf['bed'])
         db = conf['json_db']
@@ -150,7 +150,9 @@ class DefaultTemplate(DocxResultTemplate):
 
         resistant_drugs_tmp = [r['drug'] for r in rows if r['change']!=""]
         resistant_drugs = [d for d in conf['drugs'] if d.title() in resistant_drugs_tmp]
-        if len(resistant_drugs)>0:
+        if len(resistant_drugs)==1:
+            result_summary = f"Known resistance variants for {resistant_drugs[0]} detected."
+        elif len(resistant_drugs)>1:
             result_summary = f"Known resistance variants for {', '.join(resistant_drugs[:-1])} and {resistant_drugs[-1]} detected."
         else:
             result_summary = "No known resistance variants detected."
@@ -216,7 +218,12 @@ class DefaultTemplate(DocxResultTemplate):
                     'comment':other_comments.get(d.get('comment',''),'')
                 })
 
-
+        if isinstance(result.qc,FastaQC):
+            median_depth = 'Median depth not available for Fasta input data'
+        elif isinstance(result.qc,VcfQC):
+            median_depth = 'Median depth not available for VCF input data'
+        else:
+            median_depth = result.qc.target_median_depth
 
         context = {
             'd': result.model_dump(),
@@ -228,7 +235,8 @@ class DefaultTemplate(DocxResultTemplate):
             'fail_variants': fail_variants,
             'fail_comments': fail_comments,
             'other_variants': other_variants,
-            'other_comments': other_comments
+            'other_comments': other_comments,
+            'target_median_depth': median_depth
         }
 
         tpl = DocxTemplate(self.template_filename)
