@@ -28,6 +28,10 @@ setuptools.setup(
         (
             'share/tbprofiler/tbdb/snpeff/data/Mycobacterium_tuberculosis_h37rv',
             [x for x in glob("db/tbdb/snpeff/data/Mycobacterium_tuberculosis_h37rv/*") if not os.path.isdir(x)]
+        ),
+        (
+            'share/tbprofiler/',
+            [x for x in glob("db/*docx") if not os.path.isdir(x)]
         )
     ],
 )
