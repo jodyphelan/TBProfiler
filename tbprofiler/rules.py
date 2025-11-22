@@ -5,6 +5,7 @@ from .models import ProfileResult
 from typing import List
 import math
 import argparse
+import re
 
 
 def search_variant(variants: List[Variant], **kwargs) -> List[Variant]:
@@ -53,11 +54,50 @@ def inactivate_drug_resistance(variants: List[Variant]):
 class Rule(ProfilePlugin):
     pass
 
+class lineageResistanceRule(Rule):
+    """
+    A rule which adds intrinsic resistance to report
+    if a lineage is found
+    """
+    __domain__ = 'result'
+    def process_result (
+            self,
+            args: argparse.Namespace,
+            lineage: str,
+            drug: str,
+            result: ProfileResult,
+            **kwargs
+        ):
+        for l in result.lineage:
+            if l.lineage==lineage:
+                result.notes.append(kwargs['note'])
+
+        
+class SequencingArtefectRule(Rule):
+    """
+    A rule which flags a warding when a variant is found in a certain
+    position in a gene
+    """
+    __domain__ = 'result'
+    def process_result (
+        self,
+        args: argparse.Namespace,
+        result: ProfileResult,
+        **kwargs
+    ):
+        for var in result.dr_variants + result.other_variants:
+            if var.gene_name==kwargs['gene'] or var.gene_id==kwargs['gene']:
+                r = re.search('c.([0-9]+).>.',var.nucleotide_change)
+                if r:
+                    result.notes.append(kwargs['note'])
+    
+        
+
 class epistasisRule(Rule):
     """
     Epistasis rule
     """
-
+    __domain__ = 'variants'
     def process_variants(
             self, 
             source:dict, 

@@ -21,6 +21,7 @@ from copy import deepcopy
 import yaml
 import importlib
 import pkgutil
+from collections import defaultdict
 
 
 discovered_plugins = {
@@ -144,8 +145,21 @@ def main_profile(args):
         plugin().process_variants(args,variants_profile)
 
     rules_file = args.conf['rules']
+    rule_class_dict = defaultdict(list)
+    rule_domain_dict = {}
+    for Rule in tbp.Rule.__subclasses__():
+        rule_class_dict[Rule.__name__].append(Rule)
+        rule_domain_dict[Rule.__name__] = Rule.__domain__
+
+    
     for rule in yaml.load(open(rules_file),Loader=yaml.SafeLoader).values():
-        tbp.apply_epistasis_rule(args,variants_profile,rule)
+        if rule_domain_dict[rule['type']]=='variants':
+            for Rule in rule_class_dict[rule['type']]:
+                print(rule)
+                Rule().process_variants(args=args,variants=variants_profile,**rule)
+
+
+    
 
     tbp.clean_up_duplicate_annotations(variants_profile)
 
@@ -179,6 +193,12 @@ def main_profile(args):
         variants=variants_profile,
         qc=qc,
     )
+
+    for rule in yaml.load(open(rules_file),Loader=yaml.SafeLoader).values():
+        if rule_domain_dict[rule['type']]=='result':
+            for Rule in rule_class_dict[rule['type']]:
+                Rule().process_result(args=args,result=result,**rule)
+
 
     for plugin in tbp.ProfilePlugin.__subclasses__():
         plugin().process_result(args,result)
@@ -258,7 +278,7 @@ def main_update_tbdb(args):
 
     extra_args = " ".join(extra_args)
     with TempFilePrefix() as tmpfile:
-        pp.run_cmd(f"tb-profiler create_db --force --db_dir {args.db_dir} --prefix {args.prefix} --csv mutations.csv --watchlist watchlist.csv {extra_args} --load")
+        pp.run_cmd(f"tb-profiler create_db --create_index --force --db_dir {args.db_dir} --prefix {args.prefix} --csv mutations.csv --watchlist watchlist.csv {extra_args} --load")
 
     os.chdir("../")
     pp.logging.info("Sucessfully updated TBDB")
@@ -445,10 +465,27 @@ filtering.add_argument('--sv_af','--sv-af',default="0.5,0.9",type=str,help='Stru
 filtering.add_argument('--sv_len','--sv-len',default="100000,50000",type=str,help='Structural variant maximum size hard and soft cutoff specified as comma separated values')
 
 algorithm=parser_sub.add_argument_group("Algorithm options")
-algorithm.add_argument('--mapper',default="bwa", choices=["bwa","minimap2","bowtie2","bwa-mem2"],help="Mapping tool to use. If you are using nanopore or pacbio data it will default to minimap2",type=str)
-algorithm.add_argument('--caller',default="freebayes", choices=variant_callers,help="Variant calling tool to use.",type=str)
+algorithm.add_argument(
+    '--mapper',
+    default="bwa", 
+    choices=["bwa","minimap2","bowtie2","bwa-mem2"],
+    help="Mapping tool to use. If you are using nanopore or pacbio data it will default to minimap2",
+    type=str
+)
+algorithm.add_argument(
+    '--caller',
+    default="freebayes", 
+    choices=variant_callers,
+    help="Variant calling tool to use.",
+    type=str
+)
+algorithm.add_argument(
+    '--calling_params',
+    '--calling-params',
+    type=str,
+    help='Override default parameters for variant calling'
+)
 
-algorithm.add_argument('--calling_params','--calling-params',type=str,help='Override default parameters for variant calling')
 for cls in vc.VariantCaller.__subclasses__():
     if hasattr(cls,"__cli_params__"):
         for a in cls.__cli_params__:
@@ -596,6 +633,7 @@ parser_sub.add_argument('--bedmask',default="mask.bed",type=str,help='A bed file
 parser_sub.add_argument('--rules',default="rules.yml",type=str,help='A yaml file containing rules for the resistance library')
 parser_sub.add_argument('--amplicon_primers','--amplicon-primers',type=str,help='A file containing a list of amplicon primers')
 parser_sub.add_argument('--match_ref','--match-ref',type=str,help='Match the chromosome name to the given fasta file')
+parser_sub.add_argument('--create_index','--create-index',action="store_true",help='Create a samtools, gatk and bwa index for the reference genome')
 parser_sub.add_argument('--custom',action="store_true",help='Tells the script this is a custom database, this is used to alter the generation of the version definition')
 parser_sub.add_argument('--db_name',help='Overrides the name of the database in the version file')
 parser_sub.add_argument('--db_commit','--db-commit',help='Overrides the commit string of the database in the version file')
