@@ -155,7 +155,6 @@ def main_profile(args):
     for rule in yaml.load(open(rules_file),Loader=yaml.SafeLoader).values():
         if rule_domain_dict[rule['type']]=='variants':
             for Rule in rule_class_dict[rule['type']]:
-                print(rule)
                 Rule().process_variants(args=args,variants=variants_profile,**rule)
 
 
@@ -333,8 +332,8 @@ def main_load_library(args):
 
     
         
-        variables_file = "%(prefix)s.variables.json" % vars(args)
-        pp.load_db(variables_file,args.db_dir,source_dir=source_dir)
+        # variables_file = "%(prefix)s.variables.json" % vars(args)
+        pp.load_db(args.prefix,args.db_dir,force=args.force)
     
 
 
