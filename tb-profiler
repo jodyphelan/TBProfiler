@@ -333,7 +333,7 @@ def main_load_library(args):
     
         
         # variables_file = "%(prefix)s.variables.json" % vars(args)
-        pp.load_db(args.prefix,args.db_dir,source_dir=source_dir)
+        pp.load_db(args.prefix,args.db_dir,force=args.force)
     
 
 
