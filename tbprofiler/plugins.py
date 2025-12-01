@@ -12,7 +12,7 @@ class ProfilePlugin:
         """Generic pre-check method"""
         pass
 
-    def run(self):
+    def run(self,*args,**kwargs):
         """Generic run method"""
         pass
 

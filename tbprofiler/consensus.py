@@ -1,3 +1,4 @@
+import logging
 from pathogenprofiler.utils import run_cmd, cmd_out, TempFilePrefix
 import pysam
 import argparse
@@ -5,12 +6,13 @@ import os
 from uuid import uuid4
 import numpy as np
 
-def robust_bounds(data, k=3):
+def robust_bounds(data, k=5):
     median = np.median(data)
     mad = np.median(np.abs(data - median))
     mad_scaled = 1.4826 * mad
     lower = median - k * mad_scaled
     upper = median + k * mad_scaled
+    logging.debug(f"Robust bounds for depth: {median} [{lower}, {upper}]")
     return lower, upper
 
 def generate_low_dp_mask(bam: str,ref: str,outfile: str,min_dp: int = 10) -> None:
@@ -65,22 +67,30 @@ def prepare_sample_consensus(
     ) -> str:
     with TempFilePrefix() as tmp:
         tmp_vcf = f"{tmp}.{sample_name}.vcf.gz"
+        masked_regions_cmd = f"bcftools view -T ^{excluded_regions}"
+        if low_dp_regions:
+            masked_regions_cmd += f" | bcftools view -T ^{low_dp_regions}"
         run_cmd(f"""
             bcftools norm -m - {input_vcf} \
-                | bcftools view -T ^{excluded_regions} \
+                | {masked_regions_cmd} \
                 | annotate_maaf.py \
-                | bcftools view -e 'type="indel" && MAAF<0.5' \
                 | bcftools filter -S . -e 'GT="alt" && MAAF<0.7' \
-                | bcftools filter --SnpGap 50 \
+                | snp-gap.py \
                 | rename_vcf_sample.py --sample-name {sample_name} \
                 | bcftools view -v snps -Oz -o {tmp_vcf}
         """)
         run_cmd(f"bcftools index {tmp_vcf}")
+        
+        run_cmd(f"vcf-extract-mixed-pos-bed.py --vcf {tmp_vcf} --lb 0.2 --ub 0.8 > {tmp_vcf}.mixed_positions.bed ")
         if low_dp_regions:
-            mask_cmd = f"-m {low_dp_regions} -M N"
+            mask_cmd = f"-m {low_dp_regions} -m {tmp_vcf}.mixed_positions.bed -m {excluded_regions}"
         else:
-            mask_cmd = ""
+            mask_cmd = f"-m {excluded_regions}"
+
+
+        
         run_cmd(f"bcftools consensus --sample {sample_name} {mask_cmd} -f {ref} {tmp_vcf} | sed 's/>/>{sample_name} /' > {output_file}")
+        return output_file
 
 def cli_prepare_sample_consensus(sample: str,input_vcf: str,args: argparse.Namespace) -> str:
     

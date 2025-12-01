@@ -1,3 +1,4 @@
+import os
 import setuptools
 from glob import glob
 
@@ -15,5 +16,22 @@ setuptools.setup(
 		'tb-profiler',
 		'scripts/tb-profiler-tools'
 		],
-	data_files=[('share/tbprofiler',glob("db/*"))],
+	data_files=[
+        (
+            'share/tbprofiler/tbdb',
+            [x for x in glob("db/tbdb/*") if not os.path.isdir(x)]
+        ),
+        (
+            'share/tbprofiler/tbdb/snpeff',
+            [x for x in glob("db/tbdb/snpeff/*") if not os.path.isdir(x)]
+        ),
+        (
+            'share/tbprofiler/tbdb/snpeff/data/Mycobacterium_tuberculosis_h37rv',
+            [x for x in glob("db/tbdb/snpeff/data/Mycobacterium_tuberculosis_h37rv/*") if not os.path.isdir(x)]
+        ),
+        (
+            'share/tbprofiler/',
+            [x for x in glob("db/*docx") if not os.path.isdir(x)]
+        )
+    ],
 )
