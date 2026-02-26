@@ -106,17 +106,58 @@ class ProfileResult(Result):
     qc_fail_variants: List[Union[TbDrVariant,TbVariant]] = []
     qc: Union[BamQC, FastaQC, VcfQC]
     linked_samples: List[LinkedSample] = []
+    gene_name2locus_tag: dict = {}
 
-    def get_qc(self):
+    def get_qc(self, sep="\t"):
         if isinstance(self.qc, (BamQC, FastaQC)):
-            text = object_list2text(l = self.qc.target_qc)
+            lt2gene = {v: k for k, v in self.gene_name2locus_tag.items()}
+            rows = []
+            for item in self.qc.target_qc:
+                if hasattr(item, "model_dump"):
+                    row = item.model_dump()
+                elif isinstance(item, dict):
+                    row = dict(item)
+                else:
+                    row = vars(item).copy()
+
+                target = row.get("target", "")
+                if target in lt2gene:
+                    row["locus_tag"] = target
+                    row["gene_name"] = lt2gene[target]
+                else:
+                    row["locus_tag"] = self.gene_name2locus_tag.get(target, row.get("locus_tag", ""))
+                    row["gene_name"] = target
+
+                ordered_row = {
+                    "locus_tag": row.get("locus_tag", ""),
+                    "gene_name": row.get("gene_name", row.get("target", "")),
+                }
+                for key, val in row.items():
+                    if key in ("locus_tag", "gene_name", "target"):
+                        continue
+                    ordered_row[key] = val
+                rows.append(ordered_row)
+            text = dict_list2text(l=rows, sep=sep)
         else:
             text = "Not available for VCF input"
         return text
 
     def get_missing_pos(self,sep="\t"):
         if isinstance(self.qc, (BamQC,)):
-            text = object_list2text(self.qc.missing_positions,mappings={"pos":"Genome Position","annotation.gene":"Gene","annotation.variant":"Variant", "depth":"Depth"},sep=sep)
+            text = object_list2text(
+                self.qc.missing_positions,
+                mappings={
+                    "pos":"Genome Position",
+                    "annotation.locus_tag":"Locus Tag",
+                    "annotation.gene_name":"Gene name",
+                    "annotation.variant":"Variant",
+                    "annotation.drug":"Drug",
+                    "annotation.source":"Source",
+                    "annotation.confidence":"Confidence",
+                    "depth":"Depth"
+                },
+                sep=sep
+            )
         else:
             text = "Not available for input data type"
         return text
