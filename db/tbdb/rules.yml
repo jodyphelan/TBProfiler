@@ -34,3 +34,16 @@ rpoB1346Rule:
   gene: rpoB
   gene_position: 1346
   note: 'Changes at position 1346 in codon 449 of rpoB detected with Illumina sequencing, particularly if unfixed, may represent artefacts.'
+
+rpt_rule:
+  type: CrossResistanceRule
+  source_drug: rifampicin
+  target_drug: rifapentine
+  note: 'Groups 1–5 classifications for rifampicin also apply to rifapentine'
+
+eto_rule:
+  type: CrossResistanceRule
+  source_drug: ethionamide
+  target_drug: prothionamide
+  note: 'Groups 1–5 classifications for ethionamide also apply to prothionamide'
+
