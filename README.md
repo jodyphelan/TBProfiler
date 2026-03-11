@@ -131,7 +131,7 @@ tb-profiler collate
 
 This will automatically create a number of colled result files from all the individual result files in the _result_ directory. If you would like to generate this file for a subset of the runs you can provide a list with the run sames using the `--samples` flag. The prefix for the output files is _tbprofiler_ by default but this can be changed with the `--prefix` flag.
 
-If `tb-profiler` has been run using the `--snp_dist` argument, the `collate` function will also generate a transmission graph in json format that can be visualised by dragging and dropping the file into [this site](https://jodyphelan.github.io/transmission-graph-viewer)
+If `tb-profiler` has been run using the `--snp_dist` argument, the `collate` function will also generate a transmission graph in json format that can be visualised by dragging and dropping the file into [this site](https://jodyphelan.github.io/tgv/)
 
 ### Writing your own summary scripts
 
@@ -165,6 +165,11 @@ Several files are produced by the `tb-profile collate` function. Among these are
 *   Lineage
 *   Drug resistance classes \(Susceptible, RR-TB, HR-TB, MDR-TB, Pre-XDR-TB, XDR\)
 *   Drug resistance calls for individual drugs, were filled circles represent resistance.
+
+If you would like the ITOL config files to be generated add the `itol` argument to the `collate` function.
+```bash
+tb-profiler collate --itol
+```
 
 ![](https://github.com/jodyphelan/jodyphelan.github.io/raw/master/img/itol_example.png)
 

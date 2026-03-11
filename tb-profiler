@@ -298,8 +298,8 @@ def main_create_db(args):
         dbs = pp.list_db(args.software_name)
         names = [x['version']['name'] for x in dbs]
         if args.prefix in names:
-            pp.warninglog("\nWarning: A database with this name already exists!\n")
-            sys.exit()
+            logging.error("\nERROR: A database with this name already exists!\n")
+            sys.exit(1)
 
     extra_files = {
         "spoligotype_spacers": args.spoligotypes,
@@ -331,8 +331,8 @@ def main_load_library(args):
 
             variables_files = glob.glob(f"{tmpfolder}/*.variables.json")
             if len(variables_files)!=1:
-                pp.errorlog("Archive must contain only one variables file")
-                sys.exit()
+                logging.error("\nERROR: Archive must contain only one variables file")
+                sys.exit(1)
             variables_file = variables_files[0]
             args.prefix = "{}/{}".format(tmpfolder,variables_file.split("/")[-1].replace(".variables.json",""))
             source_dir = os.path.realpath(tmpfolder)
@@ -380,7 +380,7 @@ def main_batch(args):
 
 
     for row in csv.DictReader(open(args.csv)):
-        line = f"tb-profiler profile -p {row['id']} --threads {args.threads_per_job}"
+        line = f"tb-profiler profile -p {row['id']} --temp {args.temp} --dir {args.dir} --threads {args.threads_per_job}"
         if "bam" in row:
             line += f" -a {row['bam']}" 
         elif "read1" in row:

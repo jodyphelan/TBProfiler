@@ -85,14 +85,21 @@ def collate_results(args: argparse.Namespace) -> None:
     drugs = args.conf['drugs']
 
     samples = {}
+    sample_suffix = '.results.json'
     for d in args.dir:
         for f in os.listdir(f"{d}/"):
-            if f.endswith(".results.json"):
-                s = f.replace(".results.json","")
-                samples[s] = f'{d}/{s}.results.json'
+            if f.endswith(sample_suffix):
+                s = f.replace(sample_suffix,"")
+                samples[s] = f'{d}/{s}{sample_suffix}'
     
+    # add samples from file with list of sample files
     if args.samples:
         samples = {s:samples[s] for s in [l.strip() for l in open(args.samples)]}
+    
+    if len(samples) == 0:
+        logging.error(f"\nERROR: No samples found in the provided directories (samples are expected to have suffix {sample_suffix})")
+        exit(1)
+
 
     rows = []
     edges = set()
