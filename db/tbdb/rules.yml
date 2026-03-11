@@ -22,9 +22,9 @@ eis_rule:
   source_inactivation_freq_cutoff: 100
   target_escape_freq_cutoff: 50
   
-canetti_pza_rule:
+canettii_pza_rule:
   type: lineageResistanceRule
-  lineage: M.canetti
+  lineage: M.canettii
   drug: pyrazinamide
   note: 'M. canettii is intrinsically resistant to pyrazinamide'
 
