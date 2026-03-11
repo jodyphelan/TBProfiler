@@ -120,7 +120,7 @@ def get_drtypes(dr_variants: List[TbDrVariant]) -> str:
     gpa = len(groupA_set.intersection(resistant_drugs)) > 0
 
     if len(resistant_drugs)==0:
-        drtype = "Sensitive"
+        drtype = "Susceptible"
     elif (rif and not inh) and not flq:
         drtype = "RR-TB"
     elif (inh and not rif):
