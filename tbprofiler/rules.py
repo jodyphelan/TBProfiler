@@ -89,7 +89,10 @@ class SequencingArtefectRule(Rule):
             if var.gene_name==kwargs['gene'] or var.gene_id==kwargs['gene']:
                 r = re.search('c.([0-9]+).>.',var.nucleotide_change)
                 if r:
-                    result.notes.append(kwargs['note'])
+                    if r.group(1) == str(kwargs['gene_position']):
+                        logging.debug(f"Adding sequencing artefact note for {var.gene_name} {var.change} at position {r.group(1)}")
+
+                        result.notes.append(kwargs['note'])
     
         
 
@@ -173,3 +176,63 @@ class SetConfidence(ProfilePlugin):
                     var.annotation.append(ann)
                     logging.debug(f'{var.gene_name} {var.change} does not have a confidence value for {drug}. Setting it to {confidence[drug]}')
 
+class CrossResistanceRule(Rule):
+
+    """
+    Cross resisrance rule rule
+    """
+    __domain__ = 'variants'
+    def process_variants(
+            self, 
+            source_drug: str,
+            target_drug: str,
+            note: str,
+            args: argparse.Namespace,
+            variants: List[Variant], 
+            **kwargs
+        ):
+        for var in variants:
+            for ann in list(var.annotation):
+                new_ann = ann.copy()
+                if 'drug' in ann and source_drug == ann['drug']:
+                    new_ann['drug'] = target_drug
+                    new_ann['comment'] = note
+                    var.annotation.append(new_ann)
+                    logging.debug(f'Adding cross resistance annotation to {var.gene_name} {var.change} for {target_drug} based on {source_drug} annotation')
+
+def is_resistance_variant(var: Variant, drug: str) -> bool:
+    for ann in var.annotation:
+        if ann['type']=='drug_resistance' and ann['drug']==drug:
+            return True
+    return False
+
+class ResistanceLevelRule(Rule):
+    """
+    Docstring for ResistanceLevelRule
+    """
+    __domain__ = 'variants'
+    def process_variants(
+            self, 
+            drug: str,
+            target_variants: List[dict],
+            args: argparse.Namespace,
+            variants: List[Variant], 
+            **kwargs
+        ):
+
+        high_level_resistance_variants = []
+        for v in target_variants:
+            if v['resistance_level'].lower() == 'high':
+                high_level_resistance_variants.append((v['gene_name'],v['change']))
+        print(high_level_resistance_variants)
+        for var in variants:
+            key = (var.gene_name, var.change)
+            if is_resistance_variant(var,drug):
+                    resistance_level = 'high' if key in high_level_resistance_variants else kwargs['default_resistance_level']
+                    var.annotation.append({
+                        'type':'resistance_level',
+                        'drug':drug,
+                        'resistance_level': resistance_level,
+                        'comment':'High level resistance mutation' if key in high_level_resistance_variants else 'Low level resistance mutation'
+                    })
+                    logging.debug(f'Setting resistance level to {resistance_level} for {var.gene_name} {var.change} for {drug}')
