@@ -56,7 +56,7 @@ Chromosome	3624910	3626860	Rv3245c	mtrB	bedaquiline,rifampicin
 Chromosome	3626663	3627924	Rv3246c	mtrA	bedaquiline,rifampicin
 Chromosome	3640207	3641538	Rv3261	fbiA	clofazimine,delamanid,pretomanid
 Chromosome	3641335	3642881	Rv3262	fbiB	clofazimine,delamanid,pretomanid
-Chromosome	3840194	3841620	Rv3423c	alr	cycloserine
+Chromosome	3840194	3841548	Rv3423c	alr	cycloserine
 Chromosome	3877464	3879240	Rv3457c	rpoA	rifampicin
 Chromosome	3986612	3987299	Rv3547	ddn	delamanid,pretomanid
 Chromosome	4038158	4041013	Rv3596c	clpC1	pyrazinamide

@@ -17977,10 +17977,10 @@ Chromosome	ena	mRNA	3839691	3840197	.	-	.	ID=transcript:Rv3422c;Parent=gene:Rv34
 Chromosome	ena	exon	3839691	3840197	.	-	.	Parent=transcript:Rv3422c;Name=Rv3422c-1;constitutive=1;ensembl_end_phase=0;ensembl_phase=0;exon_id=Rv3422c-1;rank=1
 Chromosome	ena	CDS	3839691	3840197	.	-	0	ID=CDS:Rv3422c;Parent=transcript:Rv3422c;protein_id=Rv3422c
 ###
-Chromosome	ena	gene	3840194	3841420	.	-	.	ID=gene:Rv3423c;Name=alr;biotype=protein_coding;description=Alanine racemase Alr;gene_id=Rv3423c;logic_name=ena
-Chromosome	ena	mRNA	3840194	3841420	.	-	.	ID=transcript:Rv3423c;Parent=gene:Rv3423c;Name=alr-1;biotype=protein_coding;transcript_id=Rv3423c
-Chromosome	ena	exon	3840194	3841420	.	-	.	Parent=transcript:Rv3423c;Name=Rv3423c-1;constitutive=1;ensembl_end_phase=0;ensembl_phase=0;exon_id=Rv3423c-1;rank=1
-Chromosome	ena	CDS	3840194	3841420	.	-	0	ID=CDS:Rv3423c;Parent=transcript:Rv3423c;protein_id=Rv3423c
+Chromosome	ena	gene	3840194	3841348	.	-	.	ID=gene:Rv3423c;Name=alr;biotype=protein_coding;description=Alanine racemase Alr;gene_id=Rv3423c;logic_name=ena
+Chromosome	ena	mRNA	3840194	3841348	.	-	.	ID=transcript:Rv3423c;Parent=gene:Rv3423c;Name=alr-1;biotype=protein_coding;transcript_id=Rv3423c
+Chromosome	ena	exon	3840194	3841348	.	-	.	Parent=transcript:Rv3423c;Name=Rv3423c-1;constitutive=1;ensembl_end_phase=0;ensembl_phase=0;exon_id=Rv3423c-1;rank=1
+Chromosome	ena	CDS	3840194	3841348	.	-	0	ID=CDS:Rv3423c;Parent=transcript:Rv3423c;protein_id=Rv3423c
 ###
 Chromosome	ena	gene	3841714	3842076	.	-	.	ID=gene:Rv3424c;biotype=protein_coding;description=Hypothetical protein;gene_id=Rv3424c;logic_name=ena
 Chromosome	ena	mRNA	3841714	3842076	.	-	.	ID=transcript:Rv3424c;Parent=gene:Rv3424c;biotype=protein_coding;transcript_id=Rv3424c

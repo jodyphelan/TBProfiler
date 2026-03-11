@@ -1,5 +1,5 @@
 {
-    "db-schema-version": "2.0.0",
+    "db-schema-version": "2.1.0",
     "snpEff_db": "Mycobacterium_tuberculosis_h37rv_tbprofiler",
     "drugs": [
         "rifampicin",
@@ -27,13 +27,13 @@
     "type": "reference",
     "version": {
         "name": "tbdb",
-        "repo": "https://github.com/jodyphelan/tbdb.git",
-        "branch": "tbdb",
-        "commit": "0a909094",
-        "status": "clean",
+        "repo": "git@github.com:jodyphelan/tbdb.git",
+        "branch": "master",
+        "commit": "13b6ed45",
+        "status": "modified",
         "author": "jodyphelan",
-        "date": "Tue Aug 5 10:43:00 2025 +0100",
-        "db-schema-version": "2.0.0",
+        "date": "Tue Aug 5 10:37:18 2025 +0100",
+        "db-schema-version": "2.1.0",
         "tb-profiler-version": ">=6.6.0,<7.0.0"
     },
     "amplicon": false,
