@@ -1,0 +1,53 @@
+{
+    "db-schema-version": "2.1.0",
+    "snpEff_db": "Mycobacterium_tuberculosis_h37rv_tbprofiler",
+    "drugs": [
+        "rifampicin",
+        "rifapentine",
+        "isoniazid",
+        "ethambutol",
+        "pyrazinamide",
+        "moxifloxacin",
+        "levofloxacin",
+        "bedaquiline",
+        "delamanid",
+        "pretomanid",
+        "linezolid",
+        "streptomycin",
+        "amikacin",
+        "kanamycin",
+        "capreomycin",
+        "clofazimine",
+        "ethionamide",
+        "prothionamide",
+        "para-aminosalicylic_acid",
+        "cycloserine"
+    ],
+    "tb-profiler-version": ">=6.6.0,<7.0.0",
+    "type": "reference",
+    "version": {
+        "name": "who_v2+",
+        "repo": "git@github.com:jodyphelan/tbdb.git",
+        "branch": "who_v2+",
+        "commit": "7fe4364e",
+        "status": "modified",
+        "author": "jodyphelan",
+        "date": "Thu Mar 12 18:19:10 2026 +0100",
+        "db-schema-version": "2.1.0",
+        "tb-profiler-version": ">=6.6.0,<7.0.0"
+    },
+    "amplicon": false,
+    "files": {
+        "snpEff_config": "snpeff/snpEff.config",
+        "ref": "genome.fasta",
+        "gff": "genome.gff",
+        "bed": "genes.bed",
+        "json_db": "mutations.json",
+        "variables": "variables.json",
+        "spoligotype_spacers": "spoligotype_spacers.txt",
+        "spoligotype_annotations": "spoligotype_list.csv",
+        "bedmask": "mask.bed",
+        "rules": "rules.yml",
+        "barcode": "barcode.bed"
+    }
+}
