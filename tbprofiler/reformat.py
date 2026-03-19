@@ -1,7 +1,7 @@
 from pathogenprofiler.models import BarcodeResult, Variant, BamQC, FastaQC, DrVariant, GenomePosition
 from .models import Lineage, TbDrVariant, TbVariant, ProfileResult, Spoligotype, LineageResult, Pipeline
 from typing import List, Tuple , Union, Optional
-from .utils import get_gene2drugs
+from .utils import get_gene2drugs, rv2genes, genes2rv
 import argparse
 from pathogenprofiler.utils import shared_dict, get_software_used
 
@@ -120,7 +120,7 @@ def get_drtypes(dr_variants: List[TbDrVariant]) -> str:
     gpa = len(groupA_set.intersection(resistant_drugs)) > 0
 
     if len(resistant_drugs)==0:
-        drtype = "Sensitive"
+        drtype = "Susceptible"
     elif (rif and not inh) and not flq:
         drtype = "RR-TB"
     elif (inh and not rif):
@@ -198,6 +198,33 @@ def filter_missing_positions(missing_positions: List[GenomePosition]) -> List[Ge
     
     return [pos for pos in missing_positions if len(pos.annotation)>0]
 
+
+def add_missing_position_gene_fields(
+    missing_positions: List[GenomePosition],
+    bed_file: str
+) -> List[GenomePosition]:
+    """
+    Add both locus tag and gene symbol fields to missing position annotations.
+    """
+    lt2gene = rv2genes(bed_file)
+    gene2lt = genes2rv(bed_file)
+    for pos in missing_positions:
+        for ann in pos.annotation:
+            if "gene" not in ann:
+                continue
+
+            original_gene = ann["gene"]
+            if original_gene in lt2gene:
+                ann["locus_tag"] = original_gene
+                ann["gene_name"] = lt2gene[original_gene]
+            elif original_gene in gene2lt:
+                ann["locus_tag"] = gene2lt[original_gene]
+                ann["gene_name"] = original_gene
+            else:
+                ann["locus_tag"] = ann.get("locus_tag", original_gene)
+                ann["gene_name"] = ann.get("gene_name", "")
+    return missing_positions
+
 def create_lineage_result(
     args: argparse.Namespace,
     lineage: List[Lineage]
@@ -237,6 +264,7 @@ def create_resistance_result(
     )
     if hasattr(qc, 'missing_positions'):
         qc.missing_positions = filter_missing_positions(qc.missing_positions)
+        qc.missing_positions = add_missing_position_gene_fields(qc.missing_positions, args.conf['bed'])
 
     data = {
         'id':args.prefix,
@@ -249,6 +277,7 @@ def create_resistance_result(
         'qc_fail_variants':fail_variants,
         'sub_lineage':sub_lineage,
         'main_lineage':main_lineage,
+        'gene_name2locus_tag': genes2rv(args.conf['bed']),
         'pipeline':pipeline
     }
 

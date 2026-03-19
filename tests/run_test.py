@@ -39,7 +39,7 @@ por5_dr_variants = [
 ]
 
 db = 'testdb'
-branch = 'who'
+branch = 'who_v2+'
 
 def test_db():
     run_cmd(f"tb-profiler update_tbdb --branch {branch} --prefix {db}")

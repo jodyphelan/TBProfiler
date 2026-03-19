@@ -203,7 +203,7 @@ def generate_itol_config(rows: List[dict], drugs: list, prefix: str) -> None:
         "La1": "Animal strains",
         "La2": "Animal strains",
         "La3": "Animal strains",
-        "M.canetti":"Other",
+        "M.canettii":"Other",
         "M.caprae":"Animal strains",
         "M.bovis":"Animal strains",
         "M.orygis":"Animal strains"
@@ -217,7 +217,7 @@ def generate_itol_config(rows: List[dict], drugs: list, prefix: str) -> None:
     writer.write(lineage_outfile)
 
     all_dr_cols = {
-        "Sensitive":"#28a745",
+        "Susceptible":"#28a745",
         "RR-TB":"#007bff",
         "HR-TB":"#E0ACD5",
         "MDR-TB":"#ffc107",

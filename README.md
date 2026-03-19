@@ -163,7 +163,7 @@ The pipeline searches for small variants and big deletions associated with drug 
 Several files are produced by the `tb-profile collate` function. Among these are several config files that can be used with [iTOL](http://itol.embl.de/) to annotate phylogenetic trees. A small tree and config files have been placed in the _example\_data_ directory. To use navigate to the iTOL website and upload the _tbprofiler.tree_ file using the upload button on the navigation bar. Once this has been uploaded you will be taken to a visualisation of the tree. To add the annotation, click on the '+' button on the lower right hand corner and select the iTOL config files. You should now see a figure similar to the one below. The following annotations are included:
 
 *   Lineage
-*   Drug resistance classes \(Sensitive, RR-TB, HR-TB, MDR-TB, Pre-XDR-TB, XDR\)
+*   Drug resistance classes \(Susceptible, RR-TB, HR-TB, MDR-TB, Pre-XDR-TB, XDR\)
 *   Drug resistance calls for individual drugs, were filled circles represent resistance.
 
 If you would like the ITOL config files to be generated add the `itol` argument to the `collate` function.

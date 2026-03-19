@@ -18,16 +18,16 @@ setuptools.setup(
 		],
 	data_files=[
         (
-            'share/tbprofiler/tbdb',
-            [x for x in glob("db/tbdb/*") if not os.path.isdir(x)]
+            'share/tbprofiler/who_v2+',
+            [x for x in glob("db/who_v2+/*") if not os.path.isdir(x)]
         ),
         (
-            'share/tbprofiler/tbdb/snpeff',
-            [x for x in glob("db/tbdb/snpeff/*") if not os.path.isdir(x)]
+            'share/tbprofiler/who_v2+/snpeff',
+            [x for x in glob("db/who_v2+/snpeff/*") if not os.path.isdir(x)]
         ),
         (
-            'share/tbprofiler/tbdb/snpeff/data/Mycobacterium_tuberculosis_h37rv',
-            [x for x in glob("db/tbdb/snpeff/data/Mycobacterium_tuberculosis_h37rv/*") if not os.path.isdir(x)]
+            'share/tbprofiler/who_v2+/snpeff/data/Mycobacterium_tuberculosis_h37rv_tbprofiler',
+            [x for x in glob("db/who_v2+/snpeff/data/Mycobacterium_tuberculosis_h37rv_tbprofiler/*") if not os.path.isdir(x)]
         ),
         (
             'share/tbprofiler/',
