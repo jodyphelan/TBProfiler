@@ -224,7 +224,6 @@ class ResistanceLevelRule(Rule):
         for v in target_variants:
             if v['resistance_level'].lower() == 'high':
                 high_level_resistance_variants.append((v['gene_name'],v['change']))
-        print(high_level_resistance_variants)
         for var in variants:
             key = (var.gene_name, var.change)
             if is_resistance_variant(var,drug):
