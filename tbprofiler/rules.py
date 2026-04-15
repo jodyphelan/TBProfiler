@@ -160,8 +160,8 @@ class SetConfidence(ProfilePlugin):
             
             for drug in var.gene_associated_drugs:
                 if drug not in confidence:
-                    if var.type=='synonymous_mutation':
-                        confidence[drug] = 'Not Assoc W R - Interim'
+                    if var.type=='synonymous_variant':
+                        confidence[drug] = 'Not assoc w R - Interim'
                     else:
                         confidence[drug] = 'Uncertain significance'
                     ann = {
