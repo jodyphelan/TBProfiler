@@ -235,3 +235,56 @@ class ResistanceLevelRule(Rule):
                         'comment':'High level resistance mutation' if key in high_level_resistance_variants else 'Low level resistance mutation'
                     })
                     logging.debug(f'Setting resistance level to {resistance_level} for {var.gene_name} {var.change} for {drug}')
+
+class CompensatoryRule(Rule):
+    """
+    Docstring for CompensatoryRule
+    """
+    __domain__ = 'variants'
+    def process_variants(
+        self, 
+        args: argparse.Namespace,
+        variants: List[Variant], 
+        resistance_gene: str,
+        compensatory_gene: str,
+        compensatory_mutations: List[str],
+        drug: str,
+        original_confidence: str,
+        updated_confidence: str,
+        note: str,
+        **kwargs
+    ):
+        compensatory_variant_present = False
+        for var in variants:
+            if var.gene_name==compensatory_gene and var.change in compensatory_mutations:
+                compensatory_variant_present = True
+                logging.debug(f"Found compensatory mutation {var.gene_name} {var.change} which may abrogate the effect of a linked resistance mutation in {resistance_gene} for {drug}")
+                break
+        
+        high_level_resistance_variants = False
+        for var in variants:
+            resistance_variant = False
+            for ann in var.annotation:
+                if ann['type']=='drug_resistance' and ann['drug']==drug and ann['confidence']=="Assoc w R":
+                    resistance_variant = True
+                    break
+
+            if var.gene_name==resistance_gene and resistance_variant:
+                for ann in var.annotation:
+                    if ann['type']=='who_confidence' and ann['drug']==drug and ann['confidence']==original_confidence:
+                        high_level_resistance_variants = True
+                        logging.debug(f"Found resistance mutation {var.gene_name} {var.change} with confidence {original_confidence} for {drug} which may be abrogated by compensatory mutation(s) in {compensatory_gene}")
+                        break
+
+        print(f"Compensatory variant present: {compensatory_variant_present}"
+              f"\nHigh level resistance variants present: {high_level_resistance_variants}")
+        if compensatory_variant_present and not high_level_resistance_variants:
+            for var in variants:
+                if var.gene_name==resistance_gene:
+                    for ann in var.annotation:
+                        if ann['type']=='who_confidence' and ann['drug']==drug and ann['confidence']==original_confidence:
+                            logging.debug(f"Updating confidence from {original_confidence} to {updated_confidence} for {var.gene_name} {var.change} for {drug} based on presence of compensatory mutation(s) in {compensatory_gene}")
+                            ann['confidence'] = updated_confidence
+                            ann['type'] = 'drug_resistance'
+                            ann['comment'] = note
+    

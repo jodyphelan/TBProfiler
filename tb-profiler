@@ -149,6 +149,7 @@ def main_profile(args):
     rule_domain_dict = {}
     for Rule in tbp.Rule.__subclasses__():
         rule_class_dict[Rule.__name__].append(Rule)
+        print("Adding rule %s to domain %s" % (Rule.__name__,Rule.__domain__))
         rule_domain_dict[Rule.__name__] = Rule.__domain__
 
     
@@ -166,10 +167,8 @@ def main_profile(args):
     for var in variants_profile:
         var.convert_to_dr_element()
 
-
     if args.call_lineage:
-        barcode_result = tbp.barcode2lineage(pp.run_barcoder(args))
-        
+        barcode_result = tbp.barcode2lineage(pp.run_barcoder(args)) 
 
     if args.spoligotype:
         spoligotype = tbp.spoligotype(args)
@@ -497,7 +496,7 @@ for cls in vc.VariantCaller.__subclasses__():
         for a in cls.__cli_params__:
             algorithm.add_argument(*a['args'],**a['kwargs'])
 
-algorithm.add_argument('--kmer_counter','--kmer-counter',default='FastK',choices=["FastK","kmc","dsk"],type=str,help="Kmer counter")
+algorithm.add_argument('--kmer_counter','--kmer-counter',default='dsk',choices=["kmc","dsk"],type=str,help="Kmer counter")
 algorithm.add_argument('--coverage_tool','--coverage-tool',default='samtools',choices=["samtools","bedtools"],type=str,help="Kmer counter")
 algorithm.add_argument('--suspect',action="store_true",help="Use the suspect suite of tools to add ML predictions")
 algorithm.add_argument('--spoligotype',action="store_true",help="Perform in-silico spoligotyping")
