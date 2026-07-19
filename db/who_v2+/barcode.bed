@@ -1,5 +1,6 @@
 Chromosome	1130	1131	lineage4.2.2.1	A	Euro-American	LAM7-TUR	None
 Chromosome	4205	4206	lineage4.1.3	T	Euro-American	T;X;H	None
+Chromosome	7900	7901	lineage10	T	None	None	None
 Chromosome	9943	9944	lineage4.2.2	C	Euro-American (Ural)	T;LAM7-TUR	None
 Chromosome	10359	10360	lineage1.2.2.1	C	Indo-Oceanic	NA	RD239
 Chromosome	10726	10727	La1.8	G	M.bovis	None	None
@@ -707,6 +708,7 @@ Chromosome	1912267	1912268	lineage5.1.1	C	West-Africa 1	AFRI_2;AFRI_3	RD711
 Chromosome	1914216	1914217	lineage3.1.2	A	East-African-Indian	CAS;CAS2	RD750
 Chromosome	1919626	1919627	lineage3.1.3	A	East-African-Indian	CAS	RD750
 Chromosome	1919735	1919736	lineage4.2.2.1	G	Euro-American	LAM7-TUR	None
+Chromosome	1920095	1920096	lineage10	T	None	None	None
 Chromosome	1924764	1924765	lineage1.1.1	C	Indo-Oceanic	EAI4;EAI5	RD239
 Chromosome	1925135	1925136	lineage3	A	East-African-Indian	CAS	RD750
 Chromosome	1931218	1931219	lineage4.1.2.1	A	Euro-American (Haarlem)	T1;H1	RD182
@@ -837,6 +839,7 @@ Chromosome	2602159	2602160	lineage6.3.1	A	West-Africa 2	AFRI_1	RD702
 Chromosome	2603796	2603797	lineage4.1.1	A	Euro-American (X-type)	X1;X2;X3	None
 Chromosome	2612299	2612300	La1	T	M.bovis	None	None
 Chromosome	2614030	2614031	lineage4.3.1.1	G	Euro-American (LAM)	LAM9	None
+Chromosome	2621729	2621730	lineage10	T	None	None	None
 Chromosome	2622401	2622402	lineage1.1.2	A	Indo-Oceanic	EAI3;EAI5	RD239
 Chromosome	2639867	2639868	lineage1.2.1.2	G	Indo-Oceanic	NA	RD239
 Chromosome	2640368	2640369	lineage4.1.2.1.1	A	Euro-American (Haarlem)	T1;H1	RD182
