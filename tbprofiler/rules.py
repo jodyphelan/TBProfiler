@@ -7,6 +7,7 @@ import math
 import argparse
 import re
 
+SILENT_MUTATIONS = ('synonymous_mutation','initiator_codon_variant','stop_retained_variant','start_retained_variant')
 
 def search_variant(variants: List[Variant], **kwargs) -> List[Variant]:
     type_expansions = {
@@ -160,7 +161,7 @@ class SetConfidence(ProfilePlugin):
             
             for drug in var.gene_associated_drugs:
                 if drug not in confidence:
-                    if var.type=='synonymous_mutation':
+                    if var.type in SILENT_MUTATIONS:                        
                         confidence[drug] = 'Not Assoc W R - Interim'
                     else:
                         confidence[drug] = 'Uncertain significance'
@@ -276,8 +277,8 @@ class CompensatoryRule(Rule):
                         logging.debug(f"Found resistance mutation {var.gene_name} {var.change} with confidence {original_confidence} for {drug} which may be abrogated by compensatory mutation(s) in {compensatory_gene}")
                         break
 
-        print(f"Compensatory variant present: {compensatory_variant_present}"
-              f"\nHigh level resistance variants present: {high_level_resistance_variants}")
+        logging.debug(f"Compensatory variant present: {compensatory_variant_present}"
+                      f"\nHigh level resistance variants present: {high_level_resistance_variants}")
         if compensatory_variant_present and not high_level_resistance_variants:
             for var in variants:
                 if var.gene_name==resistance_gene:
