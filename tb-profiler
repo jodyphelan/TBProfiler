@@ -149,7 +149,6 @@ def main_profile(args):
     rule_domain_dict = {}
     for Rule in tbp.Rule.__subclasses__():
         rule_class_dict[Rule.__name__].append(Rule)
-        print("Adding rule %s to domain %s" % (Rule.__name__,Rule.__domain__))
         rule_domain_dict[Rule.__name__] = Rule.__domain__
 
     
