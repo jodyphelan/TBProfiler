@@ -6,7 +6,7 @@ import logging
 import re
 from packaging.version import Version
 import sys
-
+from pathogenprofiler.utils import run_cmd
 def process_tb_profiler_args(args: argparse.Namespace) -> None:
     if args.snp_dist:
         args.call_whole_genome = True
@@ -119,3 +119,18 @@ def get_tier1_genes(dbname,dbdir=f'{sys.base_prefix}/share/tbprofiler'):
 
 def get_default_db_dir():
     return f'{sys.base_prefix}/share/tbprofiler'
+
+
+from pathogenprofiler import VariantCaller
+
+class IS6110Caller(VariantCaller):
+    __software__ = "is6110"
+    def call_variants(self) -> Vcf:
+        # Call variants using Freebayes
+        self.vcf_file = "%s.is6110.vcf.gz" % (self.prefix) 
+        if self.platform=="illumina":
+            cmd = f"is6110 -b {self.bam_file} -r {self.ref_file} -g {self.gff_file} -o {self.vcf_file}"
+        else:
+            raise NotImplementedError("%s not implemented for %s platform" % (self.__software__,self.platform))
+        run_cmd(cmd)
+        return Vcf(self.vcf_file)
