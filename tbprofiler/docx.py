@@ -117,7 +117,7 @@ class DefaultTemplate(DocxResultTemplate):
                     'change':var.change,
                     'freq':var.freq,
                     'confidence':d['confidence'],
-                    'comment':d['comments']
+                    'comment':d['comment']
                 })
 
         comments = {}
