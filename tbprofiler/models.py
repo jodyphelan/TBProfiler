@@ -6,6 +6,25 @@ from datetime import datetime
 
 __model_schema_version__ = '1.0.0'
 
+class IntrinsicDrugResistance(BaseModel):
+    """
+    A class to hold information about intrinsic drug resistance
+    
+    Attributes
+    ----------
+    drug : str
+        Drug associated with the gene
+    comment : str
+        Comment about the intrinsic drug resistance
+    """
+    drug: str
+    comment: str
+
+    def get_str(self):
+        return "Intrinsic resistance"
+
+    def get_drugs(self):
+        return [self.drug]
 
 class Lineage(BaseModel):
     """
@@ -101,6 +120,7 @@ class ProfileResult(Result):
     sub_lineage: str = None
     spoligotype: Optional[Spoligotype] = None
     drtype: str
+    intrinsic_dr: List[IntrinsicDrugResistance] = []
     dr_variants: List[TbDrVariant] = []
     other_variants: List[TbVariant] = []
     qc_fail_variants: List[Union[TbDrVariant,TbVariant]] = []

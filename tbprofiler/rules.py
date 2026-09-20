@@ -1,7 +1,7 @@
 from .plugins import ProfilePlugin
 import logging
 from pathogenprofiler.models import Variant
-from .models import ProfileResult
+from .models import ProfileResult, IntrinsicDrugResistance
 from typing import List
 import math
 import argparse
@@ -71,7 +71,14 @@ class lineageResistanceRule(Rule):
         ):
         for l in result.lineage:
             if l.lineage==lineage:
+                logging.debug(f"Adding intrinsic resistance to {drug} for lineage {lineage}")
                 result.notes.append(kwargs['note'])
+                result.intrinsic_dr.append(
+                    IntrinsicDrugResistance(
+                        drug=drug,
+                        comment=kwargs['note']
+                    )
+                )
 
         
 class SequencingArtefectRule(Rule):
@@ -175,7 +182,7 @@ class SetConfidence(ProfilePlugin):
                         if key not in ann:
                             ann[key] = ''
                     var.annotation.append(ann)
-                    logging.debug(f'{var.gene_name} {var.change} does not have a confidence value for {drug}. Setting it to {confidence[drug]}')
+                    # logging.debug(f'{var.gene_name} {var.change} does not have a confidence value for {drug}. Setting it to {confidence[drug]}')
 
 class CrossResistanceRule(Rule):
 

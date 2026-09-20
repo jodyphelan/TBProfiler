@@ -124,7 +124,7 @@ def write_text(
     text_strings["id"] = result.id
     text_strings["timestamp"] = result.timestamp
 
-    summary_table = pp.get_dr_summary(result.dr_variants,conf)
+    summary_table = pp.get_dr_summary(result.dr_variants + result.intrinsic_dr,conf)
     text_strings["notes"] = "\n".join(result.notes)
     text_strings["dr_report"] = pp.dict_list2text(summary_table,sep=sep)
     text_strings["dr_var_report"] = pp.object_list2text(result.dr_variants,mappings={"pos":"Genome Position","gene_id":"Locus Tag",'gene_name':'Gene name',"type":"Variant type","change":"Change","depth": "Depth","freq":"Estimated fraction","drugs.drug":"Drug","drugs.confidence":"Confidence","drugs.comment":"Comment"},sep=sep)
