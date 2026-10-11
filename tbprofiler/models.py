@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, List, Union
+from typing import Any, Optional, List, Union
 from pathogenprofiler import object_list2text, dict_list2text
 from pathogenprofiler.models import BamQC, FastaQC, VcfQC, Variant, DrVariant, BarcodePosition
 from datetime import datetime
@@ -25,6 +25,15 @@ class IntrinsicDrugResistance(BaseModel):
 
     def get_drugs(self):
         return [self.drug]
+    
+    def _sort_key(self):
+        return (0, self.drug.lower())
+
+    def __lt__(self, other: Any):
+        if not isinstance(other, (IntrinsicDrugResistance, TbDrVariant)):
+            return NotImplemented
+        return self._sort_key() < other._sort_key()
+    
 
 class Lineage(BaseModel):
     """
@@ -88,6 +97,21 @@ class TbDrVariant(DrVariant):
     locus_tag: str
     gene_associated_drugs: List[str] = []
 
+    def _sort_key(self):
+        return (
+            1,
+            getattr(self, "gene_name", "").lower(),
+            getattr(self, "locus_tag", "").lower(),
+            getattr(self, "pos", -1),
+        )
+
+    def __lt__(self, other: Any):
+        if not isinstance(other, (IntrinsicDrugResistance, TbDrVariant)):
+            return NotImplemented
+        return self._sort_key() < other._sort_key()
+
+
+    
 class TbVariant(Variant):
     locus_tag: str
     gene_associated_drugs: List[str] = []
