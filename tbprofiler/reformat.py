@@ -1,4 +1,6 @@
-from pathogenprofiler.models import BarcodeResult, Variant, BamQC, FastaQC, DrVariant, GenomePosition
+import json
+from collections import defaultdict
+from pathogenprofiler.models import BarcodeResult, Variant, BamQC, FastaQC, DrVariant, GenomePosition, Consequence
 from .models import Lineage, TbDrVariant, TbVariant, ProfileResult, Spoligotype, LineageResult, Pipeline
 from typing import List, Tuple , Union, Optional
 from .utils import get_gene2drugs, rv2genes, genes2rv

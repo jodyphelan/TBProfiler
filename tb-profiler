@@ -145,6 +145,7 @@ def main_profile(args):
     tbp.process_tb_profiler_args(args)
 
     variants_profile = pp.run_profiler(args)
+    
     args.notes = []
     for plugin in tbp.ProfilePlugin.__subclasses__():
         plugin().process_variants(args,variants_profile)
@@ -165,8 +166,8 @@ def main_profile(args):
 
     
 
-    tbp.clean_up_duplicate_annotations(variants_profile)
 
+    tbp.clean_up_duplicate_annotations(variants_profile)
     # Convert variant objects to DrVariant if they cause resistance
     for var in variants_profile:
         var.convert_to_dr_element()
@@ -186,6 +187,7 @@ def main_profile(args):
     else:
         qc = pp.run_vcf_qc(args)
 
+    args.notes.extend(tbp.extract_warning_notes(variants_profile))
 
     result = tbp.create_resistance_result(
         args = args,

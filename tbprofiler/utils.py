@@ -7,6 +7,10 @@ import re
 from packaging.version import Version
 import sys
 from pathogenprofiler.utils import run_cmd
+from pathogenprofiler.models import Variant
+from typing import List
+
+
 def process_tb_profiler_args(args: argparse.Namespace) -> None:
     if args.snp_dist:
         args.call_whole_genome = True
@@ -134,3 +138,15 @@ class IS6110Caller(VariantCaller):
             raise NotImplementedError("%s not implemented for %s platform" % (self.__software__,self.platform))
         run_cmd(cmd)
         return Vcf(self.vcf_file)
+
+
+def extract_warning_notes(variants: List[Variant]) -> None:
+    warning_notes = set()
+    for variant in variants:
+        for a in variant.annotation:
+            comments = [c.strip() for c in a['comment'].split("|")]
+            for c in comments:
+                if c.startswith("WARNING"):
+                    warning_notes.add(c)
+
+    return warning_notes
