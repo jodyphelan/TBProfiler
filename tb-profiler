@@ -203,6 +203,12 @@ def main_profile(args):
             for Rule in rule_class_dict[rule['type']]:
                 Rule().process_result(args=args,result=result,**rule)
 
+    result.drug_resistance_interpretation = tbp.get_dr_interpretation(
+        drugs=args.conf['drugs'],
+        intrinsic_dr=result.intrinsic_dr,
+        dr_variants=result.dr_variants,
+        other_variants=result.other_variants
+    )
 
     for plugin in tbp.ProfilePlugin.__subclasses__():
         plugin().process_result(args,result)
