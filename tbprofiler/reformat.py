@@ -282,7 +282,7 @@ def create_resistance_result(
         'notes':notes,
         'lineage':lineage,
         'spoligotype':spoligotype,
-        'drug_resistance_interpretation': interpretation_table,
+        # 'drug_resistance_interpretation': interpretation_table,
         'drtype':drtype,
         'dr_variants':dr_variants,
         'other_variants':other_variants,
