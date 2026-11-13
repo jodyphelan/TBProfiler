@@ -14,6 +14,7 @@ def get_dr_interpretation(
             'drug': drug,
             'resistance_mechanisms': [],
             'resistance_level': [],
+            'warnings': [],
             'comments': set()
         }
     for mechanism in intrinsic_dr:
@@ -28,6 +29,8 @@ def get_dr_interpretation(
             if drug in interpretation_dict:
                 interpretation_dict[drug]['resistance_mechanisms'].append(f'{mechanism.gene_name}:{mechanism.change}')
                 interpretation_dict[drug]['comments'].add(d['comment'])
+                if 'WARNING' in d['comment']:
+                    interpretation_dict[drug]['warnings'].append(d['comment'])
                 if d['resistance_level']:
                     interpretation_dict[drug]['resistance_level'].append(d['resistance_level'].lower())
 
@@ -37,7 +40,9 @@ def get_dr_interpretation(
     for drug in interpretation_dict:
         d = interpretation_dict[drug]
         interpretation = ""
-        if "high" in d['resistance_level']:
+        if len(d['warnings']) > 0 and len(d['resistance_mechanisms'])==len(d['warnings']):
+            interpretation = "W"
+        elif "high" in d['resistance_level']:
             interpretation = "R (high)"
         elif d['resistance_level'].count('low') >1:
             interpretation = "R (high)"
