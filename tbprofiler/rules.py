@@ -259,6 +259,7 @@ class CompensatoryRule(Rule):
         drug: str,
         original_confidence: str,
         updated_confidence: str,
+        updated_resistance_level: str,
         note: str,
         **kwargs
     ):
@@ -295,4 +296,6 @@ class CompensatoryRule(Rule):
                             ann['confidence'] = updated_confidence
                             ann['type'] = 'drug_resistance'
                             ann['comment'] = note
+                            logging.debug(f"Updated resistance level to {updated_resistance_level} for {var.gene_name} {var.change} for {drug}")
+                            ann['resistance_level'] = updated_resistance_level
     
