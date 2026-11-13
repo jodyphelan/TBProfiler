@@ -33,7 +33,23 @@ class IntrinsicDrugResistance(BaseModel):
         if not isinstance(other, (IntrinsicDrugResistance, TbDrVariant)):
             return NotImplemented
         return self._sort_key() < other._sort_key()
+
+class DrugResistanceInterpretation(BaseModel):
+    """
+    A class to hold information about drug resistance interpretation
     
+    Attributes
+    ----------
+    drug : str
+        Drug associated with the interpretation
+    interpretation : str
+        Interpretation of the drug resistance
+    """
+    drug: str
+    interpretation: str
+    resistance_mechanisms: List[str] = []
+    resistance_level: List[str] = []
+    comments: List[str] = []
 
 class Lineage(BaseModel):
     """
@@ -144,6 +160,7 @@ class ProfileResult(Result):
     sub_lineage: str = None
     spoligotype: Optional[Spoligotype] = None
     drtype: str
+    drug_resistance_interpretation: List[DrugResistanceInterpretation] = []
     intrinsic_dr: List[IntrinsicDrugResistance] = []
     dr_variants: List[TbDrVariant] = []
     other_variants: List[TbVariant] = []

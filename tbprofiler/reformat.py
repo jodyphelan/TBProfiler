@@ -1,6 +1,8 @@
 import json
 from collections import defaultdict
 from pathogenprofiler.models import BarcodeResult, Variant, BamQC, FastaQC, DrVariant, GenomePosition, Consequence
+
+from tbprofiler.interpretation import get_dr_interpretation
 from .models import Lineage, TbDrVariant, TbVariant, ProfileResult, Spoligotype, LineageResult, Pipeline
 from typing import List, Tuple , Union, Optional
 from .utils import get_gene2drugs, rv2genes, genes2rv
@@ -268,11 +270,19 @@ def create_resistance_result(
         qc.missing_positions = filter_missing_positions(qc.missing_positions)
         qc.missing_positions = add_missing_position_gene_fields(qc.missing_positions, args.conf['bed'])
 
+    interpretation_table     = get_dr_interpretation(
+        drugs=args.conf['drugs'],
+        intrinsic_dr=[],
+        dr_variants=dr_variants,
+        other_variants=other_variants
+    )
+    print(interpretation_table)
     data = {
         'id':args.prefix,
         'notes':notes,
         'lineage':lineage,
         'spoligotype':spoligotype,
+        'drug_resistance_interpretation': interpretation_table,
         'drtype':drtype,
         'dr_variants':dr_variants,
         'other_variants':other_variants,
