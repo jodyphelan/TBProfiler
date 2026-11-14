@@ -1,0 +1,76 @@
+canettii_pza_rule:
+  type: lineageResistanceRule
+  lineage: M.canettii
+  drug: pyrazinamide
+  note: 'M. canettii is intrinsically resistant to pyrazinamide'
+
+canettii_pmd_rule:
+  type: lineageResistanceRule
+  lineage: M.canettii
+  drug: pretomanid
+  note: 'M. canettii is intrinsically resistant to pretomanid'
+
+bovis_bcg_pza_rule:
+  type: lineageResistanceRule
+  lineage: La1.2.BCG
+  drug: pyrazinamide
+  note: 'M. bovis BCG is intrinsically resistant to pyrazinamide'
+
+bovis_bcg_cys_rule:
+  type: lineageResistanceRule
+  lineage: La1.2.BCG
+  drug: cycloserine
+  note: 'M. bovis BCG is intrinsically resistant to cycloserine'
+
+bovis_bcg_terizidone_rule:
+  type: lineageResistanceRule
+  lineage: La1.2.BCG
+  drug: terizidone
+  note: 'M. bovis BCG is intrinsically resistant to terizidone'
+  
+katG_ahpC_compensatory_rule:
+  type: CompensatoryRule
+  resistance_gene: katG
+  compensatory_gene: ahpC
+  compensatory_mutations: 
+    - "c.-81C>T" 
+    - "c.-77T>A" 
+    - "c.-76T>A" 
+    - "c.-72C>T" 
+    - "c.-57C>T" 
+    - "c.-54C>T" 
+    - "c.-52C>A" 
+    - "c.-52C>T" 
+    - "c.-51G>A"  
+    - "c.-48G>A"
+  drug: isoniazid
+  original_confidence: "Uncertain significance"
+  updated_confidence: "Assoc w R - Interim"
+  updated_resistance_level: "High"
+  note: 'Mutations in ahpC can compensate for loss of function mutations in katG, leading to isoniazid resistance'
+
+eis_rule:
+  type: epistasisRule
+  source:
+    gene_name: eis
+    type: LoF
+  target:
+    drug:
+    - kanamycin
+    - amikacin
+    gene_name: eis
+  source_inactivation_freq_cutoff: 100
+  target_escape_freq_cutoff: 50
+  
+
+mmpR5_rule:
+  type: epistasisRule
+  source:
+    gene_name: mmpL5
+    type: LoF
+  target:
+    drug: bedaquiline
+    gene_name: mmpR5
+  source_inactivation_freq_cutoff: 100
+  target_escape_freq_cutoff: 50
+

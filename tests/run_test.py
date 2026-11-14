@@ -36,10 +36,11 @@ por5_dr_variants = [
     ('inhA', 'c.-777C>T'),
     ('pncA', 'p.Val125Gly'),
     ('embB', 'p.Met306Val'),
+    ('gid','p.Ala80Pro')
 ]
 
-db = 'testdb'
-branch = 'who_v2+'
+db = 'who_v3'
+branch = 'who_v3'
 
 def test_db():
     run_cmd(f"tb-profiler update_tbdb --branch {branch} --prefix {db}")
@@ -86,33 +87,5 @@ def test_collate():
     run_cmd(f"tb-profiler collate --db {db} --samples samples.txt")
     assert open("tbprofiler.txt").read() == collate_text
 
-# def test_tbp_parser():
-#     run_cmd("git clone https://github.com/theiagen/tbp-parser.git")
-#     os.mkdir("tbp-parser/tb-profiler-test")
-#     os.chdir("tbp-parser/tb-profiler-test")
-
-#     run_cmd("samtools index ../../bam/por5A_fastq.bam")
-#     run_cmd('python ../tbp_parser/tbp_parser.py ../../results/por5A_freebayes.results.json ../../bam/por5A_fastq.bam    -o "example-tbp-parser"    --min_depth 12     --min_frequency 0.9     --sequencing_method "Illumina NextSeq"    --operator "John Doe"')
-#     for row in csv.DictReader(open("example-tbp-parser.looker_report.csv")):
-#         pass
-
-#     target = {
-#         'amikacin': 'S',
-#         'bedaquiline': 'U',
-#         'capreomycin': 'S',
-#         'clofazimine': 'S',
-#         'ethambutol': 'R',
-#         'ethionamide': 'R',
-#         'isoniazid': 'R',
-#         'kanamycin': 'S',
-#         'levofloxacin': 'S',
-#         'linezolid': 'S',
-#         'moxifloxacin': 'S',
-#         'pyrazinamide': 'R',
-#         'rifampin': 'R',
-#         'streptomycin': 'U',
-#     }
-#     for drug, val in target.items():
-#         assert row[drug] == val, f"Expected {drug} to be {val}, got {row[drug]}"
 
 
