@@ -51,6 +51,7 @@ def inactivate_drug_resistance(variants: List[Variant]):
             for ann in csq.annotation:
                 if ann['type']=='drug_resistance':
                     ann['type'] = 'inactivated_drug_resistance'
+                    ann['confidence'] = "Not assoc w R - Interim"
             
 class Rule(ProfilePlugin):
     pass
@@ -289,7 +290,7 @@ class CompensatoryRule(Rule):
                       f"\nHigh level resistance variants present: {high_level_resistance_variants}")
         if compensatory_variant_present and not high_level_resistance_variants:
             for var in variants:
-                if var.gene_name==resistance_gene:
+                if var.gene_name==resistance_gene and var.type!="upstream_gene_variant":
                     for ann in var.annotation:
                         if ann['type']=='who_confidence' and ann['drug']==drug and ann['confidence']==original_confidence:
                             logging.debug(f"Updating confidence from {original_confidence} to {updated_confidence} for {var.gene_name} {var.change} for {drug} based on presence of compensatory mutation(s) in {compensatory_gene}")

@@ -24,7 +24,6 @@ def get_dr_interpretation(
 
     for mechanism in dr_variants:
         for d in mechanism.drugs:
-            print(d)
             drug = d['drug']
             if drug in interpretation_dict:
                 interpretation_dict[drug]['resistance_mechanisms'].append(f'{mechanism.gene_name}:{mechanism.change}')

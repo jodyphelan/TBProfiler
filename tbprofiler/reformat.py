@@ -276,7 +276,6 @@ def create_resistance_result(
         dr_variants=dr_variants,
         other_variants=other_variants
     )
-    print(interpretation_table)
     data = {
         'id':args.prefix,
         'notes':notes,
