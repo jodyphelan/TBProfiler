@@ -11,7 +11,7 @@ SILENT_MUTATIONS = ('synonymous_mutation','initiator_codon_variant','stop_retain
 
 def search_variant(variants: List[Variant], **kwargs) -> List[Variant]:
     type_expansions = {
-        'lof': ('frameshift_variant','stop_gained','transcript_ablation','feature_ablation')
+        'lof': ('frameshift_variant','stop_gained','transcript_ablation','feature_ablation','start_lost')
     }
     found_variants = set()
     for var in variants:
@@ -134,13 +134,13 @@ class epistasisRule(Rule):
         if source_vars and target_vars:
             source_vars_changes = ", ".join([x.change for x in source_vars])
             target_vars_changes = ", ".join([x.change for x in target_vars])
-            note = f"Mutation(s) detected in {source_vars[0].gene_name} ({source_vars_changes}) which may abrogate the effect of the genetically linked {target_vars[0].gene_name} mutation(s) ({target_vars_changes})."
+            note = f"Mutation(s) detected in {source['gene_name']} ({source_vars_changes}) which may abrogate the effect of the genetically linked {target_vars[0].gene_name} mutation(s) ({target_vars_changes})."
             
             if source_vars_total_freq>=source_inactivation_freq_cutoff:
                 inactivate_drug_resistance(target_vars)
             freq_diff = target_vars_total_freq - source_vars_total_freq 
             if freq_diff > target_escape_freq_cutoff:
-                note += f" However, the combined frequency of the {target_vars[0].gene_name} mutation(s) is {freq_diff}% higher than the {source_vars[0].gene_name} mutation(s), indicating a potential resistant subpopulation."
+                note += f" However, the combined frequency of the {target_vars[0].gene_name} mutation(s) is {freq_diff}% higher than the {source['gene_name']} mutation(s), indicating a potential resistant subpopulation."
             
             note += " Please consult the raw data for more information."
             args.notes.append(note)
