@@ -1,11 +1,55 @@
 from pydantic import BaseModel, Field
-from typing import Optional, List, Union
+from typing import Any, Optional, List, Union
 from pathogenprofiler import object_list2text, dict_list2text
 from pathogenprofiler.models import BamQC, FastaQC, VcfQC, Variant, DrVariant, BarcodePosition
 from datetime import datetime
 
 __model_schema_version__ = '1.0.0'
 
+class IntrinsicDrugResistance(BaseModel):
+    """
+    A class to hold information about intrinsic drug resistance
+    
+    Attributes
+    ----------
+    drug : str
+        Drug associated with the gene
+    comment : str
+        Comment about the intrinsic drug resistance
+    """
+    drug: str
+    comment: str
+
+    def get_str(self):
+        return "Intrinsic resistance"
+
+    def get_drugs(self):
+        return [self.drug]
+    
+    def _sort_key(self):
+        return (0, self.drug.lower())
+
+    def __lt__(self, other: Any):
+        if not isinstance(other, (IntrinsicDrugResistance, TbDrVariant)):
+            return NotImplemented
+        return self._sort_key() < other._sort_key()
+
+class DrugResistanceInterpretation(BaseModel):
+    """
+    A class to hold information about drug resistance interpretation
+    
+    Attributes
+    ----------
+    drug : str
+        Drug associated with the interpretation
+    interpretation : str
+        Interpretation of the drug resistance
+    """
+    drug: str
+    interpretation: str
+    resistance_mechanisms: List[str] = []
+    resistance_level: List[str] = []
+    comments: List[str] = []
 
 class Lineage(BaseModel):
     """
@@ -69,6 +113,21 @@ class TbDrVariant(DrVariant):
     locus_tag: str
     gene_associated_drugs: List[str] = []
 
+    def _sort_key(self):
+        return (
+            1,
+            getattr(self, "gene_name", "").lower(),
+            getattr(self, "locus_tag", "").lower(),
+            getattr(self, "pos", -1),
+        )
+
+    def __lt__(self, other: Any):
+        if not isinstance(other, (IntrinsicDrugResistance, TbDrVariant)):
+            return NotImplemented
+        return self._sort_key() < other._sort_key()
+
+
+    
 class TbVariant(Variant):
     locus_tag: str
     gene_associated_drugs: List[str] = []
@@ -101,6 +160,8 @@ class ProfileResult(Result):
     sub_lineage: str = None
     spoligotype: Optional[Spoligotype] = None
     drtype: str
+    drug_resistance_interpretation: List[DrugResistanceInterpretation] = []
+    intrinsic_dr: List[IntrinsicDrugResistance] = []
     dr_variants: List[TbDrVariant] = []
     other_variants: List[TbVariant] = []
     qc_fail_variants: List[Union[TbDrVariant,TbVariant]] = []

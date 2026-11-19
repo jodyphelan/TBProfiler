@@ -1,5 +1,5 @@
 {
-    "db-schema-version": "2.1.0",
+    "db-schema-version": "3.0.0",
     "snpEff_db": "Mycobacterium_tuberculosis_h37rv_tbprofiler",
     "drugs": [
         "rifampicin",
@@ -21,18 +21,19 @@
         "ethionamide",
         "prothionamide",
         "para-aminosalicylic_acid",
-        "cycloserine"
+        "cycloserine",
+        "terizidone"
     ],
     "tb-profiler-version": ">=6.6.0,<7.0.0",
     "type": "reference",
     "version": {
-        "name": "who_v2+",
+        "name": "who_v3",
         "repo": "git@github.com:jodyphelan/tbdb.git",
-        "branch": "who_v2+",
-        "commit": "7fe4364e",
+        "branch": "master",
+        "commit": "618cf0ff",
         "status": "modified",
         "author": "jodyphelan",
-        "date": "Thu Mar 12 18:19:10 2026 +0100",
+        "date": "Wed Mar 11 19:33:35 2026 +0100",
         "db-schema-version": "2.1.0",
         "tb-profiler-version": ">=6.6.0,<7.0.0"
     },

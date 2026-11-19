@@ -6,6 +6,10 @@ import logging
 import re
 from packaging.version import Version
 import sys
+from pathogenprofiler.utils import run_cmd
+from pathogenprofiler.models import Variant
+from typing import List
+
 
 def process_tb_profiler_args(args: argparse.Namespace) -> None:
     if args.snp_dist:
@@ -119,3 +123,30 @@ def get_tier1_genes(dbname,dbdir=f'{sys.base_prefix}/share/tbprofiler'):
 
 def get_default_db_dir():
     return f'{sys.base_prefix}/share/tbprofiler'
+
+
+from pathogenprofiler import VariantCaller
+
+class IS6110Caller(VariantCaller):
+    __software__ = "is6110"
+    def call_variants(self) -> Vcf:
+        # Call variants using Freebayes
+        self.vcf_file = "%s.is6110.vcf.gz" % (self.prefix) 
+        if self.platform=="illumina":
+            cmd = f"is6110 -b {self.bam_file} -r {self.ref_file} -g {self.gff_file} -o {self.vcf_file}"
+        else:
+            raise NotImplementedError("%s not implemented for %s platform" % (self.__software__,self.platform))
+        run_cmd(cmd)
+        return Vcf(self.vcf_file)
+
+
+def extract_warning_notes(variants: List[Variant]) -> None:
+    warning_notes = set()
+    for variant in variants:
+        for a in variant.annotation:
+            comments = [c.strip() for c in a['comment'].split("|")]
+            for c in comments:
+                if c.startswith("WARNING"):
+                    warning_notes.add(c)
+
+    return warning_notes

@@ -1,16 +1,17 @@
 from .plugins import ProfilePlugin
 import logging
 from pathogenprofiler.models import Variant
-from .models import ProfileResult
+from .models import ProfileResult, IntrinsicDrugResistance
 from typing import List
 import math
 import argparse
 import re
 
+SILENT_MUTATIONS = ('synonymous_mutation','initiator_codon_variant','stop_retained_variant','start_retained_variant')
 
 def search_variant(variants: List[Variant], **kwargs) -> List[Variant]:
     type_expansions = {
-        'lof': ('frameshift_variant','stop_gained','transcript_ablation','feature_ablation')
+        'lof': ('frameshift_variant','stop_gained','transcript_ablation','feature_ablation','start_lost')
     }
     found_variants = set()
     for var in variants:
@@ -50,6 +51,7 @@ def inactivate_drug_resistance(variants: List[Variant]):
             for ann in csq.annotation:
                 if ann['type']=='drug_resistance':
                     ann['type'] = 'inactivated_drug_resistance'
+                    ann['confidence'] = "Not assoc w R - Interim"
             
 class Rule(ProfilePlugin):
     pass
@@ -70,7 +72,14 @@ class lineageResistanceRule(Rule):
         ):
         for l in result.lineage:
             if l.lineage==lineage:
+                logging.debug(f"Adding intrinsic resistance to {drug} for lineage {lineage}")
                 result.notes.append(kwargs['note'])
+                result.intrinsic_dr.append(
+                    IntrinsicDrugResistance(
+                        drug=drug,
+                        comment=kwargs['note']
+                    )
+                )
 
         
 class SequencingArtefectRule(Rule):
@@ -125,13 +134,13 @@ class epistasisRule(Rule):
         if source_vars and target_vars:
             source_vars_changes = ", ".join([x.change for x in source_vars])
             target_vars_changes = ", ".join([x.change for x in target_vars])
-            note = f"Mutation(s) detected in {source_vars[0].gene_name} ({source_vars_changes}) which may abrogate the effect of the genetically linked {target_vars[0].gene_name} mutation(s) ({target_vars_changes})."
+            note = f"Mutation(s) detected in {source['gene_name']} ({source_vars_changes}) which may abrogate the effect of the genetically linked {target_vars[0].gene_name} mutation(s) ({target_vars_changes})."
             
             if source_vars_total_freq>=source_inactivation_freq_cutoff:
                 inactivate_drug_resistance(target_vars)
             freq_diff = target_vars_total_freq - source_vars_total_freq 
             if freq_diff > target_escape_freq_cutoff:
-                note += f" However, the combined frequency of the {target_vars[0].gene_name} mutation(s) is {freq_diff}% higher than the {source_vars[0].gene_name} mutation(s), indicating a potential resistant subpopulation."
+                note += f" However, the combined frequency of the {target_vars[0].gene_name} mutation(s) is {freq_diff}% higher than the {source['gene_name']} mutation(s), indicating a potential resistant subpopulation."
             
             note += " Please consult the raw data for more information."
             args.notes.append(note)
@@ -160,8 +169,8 @@ class SetConfidence(ProfilePlugin):
             
             for drug in var.gene_associated_drugs:
                 if drug not in confidence:
-                    if var.type=='synonymous_variant':
-                        confidence[drug] = 'Not assoc w R - Interim'
+                    if var.type in SILENT_MUTATIONS:                        
+                        confidence[drug] = 'Not Assoc W R - Interim'
                     else:
                         confidence[drug] = 'Uncertain significance'
                     ann = {
@@ -174,7 +183,7 @@ class SetConfidence(ProfilePlugin):
                         if key not in ann:
                             ann[key] = ''
                     var.annotation.append(ann)
-                    logging.debug(f'{var.gene_name} {var.change} does not have a confidence value for {drug}. Setting it to {confidence[drug]}')
+                    # logging.debug(f'{var.gene_name} {var.change} does not have a confidence value for {drug}. Setting it to {confidence[drug]}')
 
 class CrossResistanceRule(Rule):
 
@@ -235,3 +244,59 @@ class ResistanceLevelRule(Rule):
                         'comment':'High level resistance mutation' if key in high_level_resistance_variants else 'Low level resistance mutation'
                     })
                     logging.debug(f'Setting resistance level to {resistance_level} for {var.gene_name} {var.change} for {drug}')
+
+class CompensatoryRule(Rule):
+    """
+    Docstring for CompensatoryRule
+    """
+    __domain__ = 'variants'
+    def process_variants(
+        self, 
+        args: argparse.Namespace,
+        variants: List[Variant], 
+        resistance_gene: str,
+        compensatory_gene: str,
+        compensatory_mutations: List[str],
+        drug: str,
+        original_confidence: str,
+        updated_confidence: str,
+        updated_resistance_level: str,
+        note: str,
+        **kwargs
+    ):
+        compensatory_variant_present = False
+        for var in variants:
+            if var.gene_name==compensatory_gene and var.change in compensatory_mutations:
+                compensatory_variant_present = True
+                logging.debug(f"Found compensatory mutation {var.gene_name} {var.change} which may abrogate the effect of a linked resistance mutation in {resistance_gene} for {drug}")
+                break
+        
+        high_level_resistance_variants = False
+        for var in variants:
+            resistance_variant = False
+            for ann in var.annotation:
+                if ann['type']=='drug_resistance' and ann['drug']==drug and ann['confidence']=="Assoc w R":
+                    resistance_variant = True
+                    break
+
+            if var.gene_name==resistance_gene and resistance_variant:
+                for ann in var.annotation:
+                    if ann['type']=='who_confidence' and ann['drug']==drug and ann['confidence']==original_confidence:
+                        high_level_resistance_variants = True
+                        logging.debug(f"Found resistance mutation {var.gene_name} {var.change} with confidence {original_confidence} for {drug} which may be abrogated by compensatory mutation(s) in {compensatory_gene}")
+                        break
+
+        logging.debug(f"Compensatory variant present: {compensatory_variant_present}"
+                      f"\nHigh level resistance variants present: {high_level_resistance_variants}")
+        if compensatory_variant_present and not high_level_resistance_variants:
+            for var in variants:
+                if var.gene_name==resistance_gene and var.type!="upstream_gene_variant":
+                    for ann in var.annotation:
+                        if ann['type']=='who_confidence' and ann['drug']==drug and ann['confidence']==original_confidence:
+                            logging.debug(f"Updating confidence from {original_confidence} to {updated_confidence} for {var.gene_name} {var.change} for {drug} based on presence of compensatory mutation(s) in {compensatory_gene}")
+                            ann['confidence'] = updated_confidence
+                            ann['type'] = 'drug_resistance'
+                            ann['comment'] = note
+                            logging.debug(f"Updated resistance level to {updated_resistance_level} for {var.gene_name} {var.change} for {drug}")
+                            ann['resistance_level'] = updated_resistance_level
+    

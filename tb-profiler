@@ -36,7 +36,7 @@ discovered_plugins = {
 
 __softwarename__ = 'tbprofiler'
 __default_db_dir__ = f'{sys.base_prefix}/share/{__softwarename__}'
-__compatible_db_schema_version__ = '2.1.0'
+__compatible_db_schema_version__ = '3.0.0'
 
 @atexit.register
 def cleanup():
@@ -128,7 +128,12 @@ def plugin_decorator(func):
 
 @plugin_decorator
 def main_profile(args):
-        
+    args.callers = [args.caller,"is6110","delly"]
+    if args.no_delly:
+        args.callers.remove("delly")
+    if args.platform.lower()!="illumina":
+        args.callers.remove("is6110")
+    args.calling_params  = [args.calling_params,None,None] if args.calling_params else [None,None,None]
     pp.process_args(args)
     create_output_directories(args)
 
@@ -140,6 +145,7 @@ def main_profile(args):
     tbp.process_tb_profiler_args(args)
 
     variants_profile = pp.run_profiler(args)
+    
     args.notes = []
     for plugin in tbp.ProfilePlugin.__subclasses__():
         plugin().process_variants(args,variants_profile)
@@ -160,16 +166,14 @@ def main_profile(args):
 
     
 
-    tbp.clean_up_duplicate_annotations(variants_profile)
 
+    tbp.clean_up_duplicate_annotations(variants_profile)
     # Convert variant objects to DrVariant if they cause resistance
     for var in variants_profile:
         var.convert_to_dr_element()
 
-
     if args.call_lineage:
-        barcode_result = tbp.barcode2lineage(pp.run_barcoder(args))
-        
+        barcode_result = tbp.barcode2lineage(pp.run_barcoder(args)) 
 
     if args.spoligotype:
         spoligotype = tbp.spoligotype(args)
@@ -183,6 +187,7 @@ def main_profile(args):
     else:
         qc = pp.run_vcf_qc(args)
 
+    args.notes.extend(tbp.extract_warning_notes(variants_profile))
 
     result = tbp.create_resistance_result(
         args = args,
@@ -198,6 +203,12 @@ def main_profile(args):
             for Rule in rule_class_dict[rule['type']]:
                 Rule().process_result(args=args,result=result,**rule)
 
+    result.drug_resistance_interpretation = tbp.get_dr_interpretation(
+        drugs=args.conf['drugs'],
+        intrinsic_dr=result.intrinsic_dr,
+        dr_variants=result.dr_variants,
+        other_variants=result.other_variants
+    )
 
     for plugin in tbp.ProfilePlugin.__subclasses__():
         plugin().process_result(args,result)
@@ -447,7 +458,7 @@ group.add_argument('--bam','-a',help='BAM file (make sure it has been generated 
 group.add_argument('--fasta','-f',help='Fasta file')
 group.add_argument('--vcf','-v',help='VCF file')
 input.add_argument('--platform','-m',choices=["illumina","nanopore","pacbio"],default="illumina",help='NGS Platform used to generate data')
-input.add_argument('--db',default='who_v2+',help='Mutation panel name')
+input.add_argument('--db',default='who_v3',help='Mutation panel name')
 input.add_argument('--external_db','--external-db',type=str,help='Path to db files prefix (overrides --db parameter)')
 
 output=parser_sub.add_argument_group("Output options")
@@ -497,7 +508,7 @@ for cls in vc.VariantCaller.__subclasses__():
         for a in cls.__cli_params__:
             algorithm.add_argument(*a['args'],**a['kwargs'])
 
-algorithm.add_argument('--kmer_counter','--kmer-counter',default='FastK',choices=["FastK","kmc","dsk"],type=str,help="Kmer counter")
+algorithm.add_argument('--kmer_counter','--kmer-counter',default='dsk',choices=["kmc","dsk"],type=str,help="Kmer counter")
 algorithm.add_argument('--coverage_tool','--coverage-tool',default='samtools',choices=["samtools","bedtools"],type=str,help="Kmer counter")
 algorithm.add_argument('--suspect',action="store_true",help="Use the suspect suite of tools to add ML predictions")
 algorithm.add_argument('--spoligotype',action="store_true",help="Perform in-silico spoligotyping")
@@ -530,7 +541,7 @@ other.add_argument('--delly_vcf','--delly-vcf',help=argparse.SUPPRESS)
 other.add_argument('--supplementary_bam','--supplementary-bam',help=argparse.SUPPRESS)
 other.add_argument('--low_dp_mask','--low-dp-mask',help=argparse.SUPPRESS)
 other.add_argument('--save_low_dp_mask','--save-low-dp-mask',action='store_true',help=argparse.SUPPRESS)
-other.add_argument('--consensus',action='store_true',help=argparse.SUPPRESS)
+other.add_argument('--consensus',action='store_true',help="Generate consensus sequence")
 other.add_argument('--db_dir',type=os.path.abspath,default=__default_db_dir__,help='Database directory')
 other.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
 other.add_argument('--temp',help="Temp firectory to process all files",type=str,default=".")
@@ -547,7 +558,7 @@ parser_sub.add_argument('--barcode_snps','--barcode-snps',help='Dump barcoding m
 parser_sub.add_argument('--caller',default='freebayes',choices=["bcftools","freebayes","gatk"],type=str,help="Variant caller")
 parser_sub.add_argument('--kmer_counter','--kmer-counter',default='FastK',choices=["FastK","kmc","dsk"],type=str,help="Kmer counter")
 parser_sub.add_argument('--platform','-m',choices=["illumina","nanopore","pacbio"],default="illumina",help='NGS Platform used to generate data')
-parser_sub.add_argument('--db',default='who_v2+',help='Mutation panel name')
+parser_sub.add_argument('--db',default='who_v3',help='Mutation panel name')
 parser_sub.add_argument('--spoligotype',action="store_true",help="Perform in-silico spoligotyping")
 parser_sub.add_argument('--external_db','--external-db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 parser_sub.add_argument('--text_template','--text-template',type=str,help='Jinja2 formatted template for output')
@@ -574,7 +585,7 @@ parser_sub.add_argument('--docx',action="store_true",help="Add docx output. This
 parser_sub.add_argument('--text_template',type=str,help='Jinja2 formatted template for output')
 parser_sub.add_argument('--kmer_counter','--kmer-counter',default='FastK',choices=["FastK","kmc","dsk"],type=str,help="Kmer counter")
 parser_sub.add_argument('--platform','-m',choices=["illumina","nanopore","pacbio"],default="illumina",help='NGS Platform used to generate data')
-parser_sub.add_argument('--db',default='who_v2+',help='Mutation panel name')
+parser_sub.add_argument('--db',default='who_v3',help='Mutation panel name')
 parser_sub.add_argument('--external_db','--external-db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
@@ -595,7 +606,7 @@ parser_sub.add_argument('--full',action="store_true",help='Output mutations in m
 parser_sub.add_argument('--all_variants','--all-variants',action="store_true",help='Output all variants in variant matrix')
 parser_sub.add_argument('--mark_missing','--mark-missing',action="store_true",help='An asteriks will be use to mark predictions which are affected by missing data at a drug resistance position')
 parser_sub.add_argument('--add_positions','--add-positions',action="store_true",help='Add variant positions to the transmission graph output')
-parser_sub.add_argument('--db',default='who_v2+',help='Full path to mutation database json file to use')
+parser_sub.add_argument('--db',default='who_v3',help='Full path to mutation database json file to use')
 parser_sub.add_argument('--format',default='txt',choices=['txt','csv'],help='Format of the output')
 parser_sub.add_argument('--external_db','--external-db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 parser_sub.add_argument('--dir','-d',nargs="+",default=["results"],help='Storage directory')
@@ -616,7 +627,7 @@ parser_sub.add_argument('--docx',action="store_true",help="Add docx output. This
 parser_sub.add_argument('--docx_template','--docx-template',help="Supply custom template for --docx output")
 parser_sub.add_argument('--docx_plugin','--docx-plugin',choices=list(docx_plugins),help="Use a plugin template for --docx output")
 parser_sub.add_argument('--text_template','--text-template',type=str,help='Jinja2 formatted template for output')
-parser_sub.add_argument('--db',default='who_v2+',help='Mutation panel name')
+parser_sub.add_argument('--db',default='who_v3',help='Mutation panel name')
 parser_sub.add_argument('--external_db','--external-db',type=str,help='Path to db files prefix (overrides "--db" parameter)')
 parser_sub.add_argument('--dir','-d',default=".",help='Storage directory')
 parser_sub.add_argument('--no_clean','--no-clean', action='store_true',help=argparse.SUPPRESS)
@@ -740,8 +751,8 @@ if hasattr(args, 'func'):
             args.dir = os.path.abspath(args.dir)
 
     if hasattr(args, 'db'):
-        if args.db=="who_v2+" and not args.external_db and pp.nofile(f"{args.db_dir}/who_v2+/variables.json"):
-            logging.error(f"Can't find the who_v2+ database at {args.db_dir}. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--db' flag")
+        if args.db=="who_v3" and not args.external_db and pp.nofile(f"{args.db_dir}/who_v3/variables.json"):
+            logging.error(f"Can't find the who_v3 database at {args.db_dir}. Please run 'tb-profiler update_tbdb' to load the default library or specify another using the '--db' flag")
             raise SystemExit
         if args.external_db:
             args.db = args.external_db

@@ -8,5 +8,6 @@ from .snp_dists import *
 from .docx import *
 from .plugins import *
 from .rules import *
+from .interpretation import *
 
-__version__ = "6.7.0"
+__version__ = "7.0.0"
