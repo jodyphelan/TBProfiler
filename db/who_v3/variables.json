@@ -24,7 +24,7 @@
         "cycloserine",
         "terizidone"
     ],
-    "tb-profiler-version": ">=6.6.0,<7.0.0",
+    "tb-profiler-version": ">=7.0.0,<8.0.0",
     "type": "reference",
     "version": {
         "name": "who_v3",
@@ -35,7 +35,7 @@
         "author": "jodyphelan",
         "date": "Wed Mar 11 19:33:35 2026 +0100",
         "db-schema-version": "2.1.0",
-        "tb-profiler-version": ">=6.6.0,<7.0.0"
+        "tb-profiler-version": ">=7.0.0,<8.0.0"
     },
     "amplicon": false,
     "files": {
