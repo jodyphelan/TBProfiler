@@ -32,6 +32,8 @@ def search_variant(variants: List[Variant], **kwargs) -> List[Variant]:
                 if (hasattr(csq,key) and vars(csq)[key] in values):
                     test = True
                 for ann in csq.annotation:
+                    if key == 'drug' and ann['type']!='drug_resistance':
+                        continue
                     if key in ann and ann[key] in values:
                         test = True
 
