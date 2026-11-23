@@ -89,12 +89,10 @@ Database version{{d['sep']}}{{d['db_version']}}
 
 Citation
 --------
-Coll, F. et al. Rapid determination of anti-tuberculosis drug resistance from
-whole-genome sequences. Genome Medicine 7, 51. 2015
-
-Phelan, JE. et al. Integrating informatics tools and portable sequencing 
-technology for rapid detection of resistance to anti-tuberculous drugs. 
-Genome Medicine 11, 41. 2019
+Phelan, JE. et al. Updated TB-Profiler: enhanced genotypic antimicrobial 
+resistance prediction and relatedness analysis powered by a database of 
+over 171,000 Mycobacterium tuberculosis genomes. 
+Genome Medicine, 2026
 """
 
 def load_text(text_strings: str,template: str = None,file_template: str = None):

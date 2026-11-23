@@ -10,4 +10,4 @@ from .plugins import *
 from .rules import *
 from .interpretation import *
 
-__version__ = "7.0.0"
+__version__ = "7.0.1"
